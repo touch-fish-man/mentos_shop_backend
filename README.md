@@ -25,3 +25,16 @@ https://testdriven.io/blog/django-stripe-tutorial/
 https://dj-stripe.dev/installation/
 
 https://github.com/justdjango/django-stripe-tutorial
+
+
+## 登录验证码demo
+https://github.com/mbi/django-simple-captcha
+
+https://zhuanlan.zhihu.com/p/113739422
+
+https://github.com/torchbox/django-recaptcha
+
+## 用户登录、注册
+https://zhuanlan.zhihu.com/p/37692930
+
+https://docs.djangoproject.com/en/4.1/topics/auth/default
