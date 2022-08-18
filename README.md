@@ -18,3 +18,10 @@ https://github.com/liuyug/django-alipay
 https://www.wuyabala.com/article/17
 
 https://github.com/ThanlonSmith/alipay-django
+
+## stripe对接
+https://testdriven.io/blog/django-stripe-tutorial/
+
+https://dj-stripe.dev/installation/
+
+https://github.com/justdjango/django-stripe-tutorial
