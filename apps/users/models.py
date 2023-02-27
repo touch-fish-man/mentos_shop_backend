@@ -17,7 +17,7 @@ class UserProfile(AbstractUser):
     points = models.IntegerField(default=0)
     last_login = models.DateTimeField(auto_now=True)
     class Meta:
-        db_table = 'user'
+        db_table = 'users'
         verbose_name = '用户'
         verbose_name_plural = verbose_name
 class UserOrder(models.Model):

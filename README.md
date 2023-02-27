@@ -38,6 +38,10 @@ https://github.com/mbi/django-simple-captcha
 https://zhuanlan.zhihu.com/p/113739422
 
 https://github.com/torchbox/django-recaptcha
+极验
+https://docs.geetest.com/index.html
+hCaptcha
+https://docs.hcaptcha.com/
 
 ## 用户登录、注册
 https://zhuanlan.zhihu.com/p/37692930
@@ -52,3 +56,6 @@ https://community.shopify.com/c/shopify-apis-and-sdks/possible-permalinks-bug-wh
 折扣码使用api
 商品使用api
 
+## 代理服务对接api文档
+
+https://documenter.getpostman.com/view/16611495/Uz5JGuw2#722c5e36-9ca5-48fc-931e-0b940a22960f
