@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
+import datetime
 
 from pathlib import Path
 
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    "apps.users.apps.UsersConfig"
 ]
 
 MIDDLEWARE = [
@@ -125,6 +128,47 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
+AUTH_USER_MODEL = "users.UserProfile"
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        
+	 # 配置默认页面大小
+	 'PAGE_SIZE': 10,
+	 # 配置默认的分页类
+	 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+	 
+	 'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',  # 时间相关的字段
+	 
+	 # 配置异常处理器
+	 # 'EXCEPTION_HANDLER': 'api.exceptions.exception_handler',
+	 
+	 # 配置默认解析器
+	 # 'DEFAULT_PARSER_CLASSES': (
+	 # 'rest_framework.parsers.JSONParser',
+	 # 'rest_framework.parsers.FormParser',
+	 # 'rest_framework.parsers.MultiPartParser',
+	 # ),
+	 
+	 # 配置默认限流类
+	 # 'DEFAULT_THROTTLE_CLASSES': (),
+	 
+	 # 配置默认授权类
+	 # 'DEFAULT_PERMISSION_CLASSES': (
+	 # 'rest_framework.permissions.IsAuthenticated',
+	 # ),
+	 
+	 # 配置默认认证类
+	 'DEFAULT_AUTHENTICATION_CLASSES': (
+	 'rest_framework_simplejwt.authentication.JWTAuthentication',
+	 ),
+
+ 	    # 关闭api调试界面
+	   'DEFAULT_RENDERER_CLASSES': (
+           'rest_framework.renderers.JSONRenderer',   # json渲染
+           'rest_framework.renderers.BrowsableAPIRenderer',  # 浏览器渲染(生产环境可关掉)
+)
+}
+
+SIMPLE_JWT = {
+    # token有效时长
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
+    # token刷新后的有效时间
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),}

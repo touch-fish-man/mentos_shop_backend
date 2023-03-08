@@ -15,14 +15,17 @@ class UserProfile(AbstractUser):
     is_superuser = models.BooleanField(default=False)
     level = models.IntegerField(default=0)
     points = models.IntegerField(default=0)
+    
     last_login = models.DateTimeField(auto_now=True)
+    invite_code = models.CharField(max_length=100, unique=True)
+    invite_code_used = models.CharField(max_length=100)
+    invite_user_id = models.IntegerField(default=0)
     class Meta:
         db_table = 'users'
         verbose_name = '用户'
         verbose_name_plural = verbose_name
 class UserOrder(models.Model):
 
-    ALIPAY_CALLBACK_URL = f"{settings.HOST}/api/callback/alipay"
     DEFAULT_ORDER_TIME_OUT = "10m"
     STATUS_CREATED = 0
     STATUS_PAID = 1
@@ -33,7 +36,7 @@ class UserOrder(models.Model):
         (STATUS_FINISHED, "finished"),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    user_id = models.ForeignKey(UserProfile, on_delete=models.CASCADE, verbose_name="用户")
     status = models.SmallIntegerField(
         verbose_name="订单状态", db_index=True, choices=STATUS_CHOICES
     )
@@ -50,9 +53,9 @@ class UserOrder(models.Model):
     expired_at = models.DateTimeField(verbose_name="过期时间", db_index=True)
 
     def __str__(self):
-        return f"<{self.id,self.user}>:{self.amount}"
+        return f"<{self.id,self.user_id}>:{self.amount}"
 
     class Meta:
         verbose_name = "用户订单"
         verbose_name_plural = "用户订单"
-        index_together = ["user", "status"]
+        index_together = ["user_id", "status"]
