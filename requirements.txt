@@ -1,2 +1,6 @@
 django
 django-admin-interface
+djangorestframework-simplejwt
+djangorestframework
+markdown
+django-filter
