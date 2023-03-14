@@ -1,0 +1,37 @@
+from django.contrib.auth import authenticate, login, logout
+# from apps.users.serializers import UserSerializer
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+from apps.users.selectors import user_get_login_data
+
+
+class LoginApi(APIView):
+    def post(self, request):
+        # UserSerializer(data=request.data)
+        username = request.data.get('username')
+        password = request.data.get('password')
+        code = request.data.get('code')
+        if code != '1234':
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'msg': '验证码错误'})
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            login(request, user)
+            session_key = request.session.session_key
+            data = user_get_login_data(user=user)
+            return Response({'session': session_key, "data": data})
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        return Response({'status': 'success'})
+
+
+class LogoutApi(APIView):
+    def get(self, request):
+        logout(request)
+        return Response()
+
+    def post(self, request):
+        logout(request)
+        return Response()

@@ -16,7 +16,6 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
@@ -27,7 +26,6 @@ SECRET_KEY = 'django-insecure-bm6dtprdt+2j$whkuls$)q&qos%=loadtrg7qs^ytrwkhgx*ff
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
-
 
 # Application definition
 
@@ -74,7 +72,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -84,7 +81,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -104,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -115,7 +110,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
@@ -128,47 +122,48 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
-AUTH_USER_MODEL = "users.UserProfile"
+AUTH_USER_MODEL = "users.User"
 REST_FRAMEWORK = {
-	 # 配置默认页面大小
-	 'PAGE_SIZE': 10,
-	 # 配置默认的分页类
-	 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-	 
-	 'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',  # 时间相关的字段
-	 
-	 # 配置异常处理器
-	 # 'EXCEPTION_HANDLER': 'api.exceptions.exception_handler',
-	 
-	 # 配置默认解析器
-	 # 'DEFAULT_PARSER_CLASSES': (
-	 # 'rest_framework.parsers.JSONParser',
-	 # 'rest_framework.parsers.FormParser',
-	 # 'rest_framework.parsers.MultiPartParser',
-	 # ),
-	 
-	 # 配置默认限流类
-	 # 'DEFAULT_THROTTLE_CLASSES': (),
-	 
-	 # 配置默认授权类
-	 # 'DEFAULT_PERMISSION_CLASSES': (
-	 # 'rest_framework.permissions.IsAuthenticated',
-	 # ),
-	 
-	 # 配置默认认证类
-	 'DEFAULT_AUTHENTICATION_CLASSES': (
-	 'rest_framework_simplejwt.authentication.JWTAuthentication',
-	 ),
+    # 配置默认页面大小
+    'PAGE_SIZE': 10,
+    # 配置默认的分页类
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
 
- 	    # 关闭api调试界面
-	   'DEFAULT_RENDERER_CLASSES': (
-           'rest_framework.renderers.JSONRenderer',   # json渲染
-           'rest_framework.renderers.BrowsableAPIRenderer',  # 浏览器渲染(生产环境可关掉)
-)
+    'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',  # 时间相关的字段
+
+    # 配置异常处理器
+    # 'EXCEPTION_HANDLER': 'api.exceptions.exception_handler',
+
+    # 配置默认解析器
+    # 'DEFAULT_PARSER_CLASSES': (
+    # 'rest_framework.parsers.JSONParser',
+    # 'rest_framework.parsers.FormParser',
+    # 'rest_framework.parsers.MultiPartParser',
+    # ),
+
+    # 配置默认限流类
+    # 'DEFAULT_THROTTLE_CLASSES': (),
+
+    # 配置默认授权类
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    # 'rest_framework.permissions.IsAuthenticated',
+    # ),
+
+    # 配置默认认证类
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+
+    # 关闭api调试界面
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',  # json渲染
+        'rest_framework.renderers.BrowsableAPIRenderer',  # 浏览器渲染(生产环境可关掉)
+    )
 }
 
 SIMPLE_JWT = {
     # token有效时长
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
     # token刷新后的有效时间
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),}
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
