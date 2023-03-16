@@ -1,16 +1,16 @@
 version: '3'
 services:
-  db:
-    container_name: pg.local
-    image: postgres:latest
-    restart: always
-    networks:
-      - work_net
-    environment:
-      - TZ=Asia/Shanghai
-      - POSTGRES_DB=mentos_shop_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+  # db:
+  #   container_name: pg.local
+  #   image: postgres:latest
+  #   restart: always
+  #   networks:
+  #     - work_net
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #     - POSTGRES_DB=mentos_shop_db
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
   mentos_shop_backend:
     restart: always
     container_name: mentos_shop_backend.local
@@ -22,12 +22,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - /opt/mentos_shop_backend:/opt/mentos_shop_backend
+      - /opt/mentos_shop_backend/:/opt/mentos_shop_backend/
     privileged: true
     environment:
       - TZ=Asia/Shanghai
-    depends_on:
-      - db
   # redis:
   #   container_name: redis.local
   #   image: 'redis:latest'
