@@ -167,7 +167,7 @@ REST_FRAMEWORK = {
     # 关闭api调试界面
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',  # json渲染
-        'rest_framework.renderers.BrowsableAPIRenderer',  # 浏览器渲染(生产环境可关掉)
+        # 'rest_framework.renderers.BrowsableAPIRenderer',  # 浏览器渲染(生产环境可关掉)
     )
 }
 
