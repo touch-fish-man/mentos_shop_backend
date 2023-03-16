@@ -7,7 +7,8 @@ from apps.users.selectors import user_get_login_data
 from .service import exchange_code
 from django.shortcuts import redirect
 from django.conf import settings
-from ..users.models import User
+from apps.users.models import User
+import urllib
 
 
 class LoginApi(APIView):
