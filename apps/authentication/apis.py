@@ -46,6 +46,8 @@ class DiscordOauth2LoginApi(APIView):
     def get(self, request):
         client_id=settings.DISCORD_CLIENT_ID
         redirect_uri=settings.DISCORD_REDIRECT_URI
+        if request.GET.get("mode") == "bind":
+            redirect_uri=settings.DISCORD_BIND_REDIRECT_URI
         redirect_uri =urllib.parse.quote(redirect_uri)
         return Response({'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'})
 
@@ -55,7 +57,7 @@ class DiscordOauth2RedirectApi(APIView):
         code = request.GET.get('code')
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        user = exchange_code(code)
+        user = exchange_code(code,settings.DISCORD_REDIRECT_URI)
         if user is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         discord_id = user.get('id')
@@ -63,10 +65,25 @@ class DiscordOauth2RedirectApi(APIView):
         user = User.objects.filter(discord_id=discord_id).first()
         if user is None:
             # 返回标志，前端跳转到注册页面，注册附带discord_id
-            return Response({'status': 'register', 'discord_id': discord_id})
+            return redirect(f'/register?discord_id={discord_id}')
         else:
             # 登录
             discord_user = authenticate(request, user=user)
             login(request, discord_user)
             # 重定向到用户页面
             return redirect("/dashboard/")
+class DiscordBindRedirectApi(APIView):
+    def get(self, request):
+        code = request.GET.get('code')
+        if code is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        user = exchange_code(code,settings.DISCORD_BIND_REDIRECT_URI)
+        if user is None:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        discord_id = user.get('id')
+        # 绑定用户
+        user = request.user
+        user.discord_id = discord_id
+        user.save()
+        # 重定向到用户页面
+        return redirect("/dashboard/")

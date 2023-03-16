@@ -3,13 +3,13 @@ from django.conf import settings
 
 
 
-def exchange_code(code: str):
+def exchange_code(code: str,redirect_uri):
     data = {
         "client_id": settings.DISCORD_CLIENT_ID,
         "client_secret": settings.DISCORD_CLIENT_SECRET,
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": settings.DISCORD_REDIRECT_URI,
+        "redirect_uri": redirect_uri,
         "scope": "identify"
     }
     headers = {
