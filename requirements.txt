@@ -5,3 +5,6 @@ djangorestframework
 markdown
 django-filter
 requests
+gunicorn
+supervisor
+psycopg2-binary
