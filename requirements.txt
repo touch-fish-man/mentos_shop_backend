@@ -7,4 +7,6 @@ django-filter
 requests
 gunicorn
 supervisor
-psycopg2-binary
+django-environ
+psycopg2
+django-cors-headers

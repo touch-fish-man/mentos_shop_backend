@@ -4,7 +4,6 @@ ARG PYTHON_VERSION=3.10
 FROM python:${PYTHON_VERSION}
 RUN mkdir /opt/mentos_shop_backend
 COPY . /opt/mentos_shop_backend
-COPY .env.example /opt/mentos_shop_backend/.env
 WORKDIR /opt/mentos_shop_backend
 RUN pip install -r requirements.txt
 RUN python manage.py makemigrations
