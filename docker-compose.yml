@@ -1,8 +1,19 @@
 version: '3'
 services:
-  bot_api:
+  db:
+    container_name: pg.local
+    image: postgres:latest
     restart: always
-    container_name: bot_api.local
+    networks:
+      - work_net
+    environment:
+      - TZ=Asia/Shanghai
+      - POSTGRES_DB=mentos_shop_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  mentos_shop_backend:
+    restart: always
+    container_name: mentos_shop_backend.local
     build:
       context: ./
       dockerfile: Dockerfile
@@ -11,38 +22,40 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - /opt/bot_api/logs:/opt/bot_api/logs
+      - /opt/mentos_shop_backend:/opt/mentos_shop_backend
     privileged: true
     environment:
-      TZ: Asia/Shanghai
-  redis:
-    container_name: redis.local
-    image: 'redis:latest'
-    restart: always
-    networks:
-      - work_net
-    environment:
       - TZ=Asia/Shanghai
-    volumes:
-      - /opt/bot_api/config/redis.conf:/etc/redis/redis.conf
-    ports:
-      - "6379:6379"
-    command: redis-server /etc/redis/redis.conf --port 6379 --requirepass zlpzlpzlp --appendonly yes
-  ngnix:
-    container_name: nginx
-    image: nginx:latest
-    restart: always
-    networks:
-      - work_net
-    environment:
-      - TZ=Asia/Shanghai
-    ports:
-      - "80:80"
-      - "443:443"
-    privileged: true
-    volumes:
-      - /opt/bot_api/config/bot_api.conf:/etc/nginx/conf.d/bot_api.conf
-      - /opt/bot_api:/opt/bot_api
+    depends_on:
+      - db
+  # redis:
+  #   container_name: redis.local
+  #   image: 'redis:latest'
+  #   restart: always
+  #   networks:
+  #     - work_net
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #   volumes:
+  #     - /opt/bot_api/config/redis.conf:/etc/redis/redis.conf
+  #   ports:
+  #     - "6379:6379"
+  #   command: redis-server /etc/redis/redis.conf --port 6379 --requirepass zlpzlpzlp --appendonly yes
+  # ngnix:
+  #   container_name: nginx
+  #   image: nginx:latest
+  #   restart: always
+  #   networks:
+  #     - work_net
+  #   environment:
+  #     - TZ=Asia/Shanghai
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   privileged: true
+  #   volumes:
+  #     - /opt/bot_api/config/bot_api.conf:/etc/nginx/conf.d/bot_api.conf
+  #     - /opt/bot_api:/opt/bot_api
 
 networks:
   work_net:
