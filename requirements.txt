@@ -8,5 +8,5 @@ requests
 gunicorn
 supervisor
 django-environ
-psycopg2
+mysqlclient
 django-cors-headers
