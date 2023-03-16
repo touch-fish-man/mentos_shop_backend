@@ -22,7 +22,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - /opt/mentos_shop_backend/:/opt/mentos_shop_backend/
+      - /opt/mentos_shop_backend/logs/:/opt/mentos_shop_backend/logs/
     privileged: true
     environment:
       - TZ=Asia/Shanghai

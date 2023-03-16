@@ -1,13 +1,15 @@
 import requests
+from django.conf import settings
+
 
 
 def exchange_code(code: str):
     data = {
-        "client_id": "988715519010041866",
-        "client_secret": "u1S2kDo1-GmwHc5R-wsG_jxKJExRP6YA",
+        "client_id": settings.DISCORD_CLIENT_ID,
+        "client_secret": settings.DISCORD_CLIENT_SECRET,
         "grant_type": "authorization_code",
         "code": code,
-        "redirect_uri": "http://localhost:8000/oauth2/login/redirect",
+        "redirect_uri": settings.DISCORD_REDIRECT_URI,
         "scope": "identify"
     }
     headers = {

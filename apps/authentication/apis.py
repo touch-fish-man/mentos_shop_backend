@@ -6,7 +6,7 @@ from rest_framework import status
 from apps.users.selectors import user_get_login_data
 from .service import exchange_code
 from django.shortcuts import redirect
-
+from django.conf import settings
 from ..users.models import User
 
 
@@ -43,7 +43,10 @@ class LogoutApi(APIView):
 
 class DiscordOauth2LoginApi(APIView):
     def get(self, request):
-        return Response({'discord_auth_url': 'https://discord.com/api/oauth2/authorize?client_id=&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2Foauth2%2Flogin%2Fredirect&response_type=code&scope=identify'})
+        client_id=settings.DISCORD_CLIENT_ID
+        redirect_uri=settings.DISCORD_REDIRECT_URI
+        redirect_uri =urllib.parse.quote(redirect_uri)
+        return Response({'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'})
 
 
 class DiscordOauth2RedirectApi(APIView):

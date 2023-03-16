@@ -12,5 +12,5 @@ ENV TZ="Asia/Shanghai"
 COPY config/supervisord_mentos.conf /opt/
 COPY config/supervisord.conf /etc/supervisor/supervisord.conf
 EXPOSE 8000 8000
-VOLUME ["/opt/mentos_shop_backend", "/opt/mentos_shop_backend"]
+# VOLUME ["/opt/mentos_shop_backend", "/opt/mentos_shop_backend"]
 CMD ["sh","/opt/mentos_shop_backend/config/docker-entrypoint.sh"]
