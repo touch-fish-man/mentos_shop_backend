@@ -16,6 +16,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 from config.env import env
+import os
 
 env.read_env(os.path.join(BASE_DIR, ".env"))
 
