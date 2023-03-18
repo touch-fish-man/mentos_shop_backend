@@ -8,5 +8,6 @@ requests
 gunicorn
 supervisor
 django-environ
+sendgrid
 mysqlclient
 django-cors-headers

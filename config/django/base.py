@@ -12,7 +12,9 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import datetime
 
 from pathlib import Path
+import pymysql
 
+pymysql.install_as_MySQLdb()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 from config.env import env
@@ -87,7 +89,7 @@ DATABASES = {
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
-        
+
     }
 }
 
@@ -160,7 +162,7 @@ REST_FRAMEWORK = {
 
     # 配置默认认证类
     'DEFAULT_AUTHENTICATION_CLASSES': (
-         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
 
@@ -176,18 +178,21 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
     # token刷新后的有效时间
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
-DISCORD_CLIENT_ID=env('DISCORD_CLIENT_ID')
-DISCORD_CLIENT_SECRET=env('DISCORD_CLIENT_SECRET')
-DISCORD_REDIRECT_URI=env('DISCORD_REDIRECT_URI')
-DISCORD_BIND_REDIRECT_URI=env('DISCORD_BIND_REDIRECT_URI')
+DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
+DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET')
+DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
+DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
 
-
-#邮件相关配置
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'# 发送邮件配置
-EMAIL_HOST = 'smtp.163.com'# 服务器名称
-EMAIL_PORT = 25# 服务端口
-EMAIL_HOST_USER = '17731697245@163.com' # 填写自己邮箱
-EMAIL_HOST_PASSWORD = 'YHEEQVQPCXALBSER'# 在邮箱中设置的客户端授权密码
-EMAIL_FROM = 'louis<17731697245@163.com>'# 收件人看到的发件人
+# 邮件相关配置
+EMAIL_METHOD = 'sendgrid'  # 邮件发送方式 smtp or sendgrid
+# smtp 配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
+EMAIL_HOST = 'smtp.163.com'  # 服务器名称
+EMAIL_PORT = 25  # 服务端口
+EMAIL_HOST_USER = '17731697245@163.com'  # 填写自己邮箱
+EMAIL_HOST_PASSWORD = 'YHEEQVQPCXALBSER'  # 在邮箱中设置的客户端授权密码
+EMAIL_FROM = "Mentos Org"  # 收件人看到的发件人
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_USE_TLS = True   #是否使用TLS安全传输协议
+EMAIL_USE_TLS = True
+# sendgrid 配置
+SENDGRID_API_KEY = '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'
