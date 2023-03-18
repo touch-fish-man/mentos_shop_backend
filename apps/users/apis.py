@@ -88,11 +88,29 @@ class UserRegisterApi(APIView):
         password = request.data.get('password')
         email = request.data.get('email')
         code = request.data.get('code')
-        if code != '1234':
-            return Response({'status': 'fail'}, status=400)
-        user = User.objects.create_user(username=username, password=password, email=email)
+        invite_code = request.data.get('invite_code')
+    
+    #验证码验证
+        queryset = Code.objects.filter(email=email)
+        if queryset.exists():
+            db_code = queryset.order_by('-create_time').first()
+        else:
+            return Response({'status': False, 'msg': 'email error'}, status=200)
+        time_now = int(time.time())
+        del_time = time_now-db_code.create_time
+        if del_time >=600:
+            db_code = Code.objects.filter(email=email)
+            db_code.delete()
+            return Response({'status': False, 'msg': 'code overdue'}, status=200)
+        if code != db_code.code:
+            return Response({'status': False, 'msg': 'code fail'}, status=200)
+    #创建账户
+        user = User.objects.create_user(username=username, password=password, 
+                                        email=email, invite_code=invite_code)
         user.save()
-        return Response({'status': 'success', 'msg': 'register success'}, status=200)
+        db_code = Code.objects.filter(email=email)
+        db_code.delete()
+        return Response({'status': True, 'msg': 'register success'}, status=200)
 
     def get(self, request):
         return Response({'status': 'success'}, status=200)
@@ -102,9 +120,31 @@ class CaptchaApi(APIView):
     """
     验证码路由
     """
-
+    def generate_code(self, size=6, chars=string.digits + string.ascii_letters):
+        return ''.join(random.choice(chars) for x in range(size))
+        
     def get(self, request):
         return Response({'status': 'success'}, status=200)
 
     def post(self, request):
-        return Response({'status': 'success'}, status=200)
+        email = request.data.get('email')
+        code = self.generate_code(4)
+        try:
+            validate_email(email)  
+        except:
+            return Response({"state": False, "msg": "email format error", "verify": ""}, status=200)
+        print(code)
+        subject = '用户注册验证'
+        html_message = '<p>尊敬的用户您好：<p>' \
+               '<p>您的验证码为：%s<p>' % (code)
+        send_success = send_mail(subject, "", 'louis<17731697245@163.com>', [email], html_message=html_message)
+        
+        if send_success:
+            response = {"state": True, "msg": "sending success", "verify": code}
+            time_now = time.time()
+            time_now = int(time_now)
+            Code.objects.create(email=email, code=code, create_time = time_now)
+        else:
+            response = {"state": False, "msg": "sending fail", "verify": ""}
+       
+        return Response(response, status=200)

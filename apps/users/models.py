@@ -184,3 +184,12 @@ class UserOrder(models.Model):
         verbose_name = "用户订单"
         verbose_name_plural = "用户订单"
         index_together = ["user_id", "status"]
+
+class Code(models.Model):
+    """邮箱验证码表"""
+    email = models.EmailField() # 用户邮箱
+    code = models.CharField(max_length=6) # 验证码
+    create_time = models.IntegerField() # 创建时间
+
+    def __str__(self):
+        return self.email + ':' + self.code
