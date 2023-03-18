@@ -1,3 +1,4 @@
+import base64
 import string
 import time
 import random
@@ -13,7 +14,8 @@ from apps.users.selectors import user_get_login_data, user_list
 from rest_framework import serializers
 from rest_framework import status
 from apps.api.pagination import LimitOffsetPagination, get_paginated_response
-from apps.users.service import generate_code, send_email_code
+from apps.users.service import send_email_code
+from captcha.views import CaptchaStore, captcha_image
 
 
 class UserInfoApi(LoginRequiredMixin, APIView):
@@ -125,16 +127,18 @@ class CaptchaApi(APIView):
     验证码路由
     """
 
-    def generate_code(self, size=6, chars=string.digits + string.ascii_letters):
-        return ''.join(random.choice(chars) for x in range(size))
-
     def get(self, request):
-        return Response({'status': 'success'})
-
-    def post(self, request):
-        pass
-
-        return Response("response")
+        data = {}
+        hashkey = CaptchaStore.generate_key()
+        id = CaptchaStore.objects.filter(hashkey=hashkey).first().id
+        imgage = captcha_image(request, hashkey)
+        # 将图片转换为base64
+        image_base = base64.b64encode(imgage.content)
+        data = {
+            "key": id,
+            "image_base": "data:image/png;base64," + image_base.decode("utf-8"),
+        }
+        return Response({'status': 'success', 'data': data})
 
 
 class EmailValidateApi(APIView):

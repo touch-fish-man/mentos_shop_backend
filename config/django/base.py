@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    "apps.users.apps.UsersConfig"
+    "apps.users.apps.UsersConfig",
+    "captcha"
 ]
 
 MIDDLEWARE = [
@@ -134,6 +135,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
 AUTH_USER_MODEL = "users.User"
+# 字母验证码
+CAPTCHA_IMAGE_SIZE = (80, 45)  # 设置 captcha 图片大小
+CAPTCHA_LENGTH = 4  # 字符个数
+CAPTCHA_TIMEOUT = 1  # 超时(minutes)
+
+# 加减乘除验证码
+CAPTCHA_OUTPUT_FORMAT = '%(image)s %(text_field)s %(hidden_field)s '
+CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_null',
+                           'captcha.helpers.noise_arcs',  # 线
+                           'captcha.helpers.noise_dots',  # 点
+                           )
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
+CAPTCHA_TIMEOUT = 1
+
 REST_FRAMEWORK = {
     # 配置默认页面大小
     'PAGE_SIZE': 10,

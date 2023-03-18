@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+from captcha.models import CaptchaStore
 from django.contrib.auth import authenticate, login, logout
 # from apps.users.serializers import UserSerializer
 from rest_framework.response import Response
@@ -17,8 +20,31 @@ class LoginApi(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         code = request.data.get('code')
-        if code != '1234':
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'msg': '验证码错误', 'status': 400, 'data': {}})
+        captcha = request.data.get('captcha')
+        captchaKey = request.data.get('captchaKey')
+        if code != "1234":
+            if captchaKey is None:
+                return Response(status=status.HTTP_400_BAD_REQUEST,
+                                data={'msg': '验证码错误', 'status': 400, 'data': {}})
+            if captcha is None:
+                return Response(status=status.HTTP_400_BAD_REQUEST,
+                                data={'msg': '验证码错误', 'status': 400, 'data': {}})
+            image_code = CaptchaStore.objects.filter(id=captchaKey).first()
+            five_minute_ago = datetime.now() - timedelta(hours=0, minutes=5, seconds=0)
+            if image_code and five_minute_ago > image_code.expiration:
+                image_code.delete()
+                return Response(status=status.HTTP_400_BAD_REQUEST,
+                                data={'msg': '验证码过期', 'status': 400, 'data': {}})
+            else:
+                if image_code and (
+                        image_code.response == captcha
+                        or image_code.challenge == captcha
+                ):
+                    image_code.delete()
+                else:
+                    image_code.delete()
+                    return Response(status=status.HTTP_400_BAD_REQUEST,
+                                    data={'msg': '验证码错误', 'status': 400, 'data': {}})
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
@@ -55,10 +81,10 @@ class DiscordOauth2LoginApi(APIView):
         if request.GET.get("mode") == "bind":
             redirect_uri = settings.DISCORD_BIND_REDIRECT_URI
         redirect_uri = urllib.parse.quote(redirect_uri)
-        return Response(status=status.HTTP_200_OK, data={"status": 200, "msg": "success","data": {
+        return Response(status=status.HTTP_200_OK, data={"status": 200, "msg": "success", "data": {
             'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'}
 
-            })
+                                                         })
 
 
 class DiscordOauth2RedirectApi(APIView):
