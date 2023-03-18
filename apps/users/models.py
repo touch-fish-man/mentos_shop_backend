@@ -23,11 +23,6 @@ class User(AbstractUser):
     invite_user_id = models.IntegerField(default=0)
     is_admin = models.BooleanField(default=False, verbose_name='是否管理员')
 
-    class Meta:
-        db_table = 'users'
-        verbose_name = '用户'
-        verbose_name_plural = verbose_name
-
     def __str__(self):
         return self.username
 
