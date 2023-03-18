@@ -14,7 +14,8 @@ from apps.users.selectors import user_get_login_data, user_list
 from rest_framework import serializers
 from rest_framework import status
 from apps.api.pagination import LimitOffsetPagination, get_paginated_response
-from apps.users.service import send_email_code
+from .services import send_email_code
+from apps.core.json_respon import JsonResponse,ErrorResponse
 from captcha.views import CaptchaStore, captcha_image
 
 
@@ -27,19 +28,19 @@ class UserInfoApi(LoginRequiredMixin, APIView):
         user = request.user
         print(user)
         data = user_get_login_data(user=user)
-        return Response(data)
+        return JsonResponse(data=data, msg="获取成功")
 
     def post(self, request):
         user = request.user
         email = request.data.get('email')
         user.email = email
         user.save()
-        return Response({'status': 'success'}, status=200)
+        return JsonResponse(msg="修改成功")
 
     def delete(self, request):
         user = request.user
         user.delete()
-        return Response({'status': 'success'}, status=200)
+        return JsonResponse(msg="删除成功")
 
     def put(self, request):
         user = request.user
@@ -50,7 +51,7 @@ class UserInfoApi(LoginRequiredMixin, APIView):
         user.password = make_password(password)
         user.email = email
         user.save()
-        return Response({'status': 'success'}, status=200)
+        return JsonResponse(msg="修改成功")
 
 
 class UserListApi(APIView):
@@ -116,10 +117,7 @@ class UserRegisterApi(APIView):
         user.save()
         db_code = Code.objects.filter(email=email)
         db_code.delete()
-        return Response({'status': True, 'msg': 'register success'}, status=200)
-
-    def get(self, request):
-        return Response({'status': 'success'}, status=200)
+        return JsonResponse(msg="注册成功")
 
 
 class CaptchaApi(APIView):
@@ -138,7 +136,7 @@ class CaptchaApi(APIView):
             "captcha_id": id,
             "captcha_image_base": "data:image/png;base64," + image_base.decode("utf-8"),
         }
-        return Response({'status': 'success', 'data': data})
+        return JsonResponse(data=data, msg="获取成功")
 
 
 class EmailValidateApi(APIView):
@@ -151,11 +149,13 @@ class EmailValidateApi(APIView):
         try:
             validate_email(email)
         except:
-            return Response({"status": status.HTTP_400_BAD_REQUEST, "msg": "email format error", "data": {}})
+            return ErrorResponse(msg="email error")
         send_success = send_email_code(email)
         if send_success:
-            response = {"status": status.HTTP_200_OK, "msg": "sending success", "data": {}}
+            msg = "send success"
+            data={}
+            return JsonResponse(data=data, msg=msg)
         else:
-            response = {"status": status.HTTP_400_BAD_REQUEST, "msg": "sending fail", "data": {}}
-
-        return Response(response)
+            msg = "send fail"
+            data={}
+            return ErrorResponse(data=data, msg=msg)
