@@ -18,38 +18,47 @@ class LoginApi(APIView):
         password = request.data.get('password')
         code = request.data.get('code')
         if code != '1234':
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={'msg': '验证码错误'})
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'msg': '验证码错误', 'status': 400, 'data': {}})
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
             session_key = request.session.session_key
             data = user_get_login_data(user=user)
-            return Response({'session': session_key, "data": data})
+            return Response({"data": data, "masg": "登录成功", "status": 200})
         else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_400_BAD_REQUEST,
+                            data={'msg': '用户名或密码错误', 'status': 400, 'data': {}})
 
     def get(self, request):
-        return Response({'status': 'success'})
+        if request.user.is_authenticated:
+            user = request.user
+            data = user_get_login_data(user=user)
+            return Response({"data": data, "masg": "登录成功", "status": 200})
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={'msg': '未登录', 'status': 400, 'data': {}})
 
 
 class LogoutApi(APIView):
     def get(self, request):
         logout(request)
-        return Response()
+        return redirect('/')
 
     def post(self, request):
         logout(request)
-        return Response()
+        return redirect('/')
 
 
 class DiscordOauth2LoginApi(APIView):
     def get(self, request):
-        client_id=settings.DISCORD_CLIENT_ID
-        redirect_uri=settings.DISCORD_REDIRECT_URI
+        client_id = settings.DISCORD_CLIENT_ID
+        redirect_uri = settings.DISCORD_REDIRECT_URI
         if request.GET.get("mode") == "bind":
-            redirect_uri=settings.DISCORD_BIND_REDIRECT_URI
-        redirect_uri =urllib.parse.quote(redirect_uri)
-        return Response({'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'})
+            redirect_uri = settings.DISCORD_BIND_REDIRECT_URI
+        redirect_uri = urllib.parse.quote(redirect_uri)
+        return Response(status=status.HTTP_200_OK, data={
+            'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'
+
+            })
 
 
 class DiscordOauth2RedirectApi(APIView):
@@ -57,7 +66,7 @@ class DiscordOauth2RedirectApi(APIView):
         code = request.GET.get('code')
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        user = exchange_code(code,settings.DISCORD_REDIRECT_URI)
+        user = exchange_code(code, settings.DISCORD_REDIRECT_URI)
         if user is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         discord_id = user.get('id')
@@ -72,12 +81,14 @@ class DiscordOauth2RedirectApi(APIView):
             login(request, discord_user)
             # 重定向到用户页面
             return redirect("/dashboard/")
+
+
 class DiscordBindRedirectApi(APIView):
     def get(self, request):
         code = request.GET.get('code')
         if code is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
-        user = exchange_code(code,settings.DISCORD_BIND_REDIRECT_URI)
+        user = exchange_code(code, settings.DISCORD_BIND_REDIRECT_URI)
         if user is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         discord_id = user.get('id')

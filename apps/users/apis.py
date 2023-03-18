@@ -1,8 +1,14 @@
+import string
+import time
+import random
+
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
+from django.core.validators import validate_email
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from apps.users.models import User
+from apps.users.models import User, Code
 from apps.users.selectors import user_get_login_data, user_list
 from rest_framework import serializers
 from rest_framework import status
@@ -87,10 +93,8 @@ class UserRegisterApi(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email')
-        code = request.data.get('code')
-        invite_code = request.data.get('invite_code')
-    
-    #验证码验证
+        invite_code = request.data.get('code')
+        email_code = request.data.get('email_code')
         queryset = Code.objects.filter(email=email)
         if queryset.exists():
             db_code = queryset.order_by('-create_time').first()
@@ -102,9 +106,8 @@ class UserRegisterApi(APIView):
             db_code = Code.objects.filter(email=email)
             db_code.delete()
             return Response({'status': False, 'msg': 'code overdue'}, status=200)
-        if code != db_code.code:
+        if email_code != db_code.code:
             return Response({'status': False, 'msg': 'code fail'}, status=200)
-    #创建账户
         user = User.objects.create_user(username=username, password=password, 
                                         email=email, invite_code=invite_code)
         user.save()
@@ -130,7 +133,7 @@ class CaptchaApi(APIView):
         email = request.data.get('email')
         code = self.generate_code(4)
         try:
-            validate_email(email)  
+            validate_email(email)
         except:
             return Response({"state": False, "msg": "email format error", "verify": ""}, status=200)
         print(code)
