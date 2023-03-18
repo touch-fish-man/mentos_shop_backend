@@ -36,10 +36,7 @@ class LoginApi(APIView):
                 return Response(status=status.HTTP_400_BAD_REQUEST,
                                 data={'msg': '验证码过期', 'status': 400, 'data': {}})
             else:
-                if image_code and (
-                        image_code.response.lower() == captcha_code.lower()
-                        or image_code.challenge.lower() == captcha_code.lower()
-                ):
+                if image_code and image_code.response.lower() == captcha_code.lower():
                     image_code.delete()
                 else:
                     image_code.delete()
