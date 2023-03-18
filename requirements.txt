@@ -12,3 +12,4 @@ sendgrid
 mysqlclient
 django-simple-captcha
 django-cors-headers
+PyMySQL
