@@ -26,6 +26,21 @@ services:
     privileged: true
     environment:
       - TZ=Asia/Shanghai
+  mentos_shop_backend_test:
+    restart: always
+    container_name: mentos_shop_backend_test.local
+    build:
+      context: ./
+      dockerfile: Dockerfile_test_env
+    networks:
+      - work_net
+    ports:
+      - "3000:8000"
+    volumes:
+      - /opt/mentos_shop_backend/logs_test/:/opt/mentos_shop_backend/logs/
+    privileged: true
+    environment:
+      - TZ=Asia/Shanghai
   # redis:
   #   container_name: redis.local
   #   image: 'redis:latest'
