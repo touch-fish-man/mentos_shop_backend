@@ -93,7 +93,7 @@ class UserRegisterApi(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         email = request.data.get('email')
-        invite_code = request.data.get('code')
+        invite_code = request.data.get('invite_code')
         email_code = request.data.get('email_code')
         queryset = Code.objects.filter(email=email)
         if queryset.exists():

@@ -191,5 +191,10 @@ class Code(models.Model):
     code = models.CharField(max_length=6) # 验证码
     create_time = models.IntegerField() # 创建时间
 
+    class Meta:
+        db_table = 'code'
+        verbose_name = '邮箱验证码'
+        verbose_name_plural = verbose_name
+
     def __str__(self):
         return self.email + ':' + self.code
