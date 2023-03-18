@@ -24,7 +24,7 @@ class LoginApi(APIView):
             login(request, user)
             session_key = request.session.session_key
             data = user_get_login_data(user=user)
-            return Response({"data": data, "masg": "登录成功", "status": 200})
+            return Response({"data": data, "msg": "登录成功", "status": 200})
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST,
                             data={'msg': '用户名或密码错误', 'status': 400, 'data': {}})
