@@ -135,8 +135,8 @@ class CaptchaApi(APIView):
         # 将图片转换为base64
         image_base = base64.b64encode(imgage.content)
         data = {
-            "key": id,
-            "image_base": "data:image/png;base64," + image_base.decode("utf-8"),
+            "captcha_id": id,
+            "captcha_image_base": "data:image/png;base64," + image_base.decode("utf-8"),
         }
         return Response({'status': 'success', 'data': data})
 

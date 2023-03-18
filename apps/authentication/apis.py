@@ -20,16 +20,16 @@ class LoginApi(APIView):
         username = request.data.get('username')
         password = request.data.get('password')
         code = request.data.get('code')
-        captcha = request.data.get('captcha')
-        captchaKey = request.data.get('captchaKey')
+        captcha_id = request.data.get('captcha_id')
+        captcha_code = request.data.get('captcha')
         if code != "1234":
-            if captchaKey is None:
+            if captcha_id is None:
                 return Response(status=status.HTTP_400_BAD_REQUEST,
                                 data={'msg': '验证码错误', 'status': 400, 'data': {}})
-            if captcha is None:
+            if captcha_code is None:
                 return Response(status=status.HTTP_400_BAD_REQUEST,
                                 data={'msg': '验证码错误', 'status': 400, 'data': {}})
-            image_code = CaptchaStore.objects.filter(id=captchaKey).first()
+            image_code = CaptchaStore.objects.filter(id=captcha_id).first()
             five_minute_ago = datetime.now() - timedelta(hours=0, minutes=5, seconds=0)
             if image_code and five_minute_ago > image_code.expiration:
                 image_code.delete()
@@ -37,8 +37,8 @@ class LoginApi(APIView):
                                 data={'msg': '验证码过期', 'status': 400, 'data': {}})
             else:
                 if image_code and (
-                        image_code.response == captcha
-                        or image_code.challenge == captcha
+                        image_code.response.lower() == captcha_code.lower()
+                        or image_code.challenge.lower() == captcha_code.lower()
                 ):
                     image_code.delete()
                 else:
