@@ -55,8 +55,8 @@ class DiscordOauth2LoginApi(APIView):
         if request.GET.get("mode") == "bind":
             redirect_uri = settings.DISCORD_BIND_REDIRECT_URI
         redirect_uri = urllib.parse.quote(redirect_uri)
-        return Response(status=status.HTTP_200_OK, data={
-            'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'
+        return Response(status=status.HTTP_200_OK, data={"status": 200, "msg": "success","data": {
+            'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'}
 
             })
 
