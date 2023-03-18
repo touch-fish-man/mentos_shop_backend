@@ -5,7 +5,7 @@ FROM python:${PYTHON_VERSION}
 RUN mkdir /opt/mentos_shop_backend
 COPY . /opt/mentos_shop_backend
 WORKDIR /opt/mentos_shop_backend
-RUN cp -r .env.example config/.env
+RUN awk 'BEGIN { cmd="cp -r .env.example config/.env"; print "n" |cmd; }'
 RUN pip install -r requirements.txt
 RUN python manage.py makemigrations
 RUN python manage.py migrate
