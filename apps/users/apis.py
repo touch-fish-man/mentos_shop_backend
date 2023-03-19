@@ -177,10 +177,16 @@ class EmailValidateApi(APIView):
 
     def post(self, request):
         email = request.data.get('email')
+        check_user = request.data.get('check_user')
+
         try:
             validate_email(email)
         except:
             return ErrorResponse(msg="email error")
+        if check_user:
+            # 检查用户是否存在,不存在返回错误
+            if not User.objects.filter(email=email).exists():
+                return ErrorResponse(msg="email not exist")
         code_id = send_email_code(email)
         if code_id:
             msg = "send success"
@@ -210,7 +216,8 @@ class ResetPasswordApi(APIView):
         user = User.objects.get(email=email)
         user.password = make_password(password)
         user.save()
-        return JsonResponse(msg="success")
+        data=user_get_login_data(user=user)
+        return JsonResponse(msg="success", data=data)
 
 
 class ResetPasswordVerifyApi(APIView):

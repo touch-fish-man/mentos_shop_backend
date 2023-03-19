@@ -41,7 +41,6 @@ class LoginApi(APIView):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
-            session_key = request.session.session_key
             data = user_get_login_data(user=user)
             return JsonResponse(data=data, msg="登录成功")
         else:
