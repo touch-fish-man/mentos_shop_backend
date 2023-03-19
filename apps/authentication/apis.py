@@ -14,8 +14,13 @@ import urllib
 
 
 class LoginApi(APIView):
+    """
+    登录路由
+    """
+    # 移除认证
+    authentication_classes = ()
+
     def post(self, request):
-        # UserSerializer(data=request.data)
         username = request.data.get('username')
         password = request.data.get('password')
         code = request.data.get('code')
