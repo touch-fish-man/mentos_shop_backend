@@ -1,5 +1,6 @@
 import base64
 import time
+import uuid
 
 from captcha.views import CaptchaStore, captcha_image
 from django.contrib.auth.hashers import make_password
@@ -199,6 +200,26 @@ class ResetPasswordApi(APIView):
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
+        verify_id = request.data.get('verify_id')
+        code_obj = Code.objects.filter(verify_id=verify_id, email=email)
+        if code_obj.exists():
+            db_code = code_obj.order_by('-create_time').first()
+            db_code.delete()
+        else:
+            return ErrorResponse(msg="email error please try again")
+        user = User.objects.get(email=email)
+        user.password = make_password(password)
+        user.save()
+        return JsonResponse(msg="success")
+
+
+class ResetPasswordVerifyApi(APIView):
+    """
+    重置密码验证路由
+    """
+
+    def post(self, request):
+        email = request.data.get('email')
         email_code = request.data.get('email_code')
         email_code_id = request.data.get('email_code_id')
         code_obj = Code.objects.filter(email=email, id=email_code_id)
@@ -214,12 +235,12 @@ class ResetPasswordApi(APIView):
             return ErrorResponse(msg="code expired please try again")
         if email_code != db_code.code:
             return ErrorResponse(msg="code error please try again")
-        user = User.objects.get(email=email)
-        user.password = make_password(password)
-        user.save()
-        db_code = Code.objects.filter(email=email)
-        db_code.delete()
-        return JsonResponse(msg="success")
+        # 验证通过，生成verify_id
+        verify_id = str(uuid.uuid4())
+        db_code.verify_id = verify_id
+        db_code.save()
+        data = {"verify_id": verify_id}
+        return JsonResponse(data=data, msg="success")
 
 
 class ChangePasswordApi(APIView):

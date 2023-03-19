@@ -111,6 +111,8 @@ class InviteLog(models.Model):
         db_table = 'invite_log'
         verbose_name = '邀请记录'
         verbose_name_plural = verbose_name
+
+
 class RebateRecord(models.Model):
     """返利记录"""
 
@@ -142,6 +144,7 @@ class RebateRecord(models.Model):
         for log in logs:
             setattr(log, "consumer_username", username_map.get(log.consumer_id, ""))
         return logs
+
 
 class UserOrder(models.Model):
     DEFAULT_ORDER_TIME_OUT = "10m"
@@ -179,11 +182,13 @@ class UserOrder(models.Model):
         verbose_name_plural = "用户订单"
         index_together = ["user_id", "status"]
 
+
 class Code(models.Model):
     """邮箱验证码表"""
-    email = models.EmailField() # 用户邮箱
-    code = models.CharField(max_length=6) # 验证码
-    create_time = models.IntegerField() # 创建时间
+    email = models.EmailField()  # 用户邮箱
+    code = models.CharField(max_length=6)  # 验证码
+    verify_id = models.CharField(max_length=100)  # 验证id
+    create_time = models.IntegerField()  # 创建时间
 
     class Meta:
         db_table = 'code'
