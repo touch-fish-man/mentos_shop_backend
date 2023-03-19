@@ -1,13 +1,15 @@
 import random
 import string
 import time
-
+import os
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from django.core.mail import send_mail
 from django.conf import settings
 import requests, json
 import sendgrid
 import os
-from sendgrid.helpers.mail import *
+# from sendgrid.helpers.mail import *
 
 from apps.users.models import Code
 
@@ -38,15 +40,34 @@ def send_email_code(email):
 
 
 def send_via_api(email, subject, html_message):
-    sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_API_KEY)
-    from_email = Email("test@example.com")
-    to_email = To(email)
-    subject = subject
-    content = HtmlContent(html_message)
-    mail = Mail(from_email, to_email, subject, content)
-    print(mail.get())
-    response = sg.client.mail.send.post(request_body=mail.get())
-    print(response.status_code)
-    print(response.body)
-    print(response.headers)
-    return response.status_code == 200
+
+
+    message = Mail(
+        from_email='mentos@run-run.run',
+        to_emails=email,
+        subject=subject,
+        html_content=html_message)
+    try:
+        sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+        response = sg.send(message)
+        if response.status_code == 202:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        return False
+
+
+    # sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_API_KEY)
+    # from_email = Email("test@example.com")
+    # to_email = To(email)
+    # subject = subject
+    # content = HtmlContent(html_message)
+    # mail = Mail(from_email, to_email, subject, content)
+    # print(mail.get())
+    # response = sg.client.mail.send.post(request_body=mail.get())
+    # print(response.status_code)
+    # print(response.body)
+    # print(response.headers)
+    # return response.status_code == 200

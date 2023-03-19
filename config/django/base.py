@@ -175,7 +175,7 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': (
     # 'rest_framework.permissions.IsAuthenticated',
     # ),
-    "EXCEPTION_HANDLER": "apps.core.exception.CustomExceptionHandler",
+    "EXCEPTION_HANDLER": "apps.core.exceptions.CustomExceptionHandler",
     # 配置默认认证类
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
@@ -211,4 +211,4 @@ EMAIL_FROM = "Mentos Org"  # 收件人看到的发件人
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_USE_TLS = True
 # sendgrid 配置
-SENDGRID_API_KEY = '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'
+SENDGRID_API_KEY = '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'
