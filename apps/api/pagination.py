@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from rest_framework.pagination import LimitOffsetPagination as _LimitOffsetPagination
 from rest_framework.response import Response
+from apps.core.json_respon import SuccessResponse
 
 
 def get_paginated_response(*, pagination_class, serializer_class, queryset, request, view):
@@ -15,39 +16,28 @@ def get_paginated_response(*, pagination_class, serializer_class, queryset, requ
 
     serializer = serializer_class(queryset, many=True)
 
-    return Response(data=serializer.data)
+    return SuccessResponse(data=serializer.data)
 
 
 class LimitOffsetPagination(_LimitOffsetPagination):
     default_limit = 10
     max_limit = 50
 
-    def get_paginated_data(self, data):
-        return OrderedDict(
-            [
-                ("limit", self.limit),
-                ("offset", self.offset),
-                ("count", self.count),
-                ("next", self.get_next_link()),
-                ("previous", self.get_previous_link()),
-                ("results", data),
-            ]
-        )
+    # def get_paginated_data(self, data):
+    #     return OrderedDict(
+    #         [
+    #             ("limit", self.limit),
+    #             ("offset", self.offset),
+    #             ("count", self.count),
+    #             ("next", self.get_next_link()),
+    #             ("previous", self.get_previous_link()),
+    #             ("results", data),
+    #         ]
+    #     )
 
     def get_paginated_response(self, data):
         """
         We redefine this method in order to return `limit` and `offset`.
         This is used by the frontend to construct the pagination itself.
         """
-        return Response(
-            OrderedDict(
-                [
-                    ("limit", self.limit),
-                    ("offset", self.offset),
-                    ("count", self.count),
-                    ("next", self.get_next_link()),
-                    ("previous", self.get_previous_link()),
-                    ("results", data),
-                ]
-            )
-        )
+        return SuccessResponse(data=data, offset=self.offset, limit=self.limit, total=self.count)

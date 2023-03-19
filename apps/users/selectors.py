@@ -9,7 +9,6 @@ def user_get_login_data(*, user: User):
         "email": user.email,
         "username": user.username,
         "is_active": user.is_active,
-        "is_admin": user.is_admin,
         "is_superuser": user.is_superuser,
     }
 

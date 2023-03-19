@@ -8,11 +8,11 @@ class SuccessResponse(Response):
     """
 
     def __init__(self, data=None, msg='success', status=None, template_name=None, headers=None, exception=False,
-                 content_type=None, page=1, limit=1, total=1):
+                 content_type=None, offset=0, limit=10, total=1):
         std_data = {
             "code": 2000,
             "data": {
-                "page": page,
+                "offset": offset,
                 "limit": limit,
                 "total": total,
                 "data": data

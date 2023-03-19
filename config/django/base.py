@@ -154,7 +154,16 @@ REST_FRAMEWORK = {
     # 配置默认页面大小
     'PAGE_SIZE': 10,
     # 配置默认的分页类
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': 'apps.api.pagination.LimitOffsetPagination',
+    # 配置默认的过滤类
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter'),
+    # 配置默认权限
+    # 'DEFAULT_PERMISSION_CLASSES': (
+    #     'rest_framework.permissions.IsAuthenticated',
+    # ),
 
     'DATETIME_FORMAT': '%Y-%m-%d %H:%M:%S',  # 时间相关的字段
 

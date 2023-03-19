@@ -1,22 +1,19 @@
 import base64
-import string
 import time
-import random
 
+from captcha.views import CaptchaStore, captcha_image
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 from django.core.validators import validate_email
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from apps.users.models import User, Code
-from apps.users.selectors import user_get_login_data, user_list
 from rest_framework import serializers
-from rest_framework import status
-from apps.api.pagination import LimitOffsetPagination, get_paginated_response
+from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from apps.core.json_respon import JsonResponse, ErrorResponse
+from apps.users.models import User, Code
+from apps.users.selectors import user_get_login_data
 from .services import send_email_code
-from apps.core.json_respon import JsonResponse,ErrorResponse
-from captcha.views import CaptchaStore, captcha_image
 
 
 class UserInfoApi(LoginRequiredMixin, APIView):
@@ -54,38 +51,69 @@ class UserInfoApi(LoginRequiredMixin, APIView):
         return JsonResponse(msg="修改成功")
 
 
-class UserListApi(APIView):
+class UserListApi(ListAPIView, LoginRequiredMixin):
     """
     用户列表路由
     """
 
-    class Pagination(LimitOffsetPagination):
-        default_limit = 1
-
-    class FilterSerializer(serializers.Serializer):
-        id = serializers.IntegerField(required=False)
-        is_admin = serializers.BooleanField(required=False, allow_null=True, default=None)
-        email = serializers.EmailField(required=False)
-
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
             model = User
-            fields = ("id", "email", "is_admin")
+            fields = ("id", "uid", "username", "email", "is_superuser", "level", "is_active", "points", "date_joined","discord_id","last_login")
 
-    def get(self, request):
-        # Make sure the filters are valid, if passed
-        filters_serializer = self.FilterSerializer(data=request.query_params)
-        filters_serializer.is_valid(raise_exception=True)
+        def to_representation(self, instance):
+            ret = super().to_representation(instance)
+            ret['date_joined'] = instance.date_joined.strftime('%Y-%m-%d %H:%M:%S')
+            ret['last_login'] = instance.last_login.strftime('%Y-%m-%d %H:%M:%S')
+            if instance.discord_id:
+                ret['discord_id'] = instance.discord_id
+            else:
+                ret['discord_id'] = ""
+            return ret
 
-        users = user_list(filters=filters_serializer.validated_data)
+    serializer_class = OutputSerializer
+    ordering_fields = ('id', 'uid', 'username', 'email', 'level', 'is_active')
+    search_fields = ('username', 'email')  # 搜索字段
+    filterset_fields = ['uid', 'username', 'email', 'is_superuser', 'level', 'is_active']  # 过滤字段
+    queryset = User.objects.all()
 
-        return get_paginated_response(
-            pagination_class=self.Pagination,
-            serializer_class=self.OutputSerializer,
-            queryset=users,
-            request=request,
-            view=self,
-        )
+    def post(self, request):
+        user = request.user
+        if user.is_superuser:
+            username = request.data.get('username')
+            password = request.data.get('password')
+            email = request.data.get('email')
+            invite_code = request.data.get('invite_code')
+            user = User.objects.create_user(username=username, password=password,
+                                            email=email, invite_code=invite_code)
+            user.save()
+            return JsonResponse(msg="添加成功")
+        else:
+            return JsonResponse(msg="无权限")
+
+    def put(self, request):
+        user = request.user
+        if user.is_superuser:
+            uid = request.data.get('uid')
+            is_active = request.data.get('is_active')
+            is_superuser = request.data.get('is_superuser')
+            user = User.objects.get(uid=uid)
+            user.is_active = is_active
+            user.is_superuser = is_superuser
+            user.save()
+            return JsonResponse(msg="修改成功")
+        else:
+            return JsonResponse(msg="无权限")
+
+    def delete(self, request):
+        user = request.user
+        if user.is_superuser:
+            uid = request.data.get('uid')
+            user = User.objects.get(uid=uid)
+            user.delete()
+            return JsonResponse(msg="删除成功")
+        else:
+            return JsonResponse(msg="无权限")
 
 
 class UserRegisterApi(APIView):
@@ -153,9 +181,9 @@ class EmailValidateApi(APIView):
         send_success = send_email_code(email)
         if send_success:
             msg = "send success"
-            data={}
+            data = {}
             return JsonResponse(data=data, msg=msg)
         else:
             msg = "send fail"
-            data={}
+            data = {}
             return ErrorResponse(data=data, msg=msg)

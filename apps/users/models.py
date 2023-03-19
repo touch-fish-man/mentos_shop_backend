@@ -19,9 +19,8 @@ class User(AbstractUser):
     points = models.IntegerField(default=0, verbose_name='积分')
     uid = models.UUIDField("uid", null=True, unique=True, default=uuid4, editable=False, help_text="用户唯一标识")
     last_login = models.DateTimeField(auto_now=True)
-    invite_code = models.CharField(max_length=100, unique=True)
+    invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码')
     invite_user_id = models.IntegerField(default=0)
-    is_admin = models.BooleanField(default=False, verbose_name='是否管理员')
 
     def __str__(self):
         return self.username
