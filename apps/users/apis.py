@@ -59,7 +59,8 @@ class UserListApi(ListAPIView, LoginRequiredMixin):
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
             model = User
-            fields = ("id", "uid", "username", "email", "is_superuser", "level", "is_active", "points", "date_joined","discord_id","last_login")
+            fields = ("id", "uid", "username", "email", "is_superuser", "level", "is_active", "points", "date_joined",
+                      "discord_id", "last_login")
 
         def to_representation(self, instance):
             ret = super().to_representation(instance)
@@ -127,9 +128,10 @@ class UserRegisterApi(APIView):
         email = request.data.get('email')
         invite_code = request.data.get('invite_code')
         email_code = request.data.get('email_code')
-        queryset = Code.objects.filter(email=email)
-        if queryset.exists():
-            db_code = queryset.order_by('-create_time').first()
+        email_code_id = request.data.get('email_code_id')
+        code_item = Code.objects.filter(id=email_code_id, email=email_code)
+        if code_item.exists():
+            db_code = code_item.order_by('-create_time').first()
         else:
             return Response({'status': False, 'msg': 'email error'}, status=200)
         time_now = int(time.time())
@@ -178,12 +180,60 @@ class EmailValidateApi(APIView):
             validate_email(email)
         except:
             return ErrorResponse(msg="email error")
-        send_success = send_email_code(email)
-        if send_success:
+        code_id = send_email_code(email)
+        if code_id:
             msg = "send success"
-            data = {}
+            data = {"email_code_id": code_id}
             return JsonResponse(data=data, msg=msg)
         else:
             msg = "send fail"
-            data = {}
+            data = {"email_code_id": ""}
             return ErrorResponse(data=data, msg=msg)
+
+
+class ResetPasswordApi(APIView):
+    """
+    重置密码路由
+    """
+
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        email_code = request.data.get('email_code')
+        email_code_id = request.data.get('email_code_id')
+        code_obj = Code.objects.filter(email=email, id=email_code_id)
+        if code_obj.exists():
+            db_code = code_obj.order_by('-create_time').first()
+        else:
+            return ErrorResponse(msg="email error please try again")
+        time_now = int(time.time())
+        del_time = time_now - db_code.create_time
+        if del_time >= 600:
+            db_code = Code.objects.filter(email=email)
+            db_code.delete()
+            return ErrorResponse(msg="code expired please try again")
+        if email_code != db_code.code:
+            return ErrorResponse(msg="code error please try again")
+        user = User.objects.get(email=email)
+        user.password = make_password(password)
+        user.save()
+        db_code = Code.objects.filter(email=email)
+        db_code.delete()
+        return JsonResponse(msg="success")
+
+
+class ChangePasswordApi(APIView):
+    """
+    修改密码路由
+    """
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        if user.check_password(old_password):
+            user.password = make_password(new_password)
+            user.save()
+            return JsonResponse(msg="修改成功")
+        else:
+            return ErrorResponse(msg="原密码错误")

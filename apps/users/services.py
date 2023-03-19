@@ -23,8 +23,6 @@ def send_email_code(email):
     subject = 'Mentos User registration verification'
     html_message = '<p>尊敬的用户您好：<p>' \
                    '<p>您的验证码为：%s<p>' % (code)
-    ret = False
-
     if settings.EMAIL_METHOD == 'sendgrid':
         send_success = send_via_api(email, subject, html_message)
     else:
@@ -32,10 +30,12 @@ def send_email_code(email):
     if send_success:
         time_now = time.time()
         time_now = int(time_now)
-        Code.objects.create(email=email, code=code, create_time=time_now)
-        ret = True
+        code_obj=Code.objects.create(email=email, code=code, create_time=time_now)
+        code_obj.save()
+        code_id = code_obj.id
+        ret = code_id
     else:
-        ret = False
+        ret = None
     return ret
 
 

@@ -37,6 +37,7 @@ class LoginApi(APIView):
                 else:
                     image_code.delete()
                     return ErrorResponse(msg="验证码错误", status=400)
+
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
