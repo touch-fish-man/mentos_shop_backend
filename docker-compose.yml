@@ -18,7 +18,8 @@ services:
       context: ./
       dockerfile: Dockerfile
     networks:
-      - work_net
+      network:
+        ipv4_address: 177.8.0.11
     ports:
       - "8000:8000"
     volumes:
@@ -33,7 +34,8 @@ services:
       context: ./
       dockerfile: Dockerfile_test_env
     networks:
-      - work_net
+      network:
+        ipv4_address: 177.8.0.12
     ports:
       - "3000:8000"
     volumes:
@@ -58,15 +60,19 @@ services:
     container_name: nginx
     image: nginx:latest
     restart: always
-    networks:
-      - work_net
     environment:
       - TZ=Asia/Shanghai
     ports:
-      - "8080:80"
-      - "8443:443"
+      - "80:80"
+      - "443:443"
     privileged: true
+    networks:
+      network:
+        ipv4_address: 177.8.0.13
 
 networks:
-  work_net:
-    driver: bridge
+  network:
+    ipam:
+      driver: default
+      config:
+        - subnet: '177.8.0.0/16'
