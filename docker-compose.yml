@@ -54,21 +54,18 @@ services:
   #   ports:
   #     - "6379:6379"
   #   command: redis-server /etc/redis/redis.conf --port 6379 --requirepass zlpzlpzlp --appendonly yes
-  # ngnix:
-  #   container_name: nginx
-  #   image: nginx:latest
-  #   restart: always
-  #   networks:
-  #     - work_net
-  #   environment:
-  #     - TZ=Asia/Shanghai
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   privileged: true
-  #   volumes:
-  #     - /opt/bot_api/config/bot_api.conf:/etc/nginx/conf.d/bot_api.conf
-  #     - /opt/bot_api:/opt/bot_api
+  ngnix:
+    container_name: nginx
+    image: nginx:latest
+    restart: always
+    networks:
+      - work_net
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "80:80"
+      - "443:443"
+    privileged: true
 
 networks:
   work_net:
