@@ -11,6 +11,10 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.base")
+if os.environ.get("DJANGO_ENV") == "prod":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.production")
+else:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.test")
+
 
 application = get_wsgi_application()

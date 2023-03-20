@@ -10,7 +10,9 @@ https://docs.djangoproject.com/en/4.0/howto/deployment/asgi/
 import os
 
 from django.core.asgi import get_asgi_application
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')
+if os.environ.get("DJANGO_ENV") == "prod":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.production")
+else:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.test")
 
 application = get_asgi_application()
