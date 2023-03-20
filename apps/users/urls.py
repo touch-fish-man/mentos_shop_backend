@@ -1,6 +1,6 @@
 from django.urls import path
 from .apis import UserListApi, UserInfoApi, UserRegisterApi, CaptchaApi, EmailValidateApi, ResetPasswordApi, \
-    ChangePasswordApi,ResetPasswordVerifyApi
+    ChangePasswordApi,ResetPasswordVerifyApi,WorkOrderApi
 
 urlpatterns = [
     path("register", UserRegisterApi.as_view(), name="register"),
@@ -10,7 +10,7 @@ urlpatterns = [
     path("reset_password", ResetPasswordApi.as_view(), name="reset_password"),
     path("change_password", ChangePasswordApi.as_view(), name="change_password"),
     path("reset_password_verify", ResetPasswordVerifyApi.as_view(), name="reset_password_verify"),
-
+    path("workorder", WorkOrderApi.as_view(), name="workorder"),
     path("", UserListApi.as_view(), name="list"),
 
 ]
