@@ -1,7 +1,8 @@
 from rest_framework.viewsets import ModelViewSet
 from .json_response import SuccessResponse, LimitOffsetResponse, ErrorResponse
 
-class CustomModelViewSet(ModelViewSet):
+
+class ComModelViewSet(ModelViewSet):
     values_queryset = None
     ordering_fields = '__all__'
     create_serializer_class = None
@@ -9,15 +10,26 @@ class CustomModelViewSet(ModelViewSet):
     filter_fields = '__all__'
     search_fields = ()
     # extra_filter_backends = [DataLevelPermissionsFilter]
-    # permission_classes = [CustomPermission]
+    permission_classes = []
     import_field_dict = {}
     export_field_label = {}
+
+    def get_serializer_class(self):
+        """
+        重写get_serializer_class方法,使得可以根据不同的action使用不同的序列化器
+        """
+        action_serializer_name = f"{self.action}_serializer_class"
+        action_serializer_class = getattr(self, action_serializer_name, None)
+        if action_serializer_class:
+            return action_serializer_class
+        return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data, request=request)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return SuccessResponse(data=serializer.data, msg="新增成功")
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -39,7 +51,7 @@ class CustomModelViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return SuccessResponse(data=serializer.data, msg="修改成功")
-    
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)

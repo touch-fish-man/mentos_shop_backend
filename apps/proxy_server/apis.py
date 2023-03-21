@@ -4,10 +4,10 @@ from apps.proxy_server.models import AclList, ProxyServer, ProxyList
 from apps.proxy_server.serializers import AclListSerializer, AclListCreateSerializer, AclListUpdateSerializer
 from apps.core.validators import CustomUniqueValidator
 from rest_framework.viewsets import ModelViewSet
-from apps.core.viewsets import CustomModelViewSet
+from apps.core.viewsets import ComModelViewSet
 
 
-class AclListApi(CustomModelViewSet):
+class AclListApi(ComModelViewSet):
     """
     获取权限列表
     """
@@ -33,7 +33,7 @@ class AclListApi(CustomModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-class ProxyServerApi(CustomModelViewSet):
+class ProxyServerApi(ComModelViewSet):
     """
     代理服务器
     """
