@@ -9,7 +9,7 @@ gunicorn
 supervisor
 django-environ
 sendgrid
-mysqlclient
 django-simple-captcha
 django-cors-headers
 PyMySQL
+mysqlclient

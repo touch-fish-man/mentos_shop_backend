@@ -4,11 +4,13 @@ from django.db import models, transaction
 
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
-
-
-class User(AbstractUser):
+from apps.core.models import BaseModel
+def gen_uid(self):
+    # 生成8位uuid
+    return str(uuid4()).replace('-', '')[:8]
+class User(AbstractUser, BaseModel):
     """用户信息表"""
-    id = models.AutoField(primary_key=True)
+    uid = models.CharField(max_length=100, unique=True, null=True, verbose_name='用户uid', default=gen_uid)
     username = models.CharField(max_length=100, unique=True, verbose_name='用户名')
     email = models.EmailField(max_length=100, unique=True, verbose_name='邮箱')
     password = models.CharField(max_length=100, verbose_name='密码')
@@ -17,43 +19,16 @@ class User(AbstractUser):
     is_superuser = models.BooleanField(default=False, verbose_name='是否超级管理员')
     level = models.IntegerField(default=0, verbose_name='等级')
     points = models.IntegerField(default=0, verbose_name='积分')
-    uid = models.UUIDField("uid", null=True, unique=True, default=uuid4, editable=False, help_text="用户唯一标识")
-    last_login = models.DateTimeField(auto_now=True)
     invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码')
     invite_user_id = models.IntegerField(default=0)
 
     def __str__(self):
         return self.username
 
-    @classmethod
-    @transaction.atomic
-    def add_user(cls, user_data):
-        user = cls.objects.create_user(**user_data)
-        user.save()
-        return user
-
-    def bind_discord(self, discord_id):
-        self.discord_id = discord_id
-        self.save()
-        return self
-
-    def update_user(self, username, email, password, discord_id, invite_code, invite_code_used, invite_user_id):
-        self.username = username
-        self.email = email
-        self.password = password
-        self.discord_id = discord_id
-        self.invite_code = invite_code
-        self.invite_code_used = invite_code_used
-        self.invite_user_id = invite_user_id
-        self.save()
-        return self
-
-    def delete_user(self):
-        self.delete()
-        return self
-
-    def get_user_by_id(self, user_id):
-        return self.objects.get(user_id=user_id)
+    class Meta:
+        db_table = 'user'
+        verbose_name = '用户'
+        verbose_name_plural = verbose_name
 
 
 class InviteCode(models.Model):
@@ -63,7 +38,6 @@ class InviteCode(models.Model):
     user_id = models.IntegerField(default=0, verbose_name='用户id')
     invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
     invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
-    create_time = models.DateTimeField(auto_now=True, verbose_name='创建时间')
 
     class Meta:
         db_table = 'invite_code'
@@ -183,12 +157,11 @@ class UserOrder(models.Model):
         index_together = ["user_id", "status"]
 
 
-class Code(models.Model):
+class Code(BaseModel):
     """邮箱验证码表"""
     email = models.EmailField()  # 用户邮箱
     code = models.CharField(max_length=6)  # 验证码
     verify_id = models.CharField(max_length=100)  # 验证id
-    create_time = models.IntegerField()  # 创建时间
 
     class Meta:
         db_table = 'code'

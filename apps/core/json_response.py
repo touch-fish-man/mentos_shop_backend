@@ -1,11 +1,7 @@
 from rest_framework.response import Response
 
 
-class SuccessResponse(Response):
-    """
-    标准响应成功的返回, SuccessResponse(data)或者SuccessResponse(data=data)
-    (1)默认code返回2000, 不支持指定其他返回码
-    """
+class LimitOffsetResponse(Response):
 
     def __init__(self, data=None, msg='success', status=None, template_name=None, headers=None, exception=False,
                  content_type=None, offset=0, limit=10, total=1):
@@ -22,7 +18,7 @@ class SuccessResponse(Response):
         super().__init__(std_data, status, template_name, headers, exception, content_type)
 
 
-class JsonResponse(Response):
+class SuccessResponse(Response):
     """
     不包含分页信息的接口返回,主要用于单条数据查询
     (1)默认code返回2000, 不支持指定其他返回码

@@ -10,12 +10,14 @@ from rest_framework import serializers
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 
-from apps.core.json_response import JsonResponse, ErrorResponse
+from apps.core.json_response import SuccessResponse, ErrorResponse, LimitOffsetResponse
 from apps.users.models import User, Code
 from apps.users.selectors import user_get_login_data
 from apps.users.serializers import UserSerializer, UserListSerializer
 from .services import send_email_code
+from apps.core.viewsets import CustomModelViewSet
 
 
 class UserInfoApi(LoginRequiredMixin, APIView):
@@ -27,19 +29,19 @@ class UserInfoApi(LoginRequiredMixin, APIView):
         user = request.user
         print(user)
         data = user_get_login_data(user=user)
-        return JsonResponse(data=data, msg="获取成功")
+        return SuccessResponse(data=data, msg="获取成功")
 
     def post(self, request):
         user = request.user
         email = request.data.get('email')
         user.email = email
         user.save()
-        return JsonResponse(msg="修改成功")
+        return SuccessResponse(msg="修改成功")
 
     def delete(self, request):
         user = request.user
         user.delete()
-        return JsonResponse(msg="删除成功")
+        return SuccessResponse(msg="删除成功")
 
     def put(self, request):
         user = request.user
@@ -50,56 +52,96 @@ class UserInfoApi(LoginRequiredMixin, APIView):
         user.password = make_password(password)
         user.email = email
         user.save()
-        return JsonResponse(msg="修改成功")
+        return SuccessResponse(msg="修改成功")
 
 
-class UserListApi(ListAPIView, LoginRequiredMixin):
+class UserApi(CustomModelViewSet):
     """
-    用户列表路由
+    用户路由
     """
     serializer_class = UserListSerializer
     ordering_fields = ('id', 'uid', 'username', 'email', 'level', 'is_active')
     search_fields = ('username', 'email')  # 搜索字段
-    filterset_fields = ['uid', 'username', 'email', 'is_superuser', 'level', 'is_active']  # 过滤字段
+    filterset_fields = ['uid', 'username', 'email',
+                        'is_superuser', 'level', 'is_active']  # 过滤字段
     queryset = User.objects.all()
+    create_serializer_class = UserSerializer
+    update_serializer_class = UserSerializer
 
-    def post(self, request):
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # # 管理员权限
+        # if request.user.is_superuser:
+        #     return super().destroy(request, *args, **kwargs)
+        # else:
+        #     return ErrorResponse(msg="没有权限")
+        return super().destroy(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
+    def user_info(self, request):
         user = request.user
-        if user.is_superuser:
-            username = request.data.get('username')
-            password = request.data.get('password')
-            email = request.data.get('email')
-            invite_code = request.data.get('invite_code')
-            user = User.objects.create_user(username=username, password=password,
-                                            email=email, invite_code=invite_code)
+        data = user_get_login_data(user=user)
+        return SuccessResponse(data=data, msg="获取成功")
+
+    @action(methods=['post'], detail=False, url_path='change_password', url_name='change_password')
+    def change_password(self, request):
+        user = request.user
+        password = request.data.get('password')
+        old_password = request.data.get('old_password')
+        if user.check_password(old_password):
+            user.set_password(password)
             user.save()
-            return JsonResponse(msg="添加成功")
+            return SuccessResponse(msg="修改成功")
         else:
-            return JsonResponse(msg="无权限")
+            return ErrorResponse(msg="密码错误")
 
-    def put(self, request):
-        user = request.user
-        if user.is_superuser:
-            uid = request.data.get('uid')
-            is_active = request.data.get('is_active')
-            is_superuser = request.data.get('is_superuser')
-            user = User.objects.get(uid=uid)
-            user.is_active = is_active
-            user.is_superuser = is_superuser
-            user.save()
-            return JsonResponse(msg="修改成功")
+    @action(methods=['post'], detail=False, url_path='reset_password', url_name='reset_password')
+    def reset_password(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+        verify_id = request.data.get('verify_id')
+        code_obj = Code.objects.filter(verify_id=verify_id, email=email)
+        if code_obj.exists():
+            db_code = code_obj.order_by('-create_time').first()
+            db_code.delete()
         else:
-            return JsonResponse(msg="无权限")
+            return ErrorResponse(msg="email error please try again")
+        user = User.objects.get(email=email)
+        user.password = make_password(password)
+        user.save()
+        data = user_get_login_data(user=user)
+        return SuccessResponse(msg="success", data=data)
 
-    def delete(self, request):
-        user = request.user
-        if user.is_superuser:
-            uid = request.data.get('uid')
-            user = User.objects.get(uid=uid)
-            user.delete()
-            return JsonResponse(msg="删除成功")
+    @action(methods=['post'], detail=False, url_path='baned_user', url_name='baned_user')
+    def baned_user(self, request, *args, **kwargs):
+        instance = Users.objects.filter(id=kwargs.get("pk")).first()
+        if instance:
+            instance.is_active = False
+            instance.save()
+            return SuccessResponse(msg="success")
         else:
-            return JsonResponse(msg="无权限")
+            return ErrorResponse(msg="error")
+    
+    @action(methods=['post'], detail=False, url_path='unbaned_user', url_name='unbaned_user')
+    def unbaned_user(self, request, *args, **kwargs):
+        instance = Users.objects.filter(id=kwargs.get("pk")).first()
+        if instance:
+            instance.is_active = True
+            instance.save()
+            return SuccessResponse(msg="success")
+        else:
+            return ErrorResponse(msg="error")
 
 
 class UserRegisterApi(APIView):
@@ -116,11 +158,11 @@ class UserRegisterApi(APIView):
         email_code_id = request.data.get('email_code_id')
         code_item = Code.objects.filter(id=email_code_id, email=email_code)
         if code_item.exists():
-            db_code = code_item.order_by('-create_time').first()
+            db_code = code_item.order_by('-create_at').first()
         else:
             return Response({'status': False, 'msg': 'email error'}, status=200)
         time_now = int(time.time())
-        del_time = time_now - db_code.create_time
+        del_time = time_now - db_code.create_at
         if del_time >= 600:
             db_code = Code.objects.filter(email=email)
             db_code.delete()
@@ -132,7 +174,7 @@ class UserRegisterApi(APIView):
         user.save()
         db_code = Code.objects.filter(email=email)
         db_code.delete()
-        return JsonResponse(msg="注册成功")
+        return SuccessResponse(msg="注册成功")
 
 
 class CaptchaApi(APIView):
@@ -151,7 +193,7 @@ class CaptchaApi(APIView):
             "captcha_id": id,
             "captcha_image_base": "data:image/png;base64," + image_base.decode("utf-8"),
         }
-        return JsonResponse(data=data, msg="获取成功")
+        return SuccessResponse(data=data, msg="获取成功")
 
 
 class EmailValidateApi(APIView):
@@ -175,7 +217,7 @@ class EmailValidateApi(APIView):
         if code_id:
             msg = "send success"
             data = {"email_code_id": code_id}
-            return JsonResponse(data=data, msg=msg)
+            return SuccessResponse(data=data, msg=msg)
         else:
             msg = "send fail"
             data = {"email_code_id": ""}
@@ -200,8 +242,8 @@ class ResetPasswordApi(APIView):
         user = User.objects.get(email=email)
         user.password = make_password(password)
         user.save()
-        data=user_get_login_data(user=user)
-        return JsonResponse(msg="success", data=data)
+        data = user_get_login_data(user=user)
+        return SuccessResponse(msg="success", data=data)
 
 
 class ResetPasswordVerifyApi(APIView):
@@ -231,7 +273,7 @@ class ResetPasswordVerifyApi(APIView):
         db_code.verify_id = verify_id
         db_code.save()
         data = {"verify_id": verify_id}
-        return JsonResponse(data=data, msg="success")
+        return SuccessResponse(data=data, msg="success")
 
 
 class ChangePasswordApi(APIView):
@@ -246,6 +288,6 @@ class ChangePasswordApi(APIView):
         if user.check_password(old_password):
             user.password = make_password(new_password)
             user.save()
-            return JsonResponse(msg="修改成功")
+            return SuccessResponse(msg="修改成功")
         else:
             return ErrorResponse(msg="原密码错误")

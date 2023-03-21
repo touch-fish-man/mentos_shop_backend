@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from captcha.models import CaptchaStore
 from django.contrib.auth import authenticate, login, logout
 # from apps.users.serializers import UserSerializer
-from apps.core.json_response import JsonResponse, ErrorResponse
+from apps.core.json_response import SuccessResponse, ErrorResponse
 from rest_framework.views import APIView
 from apps.users.selectors import user_get_login_data
 from .services import exchange_code
@@ -47,7 +47,7 @@ class LoginApi(APIView):
         if user is not None:
             login(request, user)
             data = user_get_login_data(user=user)
-            return JsonResponse(data=data, msg="登录成功")
+            return SuccessResponse(data=data, msg="登录成功")
         else:
             return ErrorResponse(msg="用户名或密码错误", status=400)
 
@@ -55,7 +55,7 @@ class LoginApi(APIView):
         if request.user.is_authenticated:
             user = request.user
             data = user_get_login_data(user=user)
-            return JsonResponse(data=data, msg="获取成功")
+            return SuccessResponse(data=data, msg="获取成功")
         else:
             return ErrorResponse(msg="未登录", status=400)
 
@@ -79,7 +79,7 @@ class DiscordOauth2LoginApi(APIView):
         redirect_uri = urllib.parse.quote(redirect_uri)
         data = {
             'discord_auth_url': f'https://discord.com/api/oauth2/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=identify'}
-        return JsonResponse(data=data, msg="获取成功")
+        return SuccessResponse(data=data, msg="获取成功")
 
 
 class DiscordOauth2RedirectApi(APIView):
