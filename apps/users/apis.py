@@ -11,9 +11,10 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.core.json_respon import JsonResponse, ErrorResponse
+from apps.core.json_response import JsonResponse, ErrorResponse
 from apps.users.models import User, Code
 from apps.users.selectors import user_get_login_data
+from apps.users.serializers import UserSerializer, UserListSerializer
 from .services import send_email_code
 
 
@@ -56,24 +57,7 @@ class UserListApi(ListAPIView, LoginRequiredMixin):
     """
     用户列表路由
     """
-
-    class OutputSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = User
-            fields = ("id", "uid", "username", "email", "is_superuser", "level", "is_active", "points", "date_joined",
-                      "discord_id", "last_login")
-
-        def to_representation(self, instance):
-            ret = super().to_representation(instance)
-            ret['date_joined'] = instance.date_joined.strftime('%Y-%m-%d %H:%M:%S')
-            ret['last_login'] = instance.last_login.strftime('%Y-%m-%d %H:%M:%S')
-            if instance.discord_id:
-                ret['discord_id'] = instance.discord_id
-            else:
-                ret['discord_id'] = ""
-            return ret
-
-    serializer_class = OutputSerializer
+    serializer_class = UserListSerializer
     ordering_fields = ('id', 'uid', 'username', 'email', 'level', 'is_active')
     search_fields = ('username', 'email')  # 搜索字段
     filterset_fields = ['uid', 'username', 'email', 'is_superuser', 'level', 'is_active']  # 过滤字段

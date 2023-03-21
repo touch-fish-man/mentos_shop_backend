@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from captcha.models import CaptchaStore
 from django.contrib.auth import authenticate, login, logout
 # from apps.users.serializers import UserSerializer
-from apps.core.json_respon import JsonResponse, ErrorResponse
+from apps.core.json_response import JsonResponse, ErrorResponse
 from rest_framework.views import APIView
 from apps.users.selectors import user_get_login_data
 from .services import exchange_code
