@@ -5,7 +5,12 @@ import string
 from faker import Faker
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.production")
+
+import django
+django.setup()
+
+
 from apps.users.models import User
 
 fake = Faker(locale='en_US')
