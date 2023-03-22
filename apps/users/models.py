@@ -5,7 +5,7 @@ from django.db import models, transaction
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
 from apps.core.models import BaseModel
-def gen_uid(self):
+def gen_uid():
     # 生成8位uuid
     return str(uuid4()).replace('-', '')[:8]
 class User(AbstractUser, BaseModel):
