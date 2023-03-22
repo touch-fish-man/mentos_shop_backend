@@ -50,11 +50,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email', 'password', 'is_active', 'discord_id', 'invite_code')
 
+        extra_kwargs = {
+            'email_code_id': {'required': True,"write_only": True},
+            'email_code': {'required': True},
+            'password': {'write_only': True},
+        }
+
     def save(self, **kwargs):
-        email_code_id = kwargs.get('email_code_id')
-        email_code = kwargs.get('email_code')
-        email = kwargs.get('email')
-        check_email_code(email, email_code_id, email_code, delete=True)
         user = super().save(**kwargs)
         user.set_password(kwargs['password'])
         user.save()
@@ -90,22 +92,3 @@ class UserPasswordSerializer(serializers.ModelSerializer):
         instance.password = make_password(validated_data['password'])
         instance.save()
         return instance
-
-
-class UserListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            "id", "uid", "username", "email", "is_superuser", "level", "is_active", "points", "date_joined",
-            "discord_id",
-            "last_login")
-
-    def to_representation(self, instance):
-        ret = super().to_representation(instance)
-        ret['date_joined'] = instance.date_joined.strftime('%Y-%m-%d %H:%M:%S')
-        ret['last_login'] = instance.last_login.strftime('%Y-%m-%d %H:%M:%S')
-        if instance.discord_id:
-            ret['discord_id'] = instance.discord_id
-        else:
-            ret['discord_id'] = ""
-        return ret

@@ -17,44 +17,54 @@ from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpd
 from .services import send_email_code, check_email_code, check_verify_id
 
 
-class UserInfoApi(LoginRequiredMixin, APIView):
-    """
-    用户信息路由
-    """
-
-    def get(self, request):
-        user = request.user
-        print(user)
-        data = user_get_login_data(user=user)
-        return SuccessResponse(data=data, msg="获取成功")
-
-    def post(self, request):
-        user = request.user
-        email = request.data.get('email')
-        user.email = email
-        user.save()
-        return SuccessResponse(msg="修改成功")
-
-    def delete(self, request):
-        user = request.user
-        user.delete()
-        return SuccessResponse(msg="删除成功")
-
-    def put(self, request):
-        user = request.user
-        username = request.data.get('username')
-        password = request.data.get('password')
-        email = request.data.get('email')
-        user.username = username
-        user.password = make_password(password)
-        user.email = email
-        user.save()
-        return SuccessResponse(msg="修改成功")
+# class UserInfoApi(LoginRequiredMixin, APIView):
+#     """
+#     用户信息路由
+#     """
+#
+#     def get(self, request):
+#         user = request.user
+#         print(user)
+#         data = user_get_login_data(user=user)
+#         return SuccessResponse(data=data, msg="获取成功")
+#
+#     def post(self, request):
+#         user = request.user
+#         email = request.data.get('email')
+#         user.email = email
+#         user.save()
+#         return SuccessResponse(msg="修改成功")
+#
+#     def delete(self, request):
+#         user = request.user
+#         user.delete()
+#         return SuccessResponse(msg="删除成功")
+#
+#     def put(self, request):
+#         user = request.user
+#         username = request.data.get('username')
+#         password = request.data.get('password')
+#         email = request.data.get('email')
+#         user.username = username
+#         user.password = make_password(password)
+#         user.email = email
+#         user.save()
+#         return SuccessResponse(msg="修改成功")
 
 
 class UserApi(ComModelViewSet):
     """
-    用户路由
+    用户接口
+    list:列表
+    create:新增
+    update:修改
+    retrieve:查询
+    destroy:删除
+    user_info:获取用户信息
+    change_password:修改密码
+    reset_password:重置密码
+    baned_user:禁用用户
+    unbaned_user:解禁用户
     """
     serializer_class = UserSerializer
     ordering_fields = ('username', 'email', 'level', 'is_active')
@@ -65,7 +75,12 @@ class UserApi(ComModelViewSet):
     update_serializer_class = UserUpdateSerializer
     reset_password_serializer_class = UserSerializer
     baned_user_serializer_class = BanUserSerializer
-
+    def create(self, request, *args, **kwargs):
+        email_code_id = kwargs.get('email_code_id')
+        email_code = kwargs.get('email_code')
+        email = kwargs.get('email')
+        check_email_code(email, email_code_id, email_code, delete=True)
+        return super().create(request, *args, **kwargs)
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
     def user_info(self, request):
         user = request.user
@@ -74,6 +89,7 @@ class UserApi(ComModelViewSet):
 
     @action(methods=['post'], detail=True, url_path='change_password', url_name='change_password')
     def change_password(self, request, *args, **kwargs):
+
         user = request.user
         if user.is_superuser:
             instance = User.objects.filter(uid=kwargs.get("pk")).first()

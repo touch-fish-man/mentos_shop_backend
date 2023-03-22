@@ -2,7 +2,7 @@ from rest_framework.viewsets import ModelViewSet
 from .json_response import SuccessResponse, LimitOffsetResponse, ErrorResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-
+from django.db import transaction
 class ComModelViewSet(ModelViewSet):
     values_queryset = None
     ordering_fields = '__all__'
@@ -14,6 +14,14 @@ class ComModelViewSet(ModelViewSet):
     permission_classes = []
     import_field_dict = {}
     export_field_label = {}
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        kwargs.setdefault('context', self.get_serializer_context())
+        if isinstance(self.request.data, list):
+            with transaction.atomic():
+                return serializer_class(many=True, *args, **kwargs)
+        else:
+            return serializer_class(*args, **kwargs)
 
     def get_serializer_class(self):
         """
@@ -26,7 +34,7 @@ class ComModelViewSet(ModelViewSet):
         return super().get_serializer_class()
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, request=request)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return SuccessResponse(data=serializer.data, msg="新增成功")
@@ -35,9 +43,9 @@ class ComModelViewSet(ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True, request=request)
+            serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True, request=request)
+        serializer = self.get_serializer(queryset, many=True)
         return LimitOffsetResponse(data=serializer.data, msg="获取成功")
 
     def retrieve(self, request, *args, **kwargs):
@@ -48,7 +56,7 @@ class ComModelViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial, request=request)
+        serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return SuccessResponse(data=serializer.data, msg="修改成功")
