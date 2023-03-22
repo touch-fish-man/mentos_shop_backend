@@ -45,5 +45,3 @@ if __name__ == '__main__':
     clean_users()
     create_default_user()
     create_users()
-
-
