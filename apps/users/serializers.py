@@ -6,7 +6,7 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from apps.users.models import User, Code
 from django.contrib.auth.hashers import make_password
-from apps.core.validators import UniqueValidator
+from apps.core.validators import UniqueValidator, CustomUniqueValidator
 from apps.users.services import check_email_code
 
 
@@ -19,16 +19,25 @@ class UserSerializer(serializers.ModelSerializer):
             'invite_user_id', "created_at")
 
 
+class BanUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id',)
+
+
 class UserCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True,
-                                     validators=[UniqueValidator(queryset=User.objects.all(), message="用户名已存在")])
+                                     validators=[
+                                         CustomUniqueValidator(queryset=User.objects.all(), message="用户名已存在")])
     password = serializers.CharField(required=True, min_length=6)
     email = serializers.EmailField(required=True,
-                                   validators=[UniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
+                                   validators=[
+                                       CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
     discord_id = serializers.CharField(required=False, validators=[
-        UniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
-    email_code_id = serializers.IntegerField(required=True)
-    email_code = serializers.CharField(required=False)
+        CustomUniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
+
+    # email_code_id = serializers.IntegerField(required=True)
+    # email_code = serializers.CharField(required=False)
 
     def validate_password(self, value):
         try:
@@ -44,8 +53,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def save(self, **kwargs):
         email_code_id = kwargs.get('email_code_id')
         email_code = kwargs.get('email_code')
-        email=kwargs.get('email')
-        check_email_code(email, email_code_id, email_code,delete=True)
+        email = kwargs.get('email')
+        check_email_code(email, email_code_id, email_code, delete=True)
         user = super().save(**kwargs)
         user.set_password(kwargs['password'])
         user.save()
@@ -54,11 +63,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=False,
-                                     validators=[UniqueValidator(queryset=User.objects.all(), message="用户名已存在")])
+                                     validators=[
+                                         CustomUniqueValidator(queryset=User.objects.all(), message="用户名已存在")])
     email = serializers.EmailField(required=False,
-                                   validators=[UniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
+                                   validators=[
+                                       CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
     discord_id = serializers.CharField(required=False, validators=[
-        UniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
+        CustomUniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
 
     class Meta:
         model = User

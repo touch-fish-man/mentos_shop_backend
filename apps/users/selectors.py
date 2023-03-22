@@ -5,6 +5,7 @@ from apps.users.filters import BaseUserFilter
 
 def user_get_login_data(*, user: User):
     return {
+        "id": user.id,
         "uid": user.uid,
         "email": user.email,
         "username": user.username,

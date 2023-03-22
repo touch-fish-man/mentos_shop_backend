@@ -1,24 +1,20 @@
 import base64
 import datetime
-import time
 import uuid
 
 from captcha.views import CaptchaStore, captcha_image
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.validators import validate_email
-from rest_framework import serializers
-from rest_framework.generics import ListAPIView
-from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.decorators import action
+from rest_framework.views import APIView
 
 from apps.core.json_response import SuccessResponse, ErrorResponse
+from apps.core.viewsets import ComModelViewSet
 from apps.users.models import User, Code
 from apps.users.selectors import user_get_login_data
-from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer
+from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer
 from .services import send_email_code, check_email_code, check_verify_id
-from apps.core.viewsets import ComModelViewSet
 
 
 class UserInfoApi(LoginRequiredMixin, APIView):
@@ -68,6 +64,7 @@ class UserApi(ComModelViewSet):
     create_serializer_class = UserCreateSerializer
     update_serializer_class = UserUpdateSerializer
     reset_password_serializer_class = UserSerializer
+    baned_user_serializer_class = BanUserSerializer
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
     def user_info(self, request):
@@ -110,42 +107,24 @@ class UserApi(ComModelViewSet):
 
     @action(methods=['post'], detail=True, url_path='baned_user', url_name='baned_user')
     def baned_user(self, request, *args, **kwargs):
-        instance = User.objects.filter(uid=kwargs.get("pk")).first()
+        instance = User.objects.filter(id=kwargs.get("pk")).first()
         if instance:
             instance.is_active = False
             instance.save()
-            return SuccessResponse(msg="success")
+            user_data = user_get_login_data(user=instance)
+            return SuccessResponse(msg="success", data=user_data)
         else:
             return ErrorResponse(msg="error")
 
     @action(methods=['post'], detail=True, url_path='unbaned_user', url_name='unbaned_user')
     def unbaned_user(self, request, *args, **kwargs):
-        instance = User.objects.filter(uid=kwargs.get("pk")).first()
+        instance = User.objects.filter(id=kwargs.get("pk")).first()
         if instance:
             instance.is_active = True
             instance.save()
             return SuccessResponse(msg="success")
         else:
             return ErrorResponse(msg="error")
-
-
-class CaptchaApi(APIView):
-    """
-    验证码路由
-    """
-
-    def get(self, request):
-        data = {}
-        hashkey = CaptchaStore.generate_key()
-        id = CaptchaStore.objects.filter(hashkey=hashkey).first().id
-        imgage = captcha_image(request, hashkey)
-        # 将图片转换为base64
-        image_base = base64.b64encode(imgage.content)
-        data = {
-            "captcha_id": id,
-            "captcha_image_base": "data:image/png;base64," + image_base.decode("utf-8"),
-        }
-        return SuccessResponse(data=data, msg="获取成功")
 
 
 class EmailValidateApi(APIView):

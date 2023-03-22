@@ -17,3 +17,4 @@ mysqlclient
 django-redis
 django-redis-sessions
 django-restql
+drf-yasg

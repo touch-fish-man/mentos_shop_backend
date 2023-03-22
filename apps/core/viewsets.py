@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from .json_response import SuccessResponse, LimitOffsetResponse, ErrorResponse
-
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 
 class ComModelViewSet(ModelViewSet):
     values_queryset = None

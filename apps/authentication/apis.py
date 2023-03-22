@@ -1,7 +1,12 @@
+import base64
+import hashlib
 from datetime import datetime, timedelta
-
+from captcha.views import CaptchaStore, captcha_image
 from captcha.models import CaptchaStore
+from django.contrib import auth
 from django.contrib.auth import authenticate, login, logout
+from rest_framework import serializers
+
 # from apps.users.serializers import UserSerializer
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from rest_framework.views import APIView
@@ -63,11 +68,11 @@ class LoginApi(APIView):
 class LogoutApi(APIView):
     def get(self, request):
         logout(request)
-        return redirect('/')
+        return SuccessResponse(msg="登出成功")
 
     def post(self, request):
         logout(request)
-        return redirect('/')
+        return SuccessResponse(msg="登出成功")
 
 
 class DiscordOauth2LoginApi(APIView):
@@ -119,3 +124,55 @@ class DiscordBindRedirectApi(APIView):
         user.save()
         # 重定向到用户页面
         return redirect("/dashboard/")
+
+
+class CaptchaApi(APIView):
+    """
+    验证码路由
+    """
+
+    def get(self, request):
+        data = {}
+        hashkey = CaptchaStore.generate_key()
+        id = CaptchaStore.objects.filter(hashkey=hashkey).first().id
+        imgage = captcha_image(request, hashkey)
+        # 将图片转换为base64
+        image_base = base64.b64encode(imgage.content)
+        data = {
+            "captcha_id": id,
+            "captcha_image_base": "data:image/png;base64," + image_base.decode("utf-8"),
+        }
+        return SuccessResponse(data=data, msg="获取成功")
+
+
+class ApiLoginSerializer(serializers.ModelSerializer):
+    """接口文档登录-序列化器"""
+
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    class Meta:
+        model = User
+        fields = ["username", "password"]
+
+
+class ApiLogin(APIView):
+    """接口文档的登录接口"""
+
+    serializer_class = ApiLoginSerializer
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        username = request.data.get("username")
+        password = request.data.get("password")
+        user_obj = auth.authenticate(
+            request,
+            username=username,
+            password=hashlib.md5(password.encode(encoding="UTF-8")).hexdigest(),
+        )
+        if user_obj:
+            login(request, user_obj)
+            return redirect("/")
+        else:
+            return ErrorResponse(msg="账号/密码错误")

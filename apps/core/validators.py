@@ -25,6 +25,7 @@ def qs_filter(queryset, **kwargs):
     except (TypeError, ValueError, DataError):
         return queryset.none()
 
+
 class CustomUniqueValidator(UniqueValidator):
     """
     继承,重写必填字段的验证器结果,防止字段暴露

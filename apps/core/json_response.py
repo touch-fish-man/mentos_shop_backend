@@ -3,7 +3,7 @@ from rest_framework.response import Response
 
 class LimitOffsetResponse(Response):
 
-    def __init__(self, data=None, msg='success', status=None, template_name=None, headers=None, exception=False,
+    def __init__(self, data={}, msg='success', status=None, template_name=None, headers=None, exception=False,
                  content_type=None, offset=0, limit=10, total=1):
         std_data = {
             "code": 2000,
@@ -24,7 +24,7 @@ class SuccessResponse(Response):
     (1)默认code返回2000, 不支持指定其他返回码
     """
 
-    def __init__(self, data=None, msg='success', status=None, template_name=None, headers=None, exception=False,
+    def __init__(self, data={}, msg='success', status=None, template_name=None, headers=None, exception=False,
                  content_type=None, ):
         std_data = {
             "code": 2000,
