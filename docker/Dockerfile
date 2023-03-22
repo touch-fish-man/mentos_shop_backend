@@ -9,6 +9,7 @@ RUN awk 'BEGIN { cmd="cp -r /opt/mentos_shop_backend/.env.sample /opt/mentos_sho
 RUN pip install -r requirements.txt
 RUN python manage.py makemigrations
 RUN python manage.py migrate
+RUN python mocks/mock_data.py
 ENV TZ="Asia/Shanghai" 
 ENV DJANGO_ENV="prod"
 COPY config/supervisord_mentos.conf /opt/

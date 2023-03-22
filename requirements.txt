@@ -11,5 +11,8 @@ django-environ
 sendgrid
 django-simple-captcha
 django-cors-headers
+Faker
 PyMySQL
 mysqlclient
+django-redis
+django-redis-sessions
