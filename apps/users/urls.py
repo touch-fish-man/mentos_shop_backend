@@ -1,5 +1,5 @@
 from django.urls import path
-from .apis import UserListApi, UserInfoApi, UserRegisterApi, CaptchaApi, EmailValidateApi, ResetPasswordApi, \
+from .apis import UserInfoApi, CaptchaApi, EmailValidateApi, ResetPasswordApi, \
     ChangePasswordApi,ResetPasswordVerifyApi,UserApi
 from rest_framework import routers
 
@@ -8,7 +8,6 @@ router.register(r'', UserApi, basename='user')
 
 
 urlpatterns = [
-    path("register", UserRegisterApi.as_view(), name="register"),
     path("captcha", CaptchaApi.as_view(), name="captcha"),
     path("email_validate", EmailValidateApi.as_view(), name="email_validate"),
     path("info", UserInfoApi.as_view(), name="info"),
