@@ -1,5 +1,5 @@
 from rest_framework.views import APIView, ListAPIView
-from apps.core.json_response import JsonResponse, ErrorResponse
+from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.proxy_server.models import AclList, ProxyServer, ProxyList
 from apps.proxy_server.serializers import AclListSerializer, AclListCreateSerializer, AclListUpdateSerializer
 from apps.core.validators import CustomUniqueValidator

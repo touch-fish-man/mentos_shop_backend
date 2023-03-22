@@ -9,7 +9,7 @@ from rest_framework.generics import ListAPIView
 
 from apps.tickets.selectors import workorder_list
 from apps.api.pagination import LimitOffsetPagination, get_paginated_response
-from apps.core.json_respon import JsonResponse, ErrorResponse
+from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.tickets.models import WorkOrder
 # Create your views here.
 
@@ -50,7 +50,7 @@ class WorkOrderListApi(ListAPIView):
         workorder = WorkOrder.objects.create(username=username, phone=phone,
                                         email=email, message=message)
         workorder.save()
-        return  JsonResponse("发送成功")
+        return  SuccessResponse("发送成功")
 
 
     class Pagination(LimitOffsetPagination):
@@ -88,4 +88,4 @@ class WorkOrderListApi(ListAPIView):
         message = request.data.get('message')
         workorder = WorkOrder.objects.filter(username=username,phone=phone,email=email,message=message)
         workorder.delete()
-        return JsonResponse(msg="删除成功")
+        return SuccessResponse(msg="删除成功")

@@ -2,7 +2,7 @@ from collections import OrderedDict
 
 from rest_framework.pagination import LimitOffsetPagination as _LimitOffsetPagination
 from rest_framework.response import Response
-from apps.core.json_respon import SuccessResponse,LimitOffsetResponse
+from apps.core.json_response import SuccessResponse,LimitOffsetResponse
 
 
 def get_paginated_response(*, pagination_class, serializer_class, queryset, request, view):
