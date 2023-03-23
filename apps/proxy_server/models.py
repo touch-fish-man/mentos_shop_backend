@@ -19,7 +19,7 @@ class ProxyServer(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
-    cidr_prefix = models.IntegerField(blank=True, null=True, verbose_name='CIDR前缀')
+    cidr_prefix = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR前缀')
 
     class Meta:
         db_table = 'proxy_server'
@@ -27,7 +27,7 @@ class ProxyServer(BaseModel):
         verbose_name_plural = '代理服务器'
 
 
-class ProxyList(models.Model):
+class ProxyList(BaseModel):
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
     username = models.CharField(max_length=255, blank=True, null=True, verbose_name='用户名')
     password = models.CharField(max_length=255, blank=True, null=True, verbose_name='密码')
@@ -35,6 +35,9 @@ class ProxyList(models.Model):
     proxy_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='类型')
     server_id = models.IntegerField(blank=True, null=True, verbose_name='服务器ID')
     acl_ids = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL IDs')
+    order_id = models.IntegerField(blank=True, null=True, verbose_name='订单ID')
+    expired_at = models.DateTimeField(blank=True, null=True, verbose_name='过期时间')
+    uid = models.CharField(max_length=255, blank=True, null=True, verbose_name='用户ID')
 
     class Meta:
         db_table = 'proxy_list'

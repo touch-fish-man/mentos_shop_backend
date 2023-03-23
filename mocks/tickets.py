@@ -1,7 +1,6 @@
 import random
 import string
 
-from django.contrib.auth.hashers import make_password
 from faker import Faker
 import os
 import sys

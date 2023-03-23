@@ -39,7 +39,7 @@ def clean_users():
 
 def create_users():
     for i in range(100):
-        username = fake.name().replace(" ", "")
+        username = fake.user_name()
         email = username.lower() + "@dafffa.site"
         is_superuser = random.choice([True, False])
         points = random.randint(0, 1000)
