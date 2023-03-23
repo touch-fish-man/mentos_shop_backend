@@ -131,3 +131,4 @@ dmypy.json
 # mrigate files
 *_initial.py
 config/.env
+00*_*.py
