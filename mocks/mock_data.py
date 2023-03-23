@@ -1,4 +1,9 @@
-from create_users import *
-clean_users()
-create_default_user()
-create_users()
+from users import main as mock_users
+
+from tickets import main as mock_tickets
+
+mock_users()
+mock_tickets()
+
+
+

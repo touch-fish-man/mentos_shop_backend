@@ -7,5 +7,5 @@ urlpatterns = [
     path("discord/redirect", DiscordOauth2RedirectApi.as_view(), name="discord_redirect"),
     path("discord/bind_redirect", DiscordBindRedirectApi.as_view(), name="discord_bind"),
     path("captcha", CaptchaApi.as_view(), name="captcha"),
-    path("apilogin", ApiLogin.as_view(), name="apilogin"),
+    # path("apilogin", ApiLogin.as_view(), name="apilogin"),
 ]

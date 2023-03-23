@@ -5,6 +5,8 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.utils.serializer_helpers import BindingDict
 
 from django_restql.mixins import DynamicFieldsMixin
+
+
 class CommonSerializer(DynamicFieldsMixin, ModelSerializer):
     # 添加默认时间返回格式
     created_at = serializers.DateTimeField(

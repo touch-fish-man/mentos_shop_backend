@@ -1,6 +1,11 @@
 from django.urls import path
-from apps.tickets.apis import WorkOrderListApi
+from apps.tickets.apis import TicksApi
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'', TicksApi, basename='tickets')
 
 urlpatterns = [
-    # path('workorderlist',WorkOrderListApi.as_view(),name='workorderlist')
 ]
+
+urlpatterns += router.urls

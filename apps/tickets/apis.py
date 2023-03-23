@@ -1,91 +1,40 @@
-from django.shortcuts import render
-import pytz
-from datetime import datetime, timedelta
-
-from captcha.views import CaptchaStore
-from django.core.validators import validate_email
 from rest_framework import serializers
-from rest_framework.generics import ListAPIView
-
-from apps.tickets.selectors import workorder_list
-from apps.api.pagination import LimitOffsetPagination, get_paginated_response
-from apps.core.json_response import SuccessResponse, ErrorResponse
-from apps.tickets.models import WorkOrder
+from apps.tickets.models import Tickets
+from apps.core.viewsets import ComModelViewSet
+from apps.tickets.serializers import TicketsSerializer
+from apps.authentication.services import check_chaptcha
 # Create your views here.
 
-class WorkOrderListApi(ListAPIView):
+class TicksApi(ComModelViewSet):
     """
-    工单列表路由
+    工单列表
+    list:列表
+    create:创建
+    update:更新
+    retrieve:详情
+    destroy:删除
     """
-    def post(self,request):
-        username = request.data.get('username')
-        phone = request.data.get('phone')
-        email = request.data.get('email')
-        message = request.data.get('message')
+    queryset = Tickets.objects.all()
+    serializer_class = TicketsSerializer
+
+
+    def create(self, request, *args, **kwargs):
         captcha_id = request.data.get('captcha_id')
         captcha_code = request.data.get('captcha')
         try:
-            validate_email(email)
-        except:
-            return ErrorResponse(msg="邮箱格式错误")
-        if captcha_id is None:
-            return ErrorResponse(msg="验证码错误")
-        if captcha_code is None:
-            return ErrorResponse(msg="验证码错误")
-        expiration = CaptchaStore.objects.filter(id=captcha_id).first().expiration
-        expiration = expiration.astimezone(pytz.timezone("Asia/Shanghai"))
-        response = CaptchaStore.objects.filter(id=captcha_id).first().response
-        image_code = CaptchaStore.objects.filter(id=captcha_id).first()
-        five_minute_ago = datetime.now() - timedelta(hours=0, minutes=5, seconds=0)
-        five_minute_ago = five_minute_ago.replace(tzinfo=pytz.timezone("Asia/Shanghai"))
-        if image_code and five_minute_ago > expiration:
-            image_code.delete()
-            return ErrorResponse(msg="验证码过期")
-        else:
-            if image_code and response.lower() == captcha_code.lower():
-                image_code.delete()
-            else:
-                image_code.delete()
-                return ErrorResponse(msg="验证码错误")
-        workorder = WorkOrder.objects.create(username=username, phone=phone,
-                                        email=email, message=message)
-        workorder.save()
-        return  SuccessResponse("发送成功")
-
-
-    class Pagination(LimitOffsetPagination):
-        default_limit = 5
-
-    class FilterSerializer(serializers.Serializer):
-        username = serializers.CharField(required=False,allow_null=True)
-        phone = serializers.CharField(required=False, allow_null=True)
-        email = serializers.EmailField(required=False,allow_null=True)
-        
+            check_chaptcha(captcha_id, captcha_code)
+        except Exception as e:
+            return ErrorResponse(msg=e.message)
+        return super().create(request, *args, **kwargs)
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
     
-    class OutputSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = WorkOrder
-            fields = ("username", "phone", "email","message")
-
-    def get(self,request):
-        filters_serializer = self.FilterSerializer(data=request.query_params)
-        filters_serializer.is_valid(raise_exception=True)
-
-        workorders = workorder_list(filters=filters_serializer.validated_data)
-
-        return get_paginated_response(
-            pagination_class=self.Pagination,
-            serializer_class=self.OutputSerializer,
-            queryset=workorders,
-            request=request,
-            view=self,
-        )
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
     
-    def delete(self,request):
-        username = request.data.get('username')
-        phone = request.data.get('phone')
-        email = request.data.get('email')
-        message = request.data.get('message')
-        workorder = WorkOrder.objects.filter(username=username,phone=phone,email=email,message=message)
-        workorder.delete()
-        return SuccessResponse(msg="删除成功")
+    def retrieve(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
+    

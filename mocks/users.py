@@ -48,6 +48,10 @@ def create_users():
         password = make_password("Admin@123456")
         User.objects.create(username=username, email=email, password=password, is_active=True,
                             is_superuser=is_superuser, points=points, level=level, invite_code=invite_code)
+def main():
+    clean_users()
+    create_default_user()
+    create_users()
 
 
 if __name__ == '__main__':

@@ -20,7 +20,9 @@ import urllib
 
 class LoginApi(APIView):
     """
-    登录路由
+    用户登录
+    post:登录
+    get:获取登录状态
     """
     # 移除认证
     authentication_classes = ()
@@ -66,6 +68,9 @@ class LoginApi(APIView):
 
 
 class LogoutApi(APIView):
+    """
+    用户登出
+    """
     def get(self, request):
         logout(request)
         return SuccessResponse(msg="登出成功")
@@ -76,6 +81,9 @@ class LogoutApi(APIView):
 
 
 class DiscordOauth2LoginApi(APIView):
+    """
+    discord 登录
+    """
     def get(self, request):
         client_id = settings.DISCORD_CLIENT_ID
         redirect_uri = settings.DISCORD_REDIRECT_URI
@@ -88,6 +96,9 @@ class DiscordOauth2LoginApi(APIView):
 
 
 class DiscordOauth2RedirectApi(APIView):
+    """
+    discord 登录回调
+    """
     def get(self, request):
         code = request.GET.get('code')
         if code is None:
@@ -110,6 +121,9 @@ class DiscordOauth2RedirectApi(APIView):
 
 
 class DiscordBindRedirectApi(APIView):
+    """
+    discord绑定回调
+    """
     def get(self, request):
         code = request.GET.get('code')
         if code is None:
@@ -128,7 +142,7 @@ class DiscordBindRedirectApi(APIView):
 
 class CaptchaApi(APIView):
     """
-    验证码路由
+    验证码
     """
 
     def get(self, request):
