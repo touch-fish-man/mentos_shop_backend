@@ -7,6 +7,10 @@ from django.core.validators import validate_email
 
 
 class TicketsSerializer(serializers.ModelSerializer):
+    captcha = serializers.CharField(max_length=6, required=False, write_only=True,)
+    captcha_id = serializers.CharField(max_length=36, required=False, write_only=True,)
+    id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Tickets
         fields = "__all__"
@@ -16,3 +20,8 @@ class TicketsSerializer(serializers.ModelSerializer):
         except ValidationError as exc:
             raise serializers.ValidationError(str(exc))
         return value
+    def save(self, **kwargs):
+        kwargs.pop('captcha', None)
+        kwargs.pop('captcha_id', None)
+        instance = super().save(**kwargs)
+        return instance
