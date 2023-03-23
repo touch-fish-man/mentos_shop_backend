@@ -3,6 +3,7 @@ from apps.tickets.models import Tickets
 from apps.core.viewsets import ComModelViewSet
 from apps.tickets.serializers import TicketsSerializer
 from apps.authentication.services import check_chaptcha
+from apps.core.json_response import ErrorResponse
 # Create your views here.
 
 class TicksApi(ComModelViewSet):
@@ -16,6 +17,8 @@ class TicksApi(ComModelViewSet):
     """
     queryset = Tickets.objects.all()
     serializer_class = TicketsSerializer
+    search_fields=('username', 'email', 'phone')
+    
 
 
     def create(self, request, *args, **kwargs):

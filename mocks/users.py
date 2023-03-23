@@ -9,8 +9,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.production")
-
+from rich.console import Console
 import django
 
 django.setup()
@@ -49,9 +48,11 @@ def create_users():
         User.objects.create(username=username, email=email, password=password, is_active=True,
                             is_superuser=is_superuser, points=points, level=level, invite_code=invite_code)
 def main():
-    clean_users()
-    create_default_user()
-    create_users()
+    console = Console()
+    with console.status("[bold green]Generating users...") as status:
+        clean_users()
+        create_default_user()
+        create_users()
 
 
 if __name__ == '__main__':
