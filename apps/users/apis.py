@@ -14,7 +14,7 @@ from apps.core.viewsets import ComModelViewSet
 from apps.users.models import User, Code
 from apps.users.selectors import user_get_login_data
 from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer
-from .services import send_email_code, check_email_code, check_verify_id
+from .services import send_email_code, check_email_code, check_verify_id,gen_invite_code_with_user
 
 
 # class UserInfoApi(LoginRequiredMixin, APIView):
@@ -79,8 +79,15 @@ class UserApi(ComModelViewSet):
         email_code_id = kwargs.get('email_code_id')
         email_code = kwargs.get('email_code')
         email = kwargs.get('email')
+        invite_code = kwargs.get('invite_code')
         check_email_code(email, email_code_id, email_code, delete=True)
-        return super().create(request, *args, **kwargs)
+        resp=super().create(request, *args, **kwargs)
+        # 生成邀请码
+        gen_invite_code_with_user(resp.data.get('uid'))
+        if invite_code:
+            # 插入邀请记录
+            gen_invite_code_with_user(resp.data.get('uid'))
+        return resp
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
     def user_info(self, request):
         user = request.user

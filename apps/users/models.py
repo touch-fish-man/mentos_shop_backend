@@ -18,9 +18,9 @@ class User(AbstractUser, BaseModel):
     discord_id = models.CharField(max_length=100, unique=True, null=True, verbose_name='discord_id')
     is_superuser = models.BooleanField(default=False, verbose_name='是否超级管理员')
     level = models.IntegerField(default=0, verbose_name='等级')
-    points = models.IntegerField(default=0, verbose_name='积分')
+    level_points = models.IntegerField(default=0, verbose_name='等级积分')
+    reward_points = models.IntegerField(default=0, verbose_name='奖励积分')
     invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码')
-    invite_user_id = models.IntegerField(default=0)
 
     def __str__(self):
         return self.username
@@ -30,12 +30,14 @@ class User(AbstractUser, BaseModel):
         verbose_name = '用户'
         verbose_name_plural = verbose_name
 
-
-class InviteCode(models.Model):
+def gen_invite_code():
+    # 生成8位uuid
+    return str(uuid4()).replace('-', '')[:8]
+class InviteCode(BaseModel):
     """邀请码表"""
     id = models.AutoField(primary_key=True, verbose_name='id')
-    code = models.CharField(max_length=100, unique=True, verbose_name='邀请码')
-    user_id = models.IntegerField(default=0, verbose_name='用户id')
+    invite_code = models.CharField(max_length=100, unique=True, verbose_name='邀请码', default=gen_invite_code)
+    uid = models.IntegerField(default=0, verbose_name='用户uid')
     invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
     invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
 
@@ -47,39 +49,13 @@ class InviteCode(models.Model):
     def __str__(self):
         return self.code
 
-    @classmethod
-    @transaction.atomic
-    def gen_invite_code(cls, user_id):
-        if cls.objects.filter(user_id=user_id).exists():
-            return cls.objects.get(user_id=user_id)
-        invite_code = cls.objects.create(user_id=user_id)
-        invite_code.save()
-        return invite_code
 
-    @classmethod
-    def get_invite_code_by_user_id(cls, user_id):
-        return cls.objects.get(user_id=user_id)
-
-    @classmethod
-    def add_invite_count_by_code(cls, code):
-        invite_code = cls.objects.get(code=code)
-        invite_code.invite_count += 1
-        invite_code.save()
-        return invite_code
-
-    @classmethod
-    def get_inviter_by_code(cls, code):
-        return cls.objects.get(code=code).user_id
-
-
-class InviteLog(models.Model):
+class InviteLog(BaseModel):
     """邀请记录表"""
     id = models.AutoField(primary_key=True)
-    user_id = models.IntegerField(verbose_name="用户id")
-    invite_user_id = models.IntegerField(verbose_name="邀请人id")
+    uid = models.IntegerField(verbose_name="用户uid")
+    inviter_uid = models.IntegerField(verbose_name="邀请人uid")
     invite_code = models.CharField(max_length=100, verbose_name="邀请码")
-    used_time = models.DateTimeField(auto_now=True, verbose_name="使用时间")
-    create_time = models.DateTimeField(auto_now=True, verbose_name="创建时间")
 
     class Meta:
         db_table = 'invite_log'
@@ -87,41 +63,37 @@ class InviteLog(models.Model):
         verbose_name_plural = verbose_name
 
 
-class RebateRecord(models.Model):
+class RebateRecord(BaseModel):
     """返利记录"""
 
-    user_id = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
-    consumer_id = models.PositiveIntegerField(
+    uid = models.PositiveIntegerField(verbose_name="返利人UID", default=1)
+    consumer_uid = models.PositiveIntegerField(
         verbose_name="消费者ID", null=True, blank=True
     )
-    money = models.DecimalField(
-        verbose_name="金额",
-        decimal_places=2,
-        null=True,
-        default=0,
-        max_digits=10,
-        blank=True,
+    money = models.PositiveIntegerField(verbose_name="返利金额", default=0)
+    rebate_type = models.PositiveIntegerField(
+        verbose_name="返利类型", default=0, choices=((0, "邀请返利"), (1, "消费返利"))
     )
-    create_time = models.DateTimeField(editable=False, auto_now_add=True)
 
     class Meta:
         db_table = "rebate_record"
         verbose_name = "返利记录"
         verbose_name_plural = verbose_name
-        ordering = ("-create_time",)
+        ordering = ("-created_at",)
+class UserLevlRecord(BaseModel):
+    """用户等级记录表"""
+    uid = models.IntegerField(verbose_name="用户uid")
+    level = models.IntegerField(verbose_name="等级")
+    level_points = models.IntegerField(verbose_name="等级积分")
 
-    @classmethod
-    def list_by_user_id_with_consumer_username(cls, user_id, num=10):
-        logs = cls.objects.filter(user_id=user_id)[:num]
-        user_ids = [log.consumer_id for log in logs]
-        username_map = {u.id: u.username for u in User.objects.filter(id__in=user_ids)}
-        for log in logs:
-            setattr(log, "consumer_username", username_map.get(log.consumer_id, ""))
-        return logs
+    class Meta:
+        db_table = 'user_level_record'
+        verbose_name = '用户等级记录'
+        verbose_name_plural = verbose_name
 
 
-class UserOrder(models.Model):
-    DEFAULT_ORDER_TIME_OUT = "10m"
+
+class UserOrder(BaseModel):
     STATUS_CREATED = 0
     STATUS_PAID = 1
     STATUS_FINISHED = 2
@@ -131,7 +103,7 @@ class UserOrder(models.Model):
         (STATUS_FINISHED, "finished"),
     )
 
-    user_id = models.PositiveIntegerField(verbose_name="用户ID", db_index=True)
+    uid = models.PositiveIntegerField(verbose_name="用户ID", db_index=True)
     status = models.SmallIntegerField(
         verbose_name="订单状态", db_index=True, choices=STATUS_CHOICES
     )
@@ -141,9 +113,6 @@ class UserOrder(models.Model):
     qrcode_url = models.CharField(verbose_name="支付连接", max_length=512, null=True)
     amount = models.DecimalField(
         verbose_name="金额", decimal_places=2, max_digits=10, default=0
-    )
-    created_at = models.DateTimeField(
-        verbose_name="时间", auto_now_add=True, db_index=True
     )
     expired_at = models.DateTimeField(verbose_name="过期时间", db_index=True)
 

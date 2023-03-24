@@ -12,7 +12,7 @@ import json
 import sendgrid
 import os
 
-from apps.users.models import Code
+from apps.users.models import Code,InviteCode,InviteLog
 from apps.core.validators import CustomValidationError
 
 
@@ -103,4 +103,27 @@ def send_via_sendgrid(email, subject, from_email, html_message):
             return False
     except Exception as e:
         print(e)
+        return False
+def gen_invite_code_with_user(uid):
+    # 生成邀请码
+    incite_code=InviteCode.create(uid=uid)
+    return incite_code
+
+def check_invite_code(invite_code):
+    # 检查邀请码是否有效
+    invite_code_obj=InviteCode.objects.filter(code=invite_code).first()
+    if invite_code_obj:
+        return True
+    else:
+        return False
+
+def insert_invite_log(uid,invite_code):
+    # 记录邀请码使用记录
+    invite_code_obj=InviteCode.objects.filter(code=invite_code).first()
+    if invite_code_obj:
+        InviteLog.create(uid=uid,invite_code=invite_code_obj)
+        # 更新邀请计数
+        invite_code_obj.update(invite_count=invite_code_obj.invite_count+1)
+        return True
+    else:
         return False

@@ -35,6 +35,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
     discord_id = serializers.CharField(required=False, validators=[
         CustomUniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
+    invite_code = serializers.CharField(required=False, validators=[
+        CustomUniqueValidator(queryset=InviteCode.objects.all(), message="邀请码已存在")])
 
     # email_code_id = serializers.IntegerField(required=True)
     # email_code = serializers.CharField(required=False)
@@ -54,6 +56,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'email_code_id': {'required': True,"write_only": True},
             'email_code': {'required': True},
             'password': {'write_only': True},
+            "uid": {"read_only": True},
         }
 
     def save(self, **kwargs):
@@ -75,7 +78,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'discord_id', 'is_active')
+        fields = ('username', 'email', 'discord_id', 'is_active',"uid")
+        extra_kwargs = {
+            "uid": {"read_only": True},
+        }
 
     def update(self, instance, validated_data):
         return super().update(instance, validated_data)
