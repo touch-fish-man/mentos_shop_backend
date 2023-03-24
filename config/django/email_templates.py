@@ -42,7 +42,7 @@ margin-bottom: 10px;
 <h1>Email Verification Code</h1>
 <p>Dear User,</p>
 <p>Your verification code is: <strong id="code">{{code}}</strong></p>
-<p>Please do not share this code with others. The code is valid for 10 minutes.</p>
+<p>Please do not share this code with others. The code is valid for {{expire_time}} minutes.</p>
 <p>If you did not request this code, please ignore this email.</p>
 <p style="text-align: right;">——From Mentos Proxy</p>
 </div>

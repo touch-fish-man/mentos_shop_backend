@@ -54,7 +54,7 @@ def check_verify_id(email, verify_id):
 def send_email_code(email, email_template):
     code = generate_code(4)
     subject = email_template.get('subject')
-    html_message = email_template.get('html').replace('{{code}}', code)
+    html_message = email_template.get('html').replace('{{code}}', code).replace("{{expire_time}}", settings.EMAIL_CODE_EXPIRE/60)
     from_email = email_template.get('from_email')
     if settings.EMAIL_METHOD == 'sendgrid':
         send_success = send_via_sendgrid(email, subject,from_email, html_message)

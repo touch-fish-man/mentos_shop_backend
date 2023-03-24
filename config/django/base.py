@@ -242,6 +242,7 @@ DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
 
 # 邮件相关配置
 EMAIL_METHOD = 'mailgun'  # 邮件发送方式 mailgun or sendgrid
+EMAIL_CODE_EXPIRE = 60 * 10  # 邮件验证码过期时间
 
 # smtp 配置
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
