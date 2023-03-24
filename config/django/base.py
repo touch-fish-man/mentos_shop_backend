@@ -235,6 +235,9 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
     # token刷新后的有效时间
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
+
+# ---------需要动态配置的配置项----------------
+# 邮箱配置
 DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
 DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET')
 DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
@@ -254,6 +257,12 @@ SENDGRID_API_KEY = 'SG.WyKaH2G7RDuza3bNriCZ6Q.lyDRnoCzmHWzmy4-M5InsG3v_hQ1JviKuo
 MAILGUN_API_KEY = 'ce475dd32507d0ae303a22a6f637ef5e-30344472-085a02a4'
 MAILGUN_SENDER_DOMAIN = 'mentosproxy.com'
 
+# 客服联系方式配置
+SUPPORT_TWITTER = 'https://twitter.com/mentosproxy'
+SUPPORT_DISCORD = 'https://discord.gg/mentosproxy'
+
 
 # 导入邮件模板配置
 from .email_templates import *
+
+# ---------需要动态配置的配置项----------------

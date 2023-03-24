@@ -11,7 +11,6 @@ import requests
 import json
 import sendgrid
 import os
-# from sendgrid.helpers.mail import *
 
 from apps.users.models import Code
 from apps.core.validators import CustomValidationError
@@ -25,7 +24,7 @@ def check_email_code(email, email_code_id, email_code, delete=False):
     code_item = Code.objects.filter(id=email_code_id, email=email, code=email_code)
     if code_item.exists():
         db_code = code_item.order_by('-create_time').first()
-        if db_code.create_time + datetime.timedelta(minutes=5) < datetime.datetime.now():
+        if db_code.create_time + settings.EMAIL_CODE_EXPIRE < datetime.datetime.now():
             raise CustomValidationError("验证码已过期")
         if db_code.code.lower() == email_code.lower():
             if delete:
