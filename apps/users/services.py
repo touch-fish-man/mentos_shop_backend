@@ -12,7 +12,7 @@ import json
 import sendgrid
 import os
 
-from apps.users.models import Code, InviteCode, InviteLog, User
+from apps.users.models import Code, InviteLog, User
 from apps.core.validators import CustomValidationError
 
 
@@ -107,15 +107,9 @@ def send_via_sendgrid(email, subject, from_email, html_message):
         return False
 
 
-def gen_invite_code_with_user(uid):
-    # 生成邀请码
-    incite_code = InviteCode.objects.create(uid=uid)
-    return incite_code
-
-
 def check_invite_code(invite_code):
     # 检查邀请码是否有效
-    invite_code_obj = InviteCode.objects.filter(code=invite_code).first()
+    invite_code_obj = User.objects.filter(invite_code=invite_code).first()
     if invite_code_obj:
         return True
     else:
@@ -123,15 +117,16 @@ def check_invite_code(invite_code):
 
 
 def insert_invite_log(uid, invite_code):
-    # 记录邀请码使用记录
-    invite_code_obj = InviteCode.objects.filter(invite_code=invite_code).first()
-    if invite_code_obj:
-        InviteLog.objects.create(uid=uid, invite_code=invite_code)
+    # 查询邀请人
+    user_obj = User.objects.filter(invite_code=invite_code).first()
+    if user_obj:
+        # 记录邀请日志
+        InviteLog.objects.create(uid=uid, invite_code=invite_code, inviter_uid=user_obj.id)
         # 更新邀请计数
-        invite_code_obj.update(invite_count=invite_code_obj.invite_count + 1)
+        user_obj.update(invite_count=user_obj.invite_count + 1)
         # 更新邀请人等级积分
-        user_obj=User.objects.filter(uid=invite_code_obj.uid).first()
-        user_obj.update(level_points=user_obj.level_points+settings.INVITE_LEVEL_POINTS_PER_USER)
+        user_obj.update(level_points=user_obj.level_points + settings.INVITE_LEVEL_POINTS_PER_USER)
+        user_obj.save()
         return True
     else:
         return False

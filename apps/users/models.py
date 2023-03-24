@@ -12,8 +12,20 @@ def gen_uid():
     return str(uuid4()).replace('-', '')[:8]
 
 
+def gen_invite_code():
+    # 生成8位uuid
+    return str(uuid4()).replace('-', '')[:8]
+
+
 class User(AbstractUser, BaseModel):
     """用户信息表"""
+    LEVEL_CHOICES = (
+        (1, 'VIP1用户'),
+        (2, 'VIP2用户'),
+        (3, 'VIP3用户'),
+        (4, 'VIP4用户'),
+        (5, 'VIP5用户')
+    )
     uid = models.CharField(max_length=100, unique=True, null=True, verbose_name='用户uid', default=gen_uid)
     username = models.CharField(max_length=100, unique=True, verbose_name='用户名')
     email = models.EmailField(max_length=100, unique=True, verbose_name='邮箱')
@@ -21,10 +33,13 @@ class User(AbstractUser, BaseModel):
     is_active = models.BooleanField(default=True, verbose_name='是否激活')
     discord_id = models.CharField(max_length=100, unique=True, null=True, verbose_name='discord_id')
     is_superuser = models.BooleanField(default=False, verbose_name='是否超级管理员')
-    level = models.IntegerField(default=0, verbose_name='等级')
-    level_points = models.IntegerField(default=0, verbose_name='等级积分')
+    level = models.IntegerField(default=1, verbose_name='等级', choices=LEVEL_CHOICES)
+    level_points = models.IntegerField(default=100, verbose_name='等级积分')
     reward_points = models.IntegerField(default=0, verbose_name='奖励积分')
-    invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码')
+    invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码',
+                                   default=gen_invite_code)
+    invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
+    invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
 
     def __str__(self):
         return self.username
@@ -35,33 +50,28 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = verbose_name
 
 
-def gen_invite_code():
-    # 生成8位uuid
-    return str(uuid4()).replace('-', '')[:8]
-
-
-class InviteCode(BaseModel):
-    """邀请码表"""
-    id = models.AutoField(primary_key=True, verbose_name='id')
-    invite_code = models.CharField(max_length=100, unique=True, verbose_name='邀请码', default=gen_invite_code)
-    uid = models.IntegerField(default=0, verbose_name='用户uid')
-    invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
-    invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
-
-    class Meta:
-        db_table = 'invite_code'
-        verbose_name = '邀请码'
-        verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return self.code
+# class InviteCode(BaseModel):
+#     """邀请码表"""
+#     id = models.AutoField(primary_key=True, verbose_name='id')
+#     invite_code = models.CharField(max_length=100, unique=True, verbose_name='邀请码')
+#     uid = models.IntegerField(default=0, verbose_name='用户uid')
+#     invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
+#     invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
+#
+#     class Meta:
+#         db_table = 'invite_code'
+#         verbose_name = '邀请码'
+#         verbose_name_plural = verbose_name
+#
+#     def __str__(self):
+#         return self.invite_code
 
 
 class InviteLog(BaseModel):
     """邀请记录表"""
     id = models.AutoField(primary_key=True)
-    uid = models.IntegerField(verbose_name="用户uid")
-    inviter_uid = models.IntegerField(verbose_name="邀请人uid")
+    uid = models.IntegerField(verbose_name="用户id")
+    inviter_uid = models.IntegerField(verbose_name="邀请人id")
     invite_code = models.CharField(max_length=100, verbose_name="邀请码")
 
     class Meta:
@@ -71,16 +81,13 @@ class InviteLog(BaseModel):
 
 
 class RebateRecord(BaseModel):
-    """返利记录"""
+    """邀请人返利记录"""
 
-    uid = models.PositiveIntegerField(verbose_name="返利人UID", default=1)
+    uid = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
     consumer_uid = models.PositiveIntegerField(
         verbose_name="消费者ID", null=True, blank=True
     )
     money = models.PositiveIntegerField(verbose_name="返利金额", default=0)
-    rebate_type = models.PositiveIntegerField(
-        verbose_name="返利类型", default=0, choices=((0, "邀请返利"), (1, "消费返利"))
-    )
 
     class Meta:
         db_table = "rebate_record"

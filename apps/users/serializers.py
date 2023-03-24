@@ -4,16 +4,15 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from apps.core.validators import CustomUniqueValidator
-from apps.users.models import User, InviteCode
+from apps.users.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'uid', 'username', 'email', 'is_active', 'discord_id', 'is_superuser', 'level', 'points',
-            'invite_code',
-            'invite_user_id', "created_at")
+            'id', 'uid', 'username', 'email', 'is_active', 'discord_id', 'is_superuser', 'level', 'level_points',
+            'invite_code', 'reward_points', 'invite_count', 'invite_reward', 'created_at')
 
 
 class BanUserSerializer(serializers.ModelSerializer):
@@ -32,8 +31,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
     discord_id = serializers.CharField(required=False, validators=[
         CustomUniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
-    invite_code = serializers.CharField(required=False, validators=[
-        CustomUniqueValidator(queryset=InviteCode.objects.all(), message="邀请码已存在")])
+    invite_code = serializers.CharField(required=False)
 
     # email_code_id = serializers.IntegerField(required=True)
     # email_code = serializers.CharField(required=False)
@@ -50,7 +48,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'password', 'is_active', 'discord_id', 'invite_code')
 
         extra_kwargs = {
-            'email_code_id': {'required': True,"write_only": True},
+            'email_code_id': {'required': True, "write_only": True},
             'email_code': {'required': True},
             'password': {'write_only': True},
             "uid": {"read_only": True},
@@ -75,7 +73,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'discord_id', 'is_active',"uid")
+        fields = ('username', 'email', 'discord_id', 'is_active', "uid")
         extra_kwargs = {
             "uid": {"read_only": True},
         }
