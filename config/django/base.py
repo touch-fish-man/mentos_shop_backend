@@ -157,9 +157,8 @@ CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_null',
                            'captcha.helpers.noise_arcs',  # 线
                            'captcha.helpers.noise_dots',  # 点
                            )
-CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
-CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
-CAPTCHA_TIMEOUT = 1
+# CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge' # 加减乘除
 
 SWAGGER_SETTINGS = {
     # 基础样式
@@ -236,31 +235,43 @@ SIMPLE_JWT = {
     # token刷新后的有效时间
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
 
+# 配置日志
+
 # ---------需要动态配置的配置项----------------
-# 邮箱配置
+# discord oauth2 配置
 DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
 DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET')
 DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
 DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
 
+# shopify 配置
+SHOPIFY_API_KEY = "env('SHOPIFY_API_KEY')"
+SHOPIFY_API_SECRET = "env('SHOPIFY_API_SECRET')"
+SHOPIFY_SHOP_URL = "env('SHOPIFY_SHOP_URL')"
+SHOPIFY_APP_KEY = "env('SHOPIFY_APP_KEY')"
+
 # 邮件相关配置
 EMAIL_METHOD = 'mailgun'  # 邮件发送方式 mailgun or sendgrid
 EMAIL_CODE_EXPIRE = 60 * 10  # 邮件验证码过期时间
-
 # smtp 配置
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
-
 # sendgrid 配置
 SENDGRID_API_KEY = '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'
-
 # mailgun 配置
 MAILGUN_API_KEY = 'ce475dd32507d0ae303a22a6f637ef5e-30344472-085a02a4'
 MAILGUN_SENDER_DOMAIN = 'mentosproxy.com'
 
+# 系统配置
 # 客服联系方式配置
 SUPPORT_TWITTER = 'https://twitter.com/mentosproxy'
 SUPPORT_DISCORD = 'https://discord.gg/mentosproxy'
-
+# 等级积分配置
+INVITE_LEVEL_POINTS_PER_USER = 10  # 邀请一个用户获得等级积分
+BILLING_RATE = 0.1  # 消费获得等级积分比例 金额 * 比例 = 等级积分
+LEVEL_POINTS_TO_UPGRADE = 100  # 升级所需等级积分
+LEVEL_POINTS_DECAY_RATE = 0.1  # 每月等级积分衰减比例
+# 邀请返利配置
+INVITE_REBATE_RATE = 0.1  # 邀请返利比例 金额 * 比例 = 返利金额
 
 # 导入邮件模板配置
 from .email_templates import *

@@ -5,9 +5,13 @@ from django.db import models, transaction
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
 from apps.core.models import BaseModel
+
+
 def gen_uid():
     # 生成8位uuid
     return str(uuid4()).replace('-', '')[:8]
+
+
 class User(AbstractUser, BaseModel):
     """用户信息表"""
     uid = models.CharField(max_length=100, unique=True, null=True, verbose_name='用户uid', default=gen_uid)
@@ -30,9 +34,12 @@ class User(AbstractUser, BaseModel):
         verbose_name = '用户'
         verbose_name_plural = verbose_name
 
+
 def gen_invite_code():
     # 生成8位uuid
     return str(uuid4()).replace('-', '')[:8]
+
+
 class InviteCode(BaseModel):
     """邀请码表"""
     id = models.AutoField(primary_key=True, verbose_name='id')
@@ -80,6 +87,8 @@ class RebateRecord(BaseModel):
         verbose_name = "返利记录"
         verbose_name_plural = verbose_name
         ordering = ("-created_at",)
+
+
 class UserLevlRecord(BaseModel):
     """用户等级记录表"""
     uid = models.IntegerField(verbose_name="用户uid")
@@ -90,7 +99,6 @@ class UserLevlRecord(BaseModel):
         db_table = 'user_level_record'
         verbose_name = '用户等级记录'
         verbose_name_plural = verbose_name
-
 
 
 class UserOrder(BaseModel):
@@ -117,7 +125,7 @@ class UserOrder(BaseModel):
     expired_at = models.DateTimeField(verbose_name="过期时间", db_index=True)
 
     def __str__(self):
-        return f"<{self.id, self.user_id}>:{self.amount}"
+        return f"<{self.id, self.uid}>:{self.amount}"
 
     class Meta:
         db_table = "user_order"

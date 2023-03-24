@@ -1,13 +1,10 @@
-import datetime
-import uuid
-
-from django.contrib.auth.password_validation import validate_password
-from rest_framework import serializers
-from django.core.exceptions import ValidationError
-from apps.users.models import User, Code
 from django.contrib.auth.hashers import make_password
-from apps.core.validators import UniqueValidator, CustomUniqueValidator
-from apps.users.services import check_email_code
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from rest_framework import serializers
+
+from apps.core.validators import CustomUniqueValidator
+from apps.users.models import User, InviteCode
 
 
 class UserSerializer(serializers.ModelSerializer):

@@ -12,7 +12,7 @@ import json
 import sendgrid
 import os
 
-from apps.users.models import Code,InviteCode,InviteLog
+from apps.users.models import Code, InviteCode, InviteLog, User
 from apps.core.validators import CustomValidationError
 
 
@@ -53,12 +53,13 @@ def check_verify_id(email, verify_id):
 def send_email_code(email, email_template):
     code = generate_code(4)
     subject = email_template.get('subject')
-    html_message = email_template.get('html').replace('{{code}}', code).replace("{{expire_time}}", settings.EMAIL_CODE_EXPIRE/60)
+    html_message = email_template.get('html').replace('{{code}}', code).replace("{{expire_time}}",
+                                                                                settings.EMAIL_CODE_EXPIRE / 60)
     from_email = email_template.get('from_email')
     if settings.EMAIL_METHOD == 'sendgrid':
-        send_success = send_via_sendgrid(email, subject,from_email, html_message)
+        send_success = send_via_sendgrid(email, subject, from_email, html_message)
     elif settings.EMAIL_METHOD == 'mailgun':
-        send_success = send_email_via_mailgun(email, subject,from_email, html_message)
+        send_success = send_email_via_mailgun(email, subject, from_email, html_message)
     else:
         send_success = send_mail(subject, "", from_email, [email], html_message=html_message)
     if send_success:
@@ -104,26 +105,33 @@ def send_via_sendgrid(email, subject, from_email, html_message):
     except Exception as e:
         print(e)
         return False
+
+
 def gen_invite_code_with_user(uid):
     # 生成邀请码
-    incite_code=InviteCode.create(uid=uid)
+    incite_code = InviteCode.objects.create(uid=uid)
     return incite_code
+
 
 def check_invite_code(invite_code):
     # 检查邀请码是否有效
-    invite_code_obj=InviteCode.objects.filter(code=invite_code).first()
+    invite_code_obj = InviteCode.objects.filter(code=invite_code).first()
     if invite_code_obj:
         return True
     else:
         return False
 
-def insert_invite_log(uid,invite_code):
+
+def insert_invite_log(uid, invite_code):
     # 记录邀请码使用记录
-    invite_code_obj=InviteCode.objects.filter(code=invite_code).first()
+    invite_code_obj = InviteCode.objects.filter(invite_code=invite_code).first()
     if invite_code_obj:
-        InviteLog.create(uid=uid,invite_code=invite_code_obj)
+        InviteLog.objects.create(uid=uid, invite_code=invite_code)
         # 更新邀请计数
-        invite_code_obj.update(invite_count=invite_code_obj.invite_count+1)
+        invite_code_obj.update(invite_count=invite_code_obj.invite_count + 1)
+        # 更新邀请人等级积分
+        user_obj=User.objects.filter(uid=invite_code_obj.uid).first()
+        user_obj.update(level_points=user_obj.level_points+settings.INVITE_LEVEL_POINTS_PER_USER)
         return True
     else:
         return False
