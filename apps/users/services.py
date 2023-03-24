@@ -7,7 +7,8 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from django.core.mail import send_mail
 from django.conf import settings
-import requests, json
+import requests
+import json
 import sendgrid
 import os
 # from sendgrid.helpers.mail import *
@@ -50,15 +51,17 @@ def check_verify_id(email, verify_id):
         return False
 
 
-def send_email_code(email):
+def send_email_code(email, email_template):
     code = generate_code(4)
-    subject = 'Mentos User registration verification'
-    html_message = '<p>尊敬的用户您好：<p>' \
-                   '<p>您的验证码为：%s<p>' % (code)
+    subject = email_template.get('subject')
+    html_message = email_template.get('html').replace('{{code}}', code)
+    from_email = email_template.get('from_email')
     if settings.EMAIL_METHOD == 'sendgrid':
-        send_success = send_via_api(email, subject, html_message)
+        send_success = send_via_sendgrid(email, subject,from_email, html_message)
+    elif settings.EMAIL_METHOD == 'mailgun':
+        send_success = send_email_via_mailgun(email, subject,from_email, html_message)
     else:
-        send_success = send_mail(subject, "", settings.EMAIL_FROM, [email], html_message=html_message)
+        send_success = send_mail(subject, "", from_email, [email], html_message=html_message)
     if send_success:
         time_now = time.time()
         time_now = int(time_now)
@@ -71,9 +74,24 @@ def send_email_code(email):
     return ret
 
 
-def send_via_api(email, subject, html_message):
+def send_email_via_mailgun(email, subject, from_email, html_message):
+    url = "https://api.mailgun.net/v3/{}/messages".format(settings.MAILGUN_SENDER_DOMAIN)
+    post_data = {
+        "from": from_email,
+        "to": [email],
+        "subject": subject,
+        "html": html_message
+    }
+
+    resp = requests.post(url,
+                         auth=("api", settings.MAILGUN_API_KEY),
+                         data=post_data)
+    return resp.status_code == 200
+
+
+def send_via_sendgrid(email, subject, from_email, html_message):
     message = Mail(
-        from_email='mentos@run-run.run',
+        from_email=from_email,
         to_emails=email,
         subject=subject,
         html_content=html_message)
@@ -87,16 +105,3 @@ def send_via_api(email, subject, html_message):
     except Exception as e:
         print(e)
         return False
-
-    # sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_API_KEY)
-    # from_email = Email("test@example.com")
-    # to_email = To(email)
-    # subject = subject
-    # content = HtmlContent(html_message)
-    # mail = Mail(from_email, to_email, subject, content)
-    # print(mail.get())
-    # response = sg.client.mail.send.post(request_body=mail.get())
-    # print(response.status_code)
-    # print(response.body)
-    # print(response.headers)
-    # return response.status_code == 200

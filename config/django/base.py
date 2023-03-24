@@ -241,15 +241,18 @@ DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
 DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
 
 # 邮件相关配置
-EMAIL_METHOD = 'sendgrid'  # 邮件发送方式 smtp or sendgrid
+EMAIL_METHOD = 'mailgun'  # 邮件发送方式 mailgun or sendgrid
+
 # smtp 配置
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
-EMAIL_HOST = 'smtp.163.com'  # 服务器名称
-EMAIL_PORT = 25  # 服务端口
-EMAIL_HOST_USER = '17731697245@163.com'  # 填写自己邮箱
-EMAIL_HOST_PASSWORD = 'YHEEQVQPCXALBSER'  # 在邮箱中设置的客户端授权密码
-EMAIL_FROM = "Mentos Org"  # 收件人看到的发件人
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_USE_TLS = True
+
 # sendgrid 配置
 SENDGRID_API_KEY = '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'
+
+# mailgun 配置
+MAILGUN_API_KEY = 'ce475dd32507d0ae303a22a6f637ef5e-30344472-085a02a4'
+MAILGUN_SENDER_DOMAIN = 'mentosproxy.com'
+
+
+# 导入邮件模板配置
+from .email_templates import *
