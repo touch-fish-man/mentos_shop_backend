@@ -19,4 +19,4 @@ django-redis-sessions
 django-restql
 drf-yasg
 rich
-shopify
+ShopifyAPI
