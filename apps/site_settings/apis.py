@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from pathlib import Path
 import os
 from django.conf import settings
-from apps.site_settings.models import Site_Settings
+
 from apps.core.json_response import SuccessResponse
 from apps.site_settings.services import save_site_settings
 
