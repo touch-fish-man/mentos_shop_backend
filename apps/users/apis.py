@@ -1,5 +1,6 @@
 import base64
 import datetime
+import random
 import uuid
 
 from captcha.views import CaptchaStore, captcha_image
@@ -170,7 +171,10 @@ class EmailValidateApi(APIView):
         if check_user:
             # 检查用户是否存在,不存在返回错误
             if not User.objects.filter(email=email).exists():
-                return ErrorResponse(msg="email not exist")
+                fake_code_id = random.randint(10, 99)
+                msg = "send success"
+                data = {"email_code_id": fake_code_id}
+                return SuccessResponse(data=data, msg=msg)
         code_id = send_email_code(email, req_type)
         if code_id:
             msg = "send success"

@@ -157,7 +157,7 @@ CAPTCHA_FONT_SIZE = 30  # 字体大小
 CAPTCHA_FOREGROUND_COLOR = "#da649d"  # 前景色
 CAPTCHA_BACKGROUND_COLOR = "#F5F7F4"  # 背景色
 #字体
-CAPTCHA_FONT_PATH = os.path.join(BASE_DIR, "static/PangPangZhuRouTi-2.otf")
+# CAPTCHA_FONT_PATH = os.path.join(BASE_DIR, "static/PangPangZhuRouTi-2.otf")
 CAPTCHA_NOISE_FUNCTIONS = (
     "captcha.helpers.noise_arcs",  # 线
     # "captcha.helpers.noise_dots",  # 点
