@@ -2,6 +2,7 @@
 # This script is used to redeploy the application
 git pull
 cp -r config/* /opt/mentos_shop_backend/config/
+unzip -o dist.zip -d dist
 cp -r dist /opt/mentos_shop_backend/
 # no-cache is used to force docker to rebuild the image
 
