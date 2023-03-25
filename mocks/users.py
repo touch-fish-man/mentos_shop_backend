@@ -74,6 +74,7 @@ def create_users():
                 continue
             if User.objects.filter(discord_id=user_dict['discord_id']).exists():
                 continue
+            User.objects.create(**user_dict)
             break
 
 def main():
