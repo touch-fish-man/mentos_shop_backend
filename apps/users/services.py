@@ -25,7 +25,7 @@ def generate_code(size=6, chars=string.digits + string.ascii_letters):
 def check_email_code(email, email_code_id, email_code, delete=False):
     code_item = Code.objects.filter(id=email_code_id, email=email, code=email_code)
     if settings.DEBUG:
-        return
+        return code_item.first()
     if code_item.exists():
         db_code = code_item.first()
         # if db_code.create_time + settings.EMAIL_CODE_EXPIRE < datetime.datetime.now():
