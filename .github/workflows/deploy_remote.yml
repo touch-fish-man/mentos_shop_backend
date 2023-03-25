@@ -23,12 +23,17 @@ jobs:
       if: success()
       env:
         DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
+        DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
       with:
-        text: '部署成功'
+        msgtype: link
+        title: '点击访访问'
+        text: '代码部署成功'
+        msg_url: 'https://www.mentosproxy.com'
     - name: send dingtalk message
       uses: leafney/dingtalk-action@v1
       if: failure()
       env:
           DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
       with:
           text: '部署失败'
