@@ -100,8 +100,9 @@ class UserApi(ComModelViewSet):
     def change_password(self, request, *args, **kwargs):
 
         user = request.user
-        if user.is_superuser or user.username == "AnonymousUser":
-            instance = User.objects.filter(uid=kwargs.get("pk")).first()
+
+        if user.is_superuser:
+            instance = User.objects.filter(id=kwargs.get("pk")).first()
             password = request.data.get('password')
             instance.password = make_password(password)
             instance.save()
