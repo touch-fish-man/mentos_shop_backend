@@ -14,7 +14,7 @@ from apps.core.viewsets import ComModelViewSet
 from apps.users.models import User, Code
 from apps.users.selectors import user_get_login_data
 from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer
-from .services import send_email_code, check_email_code, check_verify_id, gen_invite_code_with_user, insert_invite_log
+from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
 
 
 # class UserInfoApi(LoginRequiredMixin, APIView):
@@ -235,3 +235,24 @@ class ChangePasswordApi(APIView):
             return SuccessResponse(msg="修改成功")
         else:
             return ErrorResponse(msg="原密码错误")
+
+
+class InviteCodeApi(ComModelViewSet):
+    """
+    邀请记录
+    """
+    serializer_class = UserSerializer
+    ordering_fields = ('username', 'email', 'level', 'is_active')
+    search_fields = ('username', 'email')  # 搜索字段
+    filter_fields = ['uid', 'username', 'email', 'is_superuser', 'level', 'is_active']  # 过滤字段
+    queryset = User.objects.all()
+    create_serializer_class = UserCreateSerializer
+    update_serializer_class = UserUpdateSerializer
+    reset_password_serializer_class = UserSerializer
+    baned_user_serializer_class = BanUserSerializer
+
+    @action(methods=['get'], detail=False, url_path='get_invite_code', url_name='get_invite_code')
+    def get_invite_code(self, request, *args, **kwargs):
+        user = request.user
+        invite_code = user.invite_code
+        return SuccessResponse(msg="success", data={"invite_code": invite_code})

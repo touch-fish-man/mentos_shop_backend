@@ -25,11 +25,12 @@ def create_default_user():
     password = make_password("Admin@123456")
     is_superuser = True
     is_active = True
-    points = 1000
-    level = 10
-    invite_code = ''.join(random.sample(string.ascii_letters + string.digits, 6))
+    level_points = 1000
+    level = 5
+    reward_points = 1000
+    invite_count = 100
     User.objects.create(username=username, email=email, password=password, is_active=is_active,
-                        is_superuser=is_superuser, points=points, level=level, invite_code=invite_code)
+                        is_superuser=is_superuser, level_points=level_points, level=level, reward_points=reward_points,invite_count=invite_count)
 
 
 def clean_users():
@@ -41,12 +42,14 @@ def create_users():
         username = fake.user_name()
         email = username.lower() + "@dafffa.site"
         is_superuser = random.choice([True, False])
-        points = random.randint(0, 1000)
-        level = random.randint(0, 10)
-        invite_code = ''.join(random.sample(string.ascii_letters + string.digits, 6))
+        level = random.randint(1, 5)
         password = make_password("Admin@123456")
+        level_points = random.randint(0, 1000)
+        reward_points = random.randint(0, 1000)
+        invite_count = random.randint(0, 100)
+
         User.objects.create(username=username, email=email, password=password, is_active=True,
-                            is_superuser=is_superuser, points=points, level=level, invite_code=invite_code)
+                            is_superuser=is_superuser, level_points=level_points, level=level, reward_points=reward_points,invite_count=invite_count)
 def main():
     console = Console()
     with console.status("[bold green]Generating users...") as status:

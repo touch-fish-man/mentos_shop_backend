@@ -35,11 +35,11 @@ class User(AbstractUser, BaseModel):
     is_superuser = models.BooleanField(default=False, verbose_name='是否超级管理员')
     level = models.IntegerField(default=1, verbose_name='等级', choices=LEVEL_CHOICES)
     level_points = models.IntegerField(default=100, verbose_name='等级积分')
-    reward_points = models.IntegerField(default=0, verbose_name='奖励积分')
+    reward_points = models.IntegerField(default=0, verbose_name='邀请奖励')
     invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码',
                                    default=gen_invite_code)
     invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
-    invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
+    # invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
 
     def __str__(self):
         return self.username
@@ -138,7 +138,7 @@ class UserOrder(BaseModel):
         db_table = "user_order"
         verbose_name = "用户订单"
         verbose_name_plural = "用户订单"
-        index_together = ["user_id", "status"]
+        index_together = ["uid", "status"]
 
 
 class Code(BaseModel):
