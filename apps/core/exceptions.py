@@ -1,6 +1,7 @@
 import logging
 import traceback
 
+from django.conf import settings
 from django.db.models import ProtectedError
 from django.http import Http404
 from rest_framework.exceptions import APIException as DRFAPIException, AuthenticationFailed
@@ -22,28 +23,32 @@ def CustomExceptionHandler(ex, context):
     """
     msg = ''
     code = 4000
-    traceback.print_exc()
+    if settings.DEBUG:
+        traceback.print_exc()
 
-    if isinstance(ex, AuthenticationFailed):
-        code = 401
-        msg = ex.detail
-    elif isinstance(ex,Http404):
-        code = 400
-        msg = "接口地址不正确"
-    elif isinstance(ex, DRFAPIException):
-        set_rollback()
-        msg = ex.detail
-        if isinstance(msg,dict):
-            for k, v in msg.items():
-                for i in v:
-                    msg = "%s:%s" % (k, i)
-    elif isinstance(ex, ProtectedError):
-        set_rollback()
-        msg = "删除失败:该条数据与其他数据有相关绑定"
-    # elif isinstance(ex, DatabaseError):
-    #     set_rollback()
-    #     msg = "接口服务器异常,请联系管理员"
-    elif isinstance(ex, Exception):
-        logger.error(traceback.format_exc())
-        msg = str(ex)
+        if isinstance(ex, AuthenticationFailed):
+            code = 401
+            msg = ex.detail
+        elif isinstance(ex,Http404):
+            code = 400
+            msg = "接口地址不正确"
+        elif isinstance(ex, DRFAPIException):
+            set_rollback()
+            msg = ex.detail
+            if isinstance(msg,dict):
+                for k, v in msg.items():
+                    for i in v:
+                        msg = "%s:%s" % (k, i)
+        elif isinstance(ex, ProtectedError):
+            set_rollback()
+            msg = "删除失败:该条数据与其他数据有相关绑定"
+        # elif isinstance(ex, DatabaseError):
+        #     set_rollback()
+        #     msg = "接口服务器异常,请联系管理员"
+        elif isinstance(ex, Exception):
+            logger.error(traceback.format_exc())
+            msg = str(ex)
+    else:
+        msg = "Server Error"
+
     return ErrorResponse(msg=msg, code=code)

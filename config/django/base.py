@@ -149,13 +149,15 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
 AUTH_USER_MODEL = "users.User"
 # 验证码
-CAPTCHA_IMAGE_SIZE = (160, 60)  # 设置 captcha 图片大小
+CAPTCHA_IMAGE_SIZE = (100, 40)  # 图片大小
 CAPTCHA_LENGTH = 4  # 字符个数
 CAPTCHA_TIMEOUT = 1  # 超时(minutes)
 CAPTCHA_OUTPUT_FORMAT = "%(image)s %(text_field)s %(hidden_field)s "
-CAPTCHA_FONT_SIZE = 40  # 字体大小
-CAPTCHA_FOREGROUND_COLOR = "#64DAAA"  # 前景色
+CAPTCHA_FONT_SIZE = 30  # 字体大小
+CAPTCHA_FOREGROUND_COLOR = "#da649d"  # 前景色
 CAPTCHA_BACKGROUND_COLOR = "#F5F7F4"  # 背景色
+#字体
+CAPTCHA_FONT_PATH = os.path.join(BASE_DIR, "static/PangPangZhuRouTi-2.otf")
 CAPTCHA_NOISE_FUNCTIONS = (
     "captcha.helpers.noise_arcs",  # 线
     # "captcha.helpers.noise_dots",  # 点
