@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'uid', 'username', 'email', 'is_active', 'discord_id', 'is_superuser', 'level', 'level_points',
+            'id', 'uid', 'username', 'email', 'is_active', 'discord_id','discord_name','is_superuser', 'level', 'level_points',
             'invite_code', 'reward_points', 'invite_count', 'reward_points', 'created_at')
 
 

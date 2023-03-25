@@ -180,7 +180,8 @@ class EmailValidateApi(APIView):
 
 class ResetPasswordApi(APIView):
     """
-    重置密码路由
+     忘记密码路由
+     post:忘记密码
     """
 
     def post(self, request):
@@ -202,7 +203,8 @@ class ResetPasswordApi(APIView):
 
 class ResetPasswordVerifyApi(APIView):
     """
-    重置密码验证路由
+    忘记密码邮件验证码验证路由
+    post:忘记密码邮件验证
     """
 
     def post(self, request):
@@ -222,7 +224,8 @@ class ResetPasswordVerifyApi(APIView):
 
 class ChangePasswordApi(APIView):
     """
-    修改密码路由
+    用户修改自己密码
+    post:修改密码
     """
 
     def post(self, request):
