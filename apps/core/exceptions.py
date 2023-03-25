@@ -47,7 +47,7 @@ def CustomExceptionHandler(ex, context):
         #     msg = "接口服务器异常,请联系管理员"
         elif isinstance(ex, Exception):
             logger.error(traceback.format_exc())
-            msg = str(ex)
+            msg = str(traceback.format_exc())
     else:
         msg = "Server Error"
 
