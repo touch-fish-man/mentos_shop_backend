@@ -20,29 +20,29 @@ services:
     networks:
       network:
         ipv4_address: 177.8.0.11
-    ports:
-      - "8000:8000"
+#    ports:
+#      - "8000:8000"
     volumes:
       - /opt/mentos_shop_backend/logs/:/opt/mentos_shop_backend/logs/
     privileged: true
     environment:
       - TZ=Asia/Shanghai
-  mentos_shop_backend_test:
-    restart: always
-    container_name: mentos_shop_backend_test.local
-    build:
-      context: ./
-      dockerfile: docker/Dockerfile_test_env
-    networks:
-      network:
-        ipv4_address: 177.8.0.12
-    ports:
-      - "3000:8000"
-    volumes:
-      - /opt/mentos_shop_backend/logs_test/:/opt/mentos_shop_backend/logs/
-    privileged: true
-    environment:
-      - TZ=Asia/Shanghai
+#  mentos_shop_backend_test:
+#    restart: always
+#    container_name: mentos_shop_backend_test.local
+#    build:
+#      context: ./
+#      dockerfile: docker/Dockerfile_test_env
+#    networks:
+#      network:
+#        ipv4_address: 177.8.0.12
+#    ports:
+#      - "3000:8000"
+#    volumes:
+#      - /opt/mentos_shop_backend/logs_test/:/opt/mentos_shop_backend/logs/
+#    privileged: true
+#    environment:
+#      - TZ=Asia/Shanghai
   redis:
     container_name: redis.local
     image: 'redis:latest'
