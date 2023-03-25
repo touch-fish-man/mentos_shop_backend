@@ -6,7 +6,7 @@ from django.http import Http404
 from rest_framework.exceptions import APIException as DRFAPIException, AuthenticationFailed
 from rest_framework.views import set_rollback
 
-from .json_respon import ErrorResponse
+from .json_response import ErrorResponse
 
 logger = logging.getLogger(__name__)
 

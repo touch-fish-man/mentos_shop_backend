@@ -9,7 +9,14 @@ gunicorn
 supervisor
 django-environ
 sendgrid
-mysqlclient
 django-simple-captcha
 django-cors-headers
+Faker
 PyMySQL
+mysqlclient
+django-redis
+django-redis-sessions
+django-restql
+drf-yasg
+rich
+ShopifyAPI

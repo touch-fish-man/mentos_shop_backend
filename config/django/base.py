@@ -16,11 +16,11 @@ import pymysql
 
 pymysql.install_as_MySQLdb()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 from config.env import env
 import os
 
-env.read_env(os.path.join(BASE_DIR, ".env"))
+env.read_env(os.path.join(BASE_DIR, "config/.env"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -29,7 +29,7 @@ env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = 'django-insecure-bm6dtprdt+2j$whkuls$)q&qos%=loadtrg7qs^ytrwkhgx*ff'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -45,8 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_yasg',
     "apps.users",
     "apps.tickets",
+    "apps.proxy_server",
     "apps.site_settings",
     "captcha"
 ]
@@ -60,9 +62,17 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
 ROOT_URLCONF = 'config.urls'
+STATIC_URL = "/static/"
 
+# # 设置django的静态文件目录
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -80,7 +90,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -126,11 +135,10 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-APPEND_SLASH = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
@@ -150,10 +158,30 @@ CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_null',
                            'captcha.helpers.noise_arcs',  # 线
                            'captcha.helpers.noise_dots',  # 点
                            )
-CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
-CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
-CAPTCHA_TIMEOUT = 1
+# CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge' # 加减乘除
 
+SWAGGER_SETTINGS = {
+    # 基础样式
+    "SECURITY_DEFINITIONS": {"basic": {"type": "basic"}},
+    # 如果需要登录才能够查看接口文档, 登录的链接使用restframework自带的.
+    # "LOGIN_URL": "auth/apilogin",
+    'LOGIN_URL': 'rest_framework:login',
+    "LOGOUT_URL": "rest_framework:logout",
+    # 'DOC_EXPANSION': None,
+    # 'SHOW_REQUEST_HEADERS':True,
+    # 'USE_SESSION_AUTH': True,
+    # 'DOC_EXPANSION': 'list',
+    # 接口文档中方法列表以首字母升序排列
+    "APIS_SORTER": "alpha",
+    # 如果支持json提交, 则接口文档中包含json输入框
+    "JSON_EDITOR": True,
+    # 方法列表字母排序
+    "OPERATIONS_SORTER": "alpha",
+    "VALIDATOR_URL": None,
+    "AUTO_SCHEMA_TYPE": 2,  # 分组根据url层级分，0、1 或 2 层
+    "DEFAULT_AUTO_SCHEMA_CLASS": "apps.core.swagger.CustomSwaggerAutoSchema",
+}
 REST_FRAMEWORK = {
     # 配置默认页面大小
     'PAGE_SIZE': 10,
@@ -207,21 +235,50 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
     # token刷新后的有效时间
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
+
+# 配置日志
+
+# ---------需要动态配置的配置项----------------
+# discord oauth2 配置
 DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
 DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET')
 DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
 DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
 
+# shopify 配置
+SHOPIFY_API_KEY = "env('SHOPIFY_API_KEY')"
+SHOPIFY_API_SECRET = "env('SHOPIFY_API_SECRET')"
+SHOPIFY_SHOP_URL = "env('SHOPIFY_SHOP_URL')"
+SHOPIFY_APP_KEY = "env('SHOPIFY_APP_KEY')"
+
 # 邮件相关配置
-EMAIL_METHOD = 'sendgrid'  # 邮件发送方式 smtp or sendgrid
+EMAIL_METHOD = 'mailgun'  # 邮件发送方式 mailgun or sendgrid
+EMAIL_CODE_EXPIRE = 60 * 10  # 邮件验证码过期时间
 # smtp 配置
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
-EMAIL_HOST = 'smtp.163.com'  # 服务器名称
-EMAIL_PORT = env('EMAIL_PORT')  # 服务端口
-EMAIL_HOST_USER = '17731697245@163.com'  # 填写自己邮箱
-EMAIL_HOST_PASSWORD = 'YHEEQVQPCXALBSER'  # 在邮箱中设置的客户端授权密码
-EMAIL_FROM = env('EMAIL_FROM')  # 收件人看到的发件人
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_USE_TLS = True
 # sendgrid 配置
 SENDGRID_API_KEY = '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'
+# mailgun 配置
+MAILGUN_API_KEY = 'ce475dd32507d0ae303a22a6f637ef5e-30344472-085a02a4'
+MAILGUN_SENDER_DOMAIN = 'mentosproxy.com'
+
+# 系统配置
+# 客服联系方式配置
+SUPPORT_TWITTER = 'https://twitter.com/mentosproxy'
+SUPPORT_DISCORD = 'https://discord.gg/mentosproxy'
+# 等级积分配置
+INVITE_LEVEL_POINTS_PER_USER = 10  # 邀请一个用户获得等级积分
+BILLING_RATE = 0.1  # 消费获得等级积分比例 金额 * 比例 = 等级积分 消费后获得等级积分
+LEVEL_POINTS_TO_UPGRADE = 100  # 升级所需等级积分
+LEVEL_POINTS_DECAY_RATE = 0.1  # 每月等级积分衰减比例
+LEVEL_POINTS_DECAY_DAY = 1  # 每月等级积分衰减日
+MIN_LEVEL = 1  # 最低等级
+MAX_LEVEL = 5  # 最高等级
+LEVEL_DISCOUNT_RATE = 0.1  # 等级折扣比例 1 - 等级折扣比例 * (等级 - 1) = 折扣
+# 邀请返利配置
+INVITE_REBATE_RATE = 0.1  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
+
+# 导入邮件模板配置
+from .email_templates import *
+
+# ---------需要动态配置的配置项----------------

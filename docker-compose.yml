@@ -43,19 +43,21 @@ services:
     privileged: true
     environment:
       - TZ=Asia/Shanghai
-  # redis:
-  #   container_name: redis.local
-  #   image: 'redis:latest'
-  #   restart: always
-  #   networks:
-  #     - work_net
-  #   environment:
-  #     - TZ=Asia/Shanghai
-  #   volumes:
-  #     - /opt/bot_api/config/redis.conf:/etc/redis/redis.conf
-  #   ports:
-  #     - "6379:6379"
-  #   command: redis-server /etc/redis/redis.conf --port 6379 --requirepass zlpzlpzlp --appendonly yes
+  redis:
+    container_name: redis.local
+    image: 'redis:latest'
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes: # 配置数据卷
+    - /opt/mentos_shop_backend/config/redis/redis/data:/data
+    - /opt/mentos_shop_backend/config/redis/redis.conf:/etc/redis/redis.conf
+    command: /bin/sh -c "echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf && redis-server /etc/redis/redis.conf --appendonly yes"
+    privileged: true
+    networks:
+      network:
+        ipv4_address: 177.8.0.14
+      
   ngnix:
     container_name: nginx
     image: nginx:latest
@@ -71,7 +73,8 @@ services:
     privileged: true
     networks:
       network:
-        ipv4_address: 177.8.0.13
+        ipv4_address: 177.8.0.15
+    
 
 networks:
   network:
