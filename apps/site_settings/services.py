@@ -6,7 +6,6 @@ def save_site_settings(file,settings_var, new_value):
 
     data = ""
     with open(file, "r", encoding="utf-8") as f1:
-        print(f1)
         data = f1.readlines()
         for i in range(len(settings_var)):
             for line in range(len(data)):
