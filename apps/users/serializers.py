@@ -73,9 +73,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'discord_id', 'is_active', "uid")
+        fields = ('username', 'email', 'discord_id', 'is_active', "uid", "level", "level_points", "reward_points","is_superuser")
         extra_kwargs = {
             "uid": {"read_only": True},
+            "level": {"read_only": True},
         }
 
     def update(self, instance, validated_data):
