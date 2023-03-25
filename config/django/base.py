@@ -148,19 +148,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
 AUTH_USER_MODEL = "users.User"
-# 字母验证码
-CAPTCHA_IMAGE_SIZE = (80, 45)  # 设置 captcha 图片大小
+# 验证码
+CAPTCHA_IMAGE_SIZE = (160, 60)  # 设置 captcha 图片大小
 CAPTCHA_LENGTH = 4  # 字符个数
 CAPTCHA_TIMEOUT = 1  # 超时(minutes)
+CAPTCHA_OUTPUT_FORMAT = "%(image)s %(text_field)s %(hidden_field)s "
+CAPTCHA_FONT_SIZE = 40  # 字体大小
+CAPTCHA_FOREGROUND_COLOR = "#64DAAA"  # 前景色
+CAPTCHA_BACKGROUND_COLOR = "#F5F7F4"  # 背景色
+CAPTCHA_NOISE_FUNCTIONS = (
+    "captcha.helpers.noise_arcs",  # 线
+    # "captcha.helpers.noise_dots",  # 点
+)
+# CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge' #字母验证码
+CAPTCHA_CHALLENGE_FUNCT = "captcha.helpers.math_challenge"  # 加减乘除验证码
 
-# 加减乘除验证码
-CAPTCHA_OUTPUT_FORMAT = '%(image)s %(text_field)s %(hidden_field)s '
-CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_null',
-                           'captcha.helpers.noise_arcs',  # 线
-                           'captcha.helpers.noise_dots',  # 点
-                           )
-# CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'
-CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge' # 加减乘除
 
 SWAGGER_SETTINGS = {
     # 基础样式
