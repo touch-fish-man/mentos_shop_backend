@@ -50,14 +50,15 @@ INSTALLED_APPS = [
     "apps.tickets",
     "apps.proxy_server",
     "apps.site_settings",
-    "captcha"
+    "captcha",
+    "django_extensions"
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -219,7 +220,8 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "apps.core.exceptions.CustomExceptionHandler",
     # 配置默认认证类
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
+        'apps.core.middlewares.CsrfExemptSessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
     ),
 
