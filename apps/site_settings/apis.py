@@ -6,7 +6,7 @@ from pathlib import Path
 import os
 from django.conf import settings
 from apps.site_settings.models import Site_Settings
-from apps.core.json_respon import JsonResponse
+from apps.core.json_response import SuccessResponse
 from apps.site_settings.services import save_site_settings
 
 class SiteSettingsApi(APIView):
@@ -62,4 +62,4 @@ class SiteSettingsApi(APIView):
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
         save_site_settings(os.path.join(BASE_DIR, "config\.env"),settings_var,new_value)
-        return JsonResponse(msg="保存成功")
+        return SuccessResponse(msg="保存成功")
