@@ -14,6 +14,6 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT }}
         script: |
-          cd /mentos_shop_backend
+          cd /root/mentos_shop_backend
           git pull
           sh redeploy.sh
