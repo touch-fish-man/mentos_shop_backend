@@ -1,6 +1,8 @@
 import base64
 import hashlib
 from datetime import datetime, timedelta
+
+import pytz
 from captcha.views import CaptchaStore, captcha_image
 from captcha.models import CaptchaStore
 from django.contrib import auth
@@ -11,7 +13,7 @@ from rest_framework import serializers
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from rest_framework.views import APIView
 from apps.users.selectors import user_get_login_data
-from .services import exchange_code
+from .services import exchange_code, check_chaptcha
 from django.shortcuts import redirect
 from django.conf import settings
 from apps.users.models import User
@@ -30,26 +32,10 @@ class LoginApi(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        code = request.data.get('code')
         captcha_id = request.data.get('captcha_id')
         captcha_code = request.data.get('captcha')
-        if code != "1234":
-            if captcha_id is None:
-                return ErrorResponse(msg="验证码错误", status=400)
-            if captcha_code is None:
-                return ErrorResponse(msg="验证码错误", status=400)
-            image_code = CaptchaStore.objects.filter(id=captcha_id).first()
-            five_minute_ago = datetime.now() - timedelta(hours=0, minutes=5, seconds=0)
-            if image_code and five_minute_ago > image_code.expiration:
-                image_code.delete()
-                return ErrorResponse(msg="验证码过期", status=400)
-            else:
-                if image_code and image_code.response.lower() == captcha_code.lower():
-                    image_code.delete()
-                else:
-                    image_code.delete()
-                    return ErrorResponse(msg="验证码错误", status=400)
-
+        if not settings.DEBUG:
+            check_chaptcha(captcha_id, captcha_code)
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
