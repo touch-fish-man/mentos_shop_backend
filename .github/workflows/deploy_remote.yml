@@ -17,10 +17,18 @@ jobs:
           cd /root/mentos_shop_backend
           git pull
           sh redeploy.sh
+
     - name: send dingtalk message
       uses: leafney/dingtalk-action@v1
-      if: always()
+      if: success()
       env:
         DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
       with:
         text: '部署成功'
+    - name: send dingtalk message
+      uses: leafney/dingtalk-action@v1
+      if: failure()
+      env:
+          DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
+      with:
+          text: '部署失败'
