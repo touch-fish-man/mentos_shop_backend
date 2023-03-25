@@ -51,5 +51,6 @@ class CustomOpenAPISchemaGenerator(OpenAPISchemaGenerator):
                 'description': '服务器相关'
             },
         ]
+        swagger.schemes = ["http", "https"]
 
         return swagger
