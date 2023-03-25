@@ -65,7 +65,7 @@ class WorkOrderListApi(ListAPIView):
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
             model = WorkOrder
-            fields = ("username", "phone", "email","message")
+            fields = ("id","username", "phone", "email","message")
 
     def get(self,request):
         filters_serializer = self.FilterSerializer(data=request.query_params)
@@ -82,10 +82,7 @@ class WorkOrderListApi(ListAPIView):
         )
     
     def delete(self,request):
-        username = request.data.get('username')
-        phone = request.data.get('phone')
-        email = request.data.get('email')
-        message = request.data.get('message')
-        workorder = WorkOrder.objects.filter(username=username,phone=phone,email=email,message=message)
+        workorder_id = request.data.get('id')
+        workorder = WorkOrder.objects.filter(id=workorder_id)
         workorder.delete()
         return JsonResponse(msg="删除成功")

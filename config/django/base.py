@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework',
     "apps.users",
     "apps.tickets",
+    "apps.site_settings",
     "captcha"
 ]
 
@@ -216,10 +217,10 @@ EMAIL_METHOD = 'sendgrid'  # 邮件发送方式 smtp or sendgrid
 # smtp 配置
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
 EMAIL_HOST = 'smtp.163.com'  # 服务器名称
-EMAIL_PORT = 25  # 服务端口
+EMAIL_PORT = env('EMAIL_PORT')  # 服务端口
 EMAIL_HOST_USER = '17731697245@163.com'  # 填写自己邮箱
 EMAIL_HOST_PASSWORD = 'YHEEQVQPCXALBSER'  # 在邮箱中设置的客户端授权密码
-EMAIL_FROM = "Mentos Org"  # 收件人看到的发件人
+EMAIL_FROM = env('EMAIL_FROM')  # 收件人看到的发件人
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_USE_TLS = True
 # sendgrid 配置
