@@ -51,11 +51,11 @@ margin-bottom: 10px;
 EMAIL_TEMPLATES = {
     'register': {
         'subject': 'Mentos Proxy Registration.',
-        "from_email": "Mentos Proxy <info.@mentosproxy.com>",
+        "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": base_email_template,
     },
-    'reset_password': {
+    'frogot': {
         'subject': 'Mentos Proxy Reset Password.',
-        "from_email": "Mentos Proxy <info.@mentosproxy.com>",
+        "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": base_email_template,
     }}
