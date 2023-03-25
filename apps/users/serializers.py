@@ -25,13 +25,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(required=True,
                                      validators=[
                                          CustomUniqueValidator(queryset=User.objects.all(), message="用户名已存在")])
-    password = serializers.CharField(required=True, min_length=6)
     email = serializers.EmailField(required=True,
                                    validators=[
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
     discord_id = serializers.CharField(required=False, validators=[
         CustomUniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
-    invite_code = serializers.CharField(required=False)
 
     # email_code_id = serializers.IntegerField(required=True)
     # email_code = serializers.CharField(required=False)
@@ -41,23 +39,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
             validate_password(value)
         except ValidationError as exc:
             raise serializers.ValidationError(str(exc))
+        value = make_password(value)
         return value
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password', 'is_active', 'discord_id', 'invite_code')
+        fields = ('username', 'email',"password", 'is_active', 'discord_id','id')
+        extra_kwargs = {"is_active": {"read_only": True}, "id": {"read_only": True}, "discord_id": {"required": False},
+                        "password": {"required": True, "min_length": 6,"write_only": True},
 
-        extra_kwargs = {
-            'email_code_id': {'required': True, "write_only": True},
-            'email_code': {'required': True},
-            'password': {'write_only': True},
-            "uid": {"read_only": True},
-        }
+
+                        }
 
     def save(self, **kwargs):
         user = super().save(**kwargs)
-        user.set_password(kwargs['password'])
-        user.save()
         return user
 
 

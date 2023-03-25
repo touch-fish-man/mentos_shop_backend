@@ -70,6 +70,7 @@ services:
     volumes:
       - /opt/mentos_shop_backend/config/nginx/mentosproxy.conf:/etc/nginx/conf.d/mentosproxy.conf
       - /opt/mentos_shop_backend/config/nginx/cert:/etc/nginx/cert
+      - /opt/mentos_shop_backend/dist:/opt/mentosproxy/dist
     privileged: true
     networks:
       network:

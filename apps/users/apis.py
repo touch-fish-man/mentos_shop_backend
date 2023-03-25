@@ -77,15 +77,17 @@ class UserApi(ComModelViewSet):
     baned_user_serializer_class = BanUserSerializer
 
     def create(self, request, *args, **kwargs):
-        email_code_id = kwargs.get('email_code_id')
-        email_code = kwargs.get('email_code')
-        email = kwargs.get('email')
-        invite_code = kwargs.get('invite_code')
+
+        email_code_id = request.data.get('email_code_id')
+        email_code = request.data.get('email_code')
+        email = request.data.get('email')
+        invite_code = request.data.get('invite_code')
         check_email_code(email, email_code_id, email_code, delete=True)
         resp = super().create(request, *args, **kwargs)
         if invite_code:
             # 插入邀请记录
-            insert_invite_log(resp.data.get('id'), invite_code)
+            if resp.data.get("data",{}).get('id'):
+                insert_invite_log(resp.data.get("data",{}).get('id'), invite_code)
         return resp
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
@@ -158,6 +160,7 @@ class EmailValidateApi(APIView):
     def post(self, request):
         email = request.data.get('email')
         check_user = request.data.get('check_user')
+        req_type = request.data.get('type', 'register')
 
         try:
             validate_email(email)
@@ -167,7 +170,7 @@ class EmailValidateApi(APIView):
             # 检查用户是否存在,不存在返回错误
             if not User.objects.filter(email=email).exists():
                 return ErrorResponse(msg="email not exist")
-        code_id = send_email_code(email)
+        code_id = send_email_code(email, req_type)
         if code_id:
             msg = "send success"
             data = {"email_code_id": code_id}

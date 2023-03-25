@@ -3,6 +3,8 @@ import random
 import string
 import time
 import os
+
+import pytz
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from django.core.mail import send_mail
@@ -22,9 +24,12 @@ def generate_code(size=6, chars=string.digits + string.ascii_letters):
 
 def check_email_code(email, email_code_id, email_code, delete=False):
     code_item = Code.objects.filter(id=email_code_id, email=email, code=email_code)
+    if settings.DEBUG:
+        return
     if code_item.exists():
-        db_code = code_item.order_by('-create_time').first()
-        if db_code.create_time + settings.EMAIL_CODE_EXPIRE < datetime.datetime.now():
+        db_code = code_item.first()
+        # if db_code.create_time + settings.EMAIL_CODE_EXPIRE < datetime.datetime.now():
+        if db_code.created_at + datetime.timedelta(minutes=settings.EMAIL_CODE_EXPIRE) < datetime.datetime.now().replace(tzinfo=pytz.timezone('UTC')):
             raise CustomValidationError("验证码已过期")
         if db_code.code.lower() == email_code.lower():
             if delete:
@@ -41,8 +46,8 @@ def check_email_code(email, email_code_id, email_code, delete=False):
 def check_verify_id(email, verify_id):
     code_item = Code.objects.filter(email=email, verify_id=verify_id)
     if code_item.exists():
-        db_code = code_item.order_by('-create_time').first()
-        if db_code.create_time + datetime.timedelta(minutes=10) < datetime.datetime.now():
+        db_code = code_item.first()
+        if db_code.created_at + datetime.timedelta(minutes=10) < datetime.datetime.now():
             return False
         db_code.delete()
         return True
@@ -52,9 +57,10 @@ def check_verify_id(email, verify_id):
 
 def send_email_code(email, email_template):
     code = generate_code(4)
+    email_template=settings.EMAIL_TEMPLATES.get(email_template)
     subject = email_template.get('subject')
-    html_message = email_template.get('html').replace('{{code}}', code).replace("{{expire_time}}",
-                                                                                settings.EMAIL_CODE_EXPIRE / 60)
+    html_message = email_template.get('html').replace('{{code}}', code).replace("{{expire_time}}",str(
+                                                                                int(settings.EMAIL_CODE_EXPIRE / 60)))
     from_email = email_template.get('from_email')
     if settings.EMAIL_METHOD == 'sendgrid':
         send_success = send_via_sendgrid(email, subject, from_email, html_message)
@@ -63,9 +69,7 @@ def send_email_code(email, email_template):
     else:
         send_success = send_mail(subject, "", from_email, [email], html_message=html_message)
     if send_success:
-        time_now = time.time()
-        time_now = int(time_now)
-        code_obj = Code.objects.create(email=email, code=code, create_time=time_now)
+        code_obj = Code.objects.create(email=email, code=code)
         code_obj.save()
         code_id = code_obj.id
         ret = code_id
