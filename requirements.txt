@@ -20,3 +20,4 @@ django-restql
 drf-yasg
 rich
 ShopifyAPI
+django_extensions
