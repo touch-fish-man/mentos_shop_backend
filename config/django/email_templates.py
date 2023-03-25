@@ -54,7 +54,7 @@ EMAIL_TEMPLATES = {
         "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": base_email_template,
     },
-    'frogot': {
+    'forgot': {
         'subject': 'Mentos Proxy Reset Password.',
         "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": base_email_template,
