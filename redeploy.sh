@@ -13,4 +13,3 @@ unzip dist/dist.zip -d /opt/mentos_shop_backend/dist/ -f
 docker-compose build --no-cache
 docker-compose down --remove-orphans
 docker-compose up -d
-
