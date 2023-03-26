@@ -56,7 +56,7 @@ class OrdersUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Orders
-        fields = ["order_id", "status"]
+        fields = ["order_id", "status", "expired_at"]
 
 
 class OrdersListSerializer(serializers.ModelSerializer):
