@@ -8,4 +8,6 @@ python del_migrations.py
 python manage.py makemigrations
 python manage.py migrate
 python mocks/mock_data.py
+# kill the process running on port 4000
+kill -9 $(lsof -t -i:4000)
 nohup  /root/anaconda3/envs/py38/bin/python manage.py runserver 0.0.0.0:4000 &
