@@ -10,6 +10,9 @@ from apps.core.json_response import SuccessResponse
 from apps.site_settings.services import save_site_settings,change_site_settings,get_site_setting
 
 class SiteSettingsApi(APIView):
+    """
+    站点设置
+    """
     def post(self,request):
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
         save_site_settings(request=request,file=os.path.join(BASE_DIR, "config\.env"))

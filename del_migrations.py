@@ -3,6 +3,12 @@ import os
 exclude = ["venv"] # 需要排除的文件目录
 for root, dirs, files in os.walk('.'):
     dirs[:] = [d for d in set(dirs) - set(exclude)]
+    # 删除所有pyc文件
+    for file in files:
+        if file.endswith('.pyc'):
+            dst_file = os.path.join(root, file)
+            print('删除文件>>> ', dst_file)
+            os.remove(dst_file)
     if 'migrations' in dirs:
         dir = dirs[dirs.index('migrations')]
         for root_j, dirs_j, files_j in os.walk(os.path.join(root, dir)):

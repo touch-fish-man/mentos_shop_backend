@@ -7,7 +7,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: executing remote ssh commands using password
+    - name: executing remote ssh on server
       uses: appleboy/ssh-action@v0.1.8
       with:
         host: ${{ secrets.SSH_HOST }}
@@ -18,7 +18,19 @@ jobs:
           cd /root/mentos_shop_backend
           git pull
           sh redeploy.sh
-
+    - name: executing remote ssh on dev server
+      uses: appleboy/ssh-action@v0.1.8
+      with:
+        host: ${{ secrets.SSH_HOST_DEV }}
+        username: ${{ secrets.SSH_USERNAME }}
+        password: ${{ secrets.SSH_PWD_DEV }}
+        port: ${{ secrets.SSH_PORT }}
+        script: |
+          cd /root/dev1/mentos_shop_backend
+          git fetch --all
+          git reset --hard origin/main 
+          git pull
+          sh deploy_local.sh
     - name: send dingtalk message
       uses: leafney/dingtalk-action@v1
       if: success()
@@ -26,10 +38,31 @@ jobs:
         DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
         DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
       with:
-        msgtype: link
-        title: '点击访访问'
+        msgtype: actionCard
+        title: 'github自动化部署通知'
         text: '代码部署成功'
-        msg_url: 'https://www.mentosproxy.com'
+        btns: |
+          [
+            {
+                "title": "正式环境",
+                "actionURL": 'https://www.mentosproxy.com'
+            },
+            {
+                "title": "测试环境",
+                "actionURL": "https://test.mentosproxy.com"
+            }
+          ,
+            {
+                "title": "测试环境swagger",
+                "actionURL": "https://test.mentosproxy.com/api/"
+            }
+          ,
+            {
+                "title": "联调环境1swagger",
+                "actionURL": "http://18.219.70.192:4000/api/"
+            }
+          ]
+
     - name: send dingtalk message
       uses: leafney/dingtalk-action@v1
       if: failure()

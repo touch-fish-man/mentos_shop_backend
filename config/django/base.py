@@ -51,7 +51,8 @@ INSTALLED_APPS = [
     "apps.proxy_server",
     "apps.site_settings",
     "captcha",
-    "django_extensions"
+    "django_extensions",
+    "apps.orders",
 ]
 
 MIDDLEWARE = [
@@ -70,10 +71,10 @@ STATICFILES_FINDERS = [
 ROOT_URLCONF = 'config.urls'
 STATIC_URL = "/static/"
 
-# # 设置django的静态文件目录
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+# # # 设置django的静态文件目录
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -140,7 +141,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 # STATIC_URL = 'static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
@@ -261,7 +262,7 @@ SHOPIFY_APP_KEY = env('SHOPIFY_APP_KEY')
 EMAIL_METHOD = env('EMAIL_METHOD') # 邮件发送方式 mailgun or sendgrid
 EMAIL_CODE_EXPIRE = env('EMAIL_CODE_EXPIRE')   # 邮件验证码过期时间
 # smtp 配置
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
 # sendgrid 配置
 SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 # mailgun 配置
