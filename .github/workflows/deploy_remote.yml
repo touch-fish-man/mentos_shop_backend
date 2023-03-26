@@ -30,7 +30,7 @@ jobs:
           git fetch --all
           git reset --hard origin/main 
           git pull
-          sh deploy_local.sh
+          sh deploy_dev.sh
     - name: send dingtalk message
       uses: leafney/dingtalk-action@v1
       if: success()

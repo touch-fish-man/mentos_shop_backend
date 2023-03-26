@@ -10,13 +10,13 @@ https://docs.djangoproject.com/en/3.0/howto/deployment/wsgi/
 import os
 
 from django.core.wsgi import get_wsgi_application
-if os.environ.get('DJANGO_ENV') == 'prod':
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.production")
-elif os.environ.get('DJANGO_ENV') == 'local':
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
-elif os.environ.get('DJANGO_ENV') == 'test':
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.test")
+if os.environ.get('DJANGO_ENV'):
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if os.path.exists(os.path.join(base_dir, 'config', 'django', os.environ.get('DJANGO_ENV') + '.py')):
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django." + os.environ.get('DJANGO_ENV'))
+    else:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
 else:
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.production")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
 
 application = get_wsgi_application()
