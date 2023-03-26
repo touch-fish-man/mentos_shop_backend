@@ -1,6 +1,7 @@
 from .models import Orders
 from rest_framework import serializers
 from apps.core.validators import CustomUniqueValidator
+from ..proxy_server.models import ProxyList
 
 
 class OrdersSerializer(serializers.ModelSerializer):
@@ -55,7 +56,7 @@ class OrdersUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Orders
-        fields = ["order_id", "status", "expired_at"]
+        fields = ["order_id", "status"]
 
 
 class OrdersListSerializer(serializers.ModelSerializer):
@@ -68,3 +69,8 @@ class OrdersStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
         fields = ["order_id", "pay_status"]
+
+class ProxyListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProxyList
+        fields = "__all__"
