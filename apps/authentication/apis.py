@@ -119,12 +119,14 @@ class DiscordBindRedirectApi(APIView):
         if user is None:
             return ErrorResponse(msg="oauth错误")
         discord_id = user.get('id')
+        discord_username = user.get('username')
         # 绑定用户
         user = request.user
         user.discord_id = discord_id
+        user.discord_name = discord_username
         user.save()
         # 重定向到用户页面
-        return SuccessResponse(msg="绑定成功")
+        return redirect("/#/dashboard/")
 
 
 class CaptchaApi(APIView):
