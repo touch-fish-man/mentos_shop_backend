@@ -28,8 +28,8 @@ class CustomSwaggerAutoSchema(SwaggerAutoSchema):
                 description = "获取"
             elif self.__dict__.get("method") == "POST":
                 description = "新增"
-
-        summary = summary+"-"+description
+        if summary is not None and description is not None:
+            summary = summary+"-"+description
         return summary, description
 
 

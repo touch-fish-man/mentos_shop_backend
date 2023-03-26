@@ -49,6 +49,7 @@ def CustomExceptionHandler(ex, context):
             logger.error(traceback.format_exc())
             msg = str(traceback.format_exc())
     else:
-        msg = "Server Error"
+        logger.error(traceback.format_exc())
+        msg = str(ex.detail)
 
     return ErrorResponse(msg=msg, code=code)

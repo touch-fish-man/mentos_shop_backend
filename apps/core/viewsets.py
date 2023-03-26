@@ -3,6 +3,8 @@ from .json_response import SuccessResponse, LimitOffsetResponse, ErrorResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.db import transaction
+
+
 class ComModelViewSet(ModelViewSet):
     values_queryset = None
     ordering_fields = '__all__'
@@ -14,6 +16,7 @@ class ComModelViewSet(ModelViewSet):
     permission_classes = []
     import_field_dict = {}
     export_field_label = {}
+
     def get_serializer(self, *args, **kwargs):
         serializer_class = self.get_serializer_class()
         kwargs.setdefault('context', self.get_serializer_context())
@@ -65,3 +68,7 @@ class ComModelViewSet(ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return SuccessResponse(msg="删除成功")
+
+    @swagger_auto_schema(auto_schema=None)
+    def partial_update(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
