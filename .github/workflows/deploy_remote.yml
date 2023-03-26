@@ -62,7 +62,6 @@ jobs:
                 "actionURL": "http://18.219.70.192:4000/api/"
             }
           ]
-
     - name: send dingtalk message
       uses: leafney/dingtalk-action@v1
       if: failure()
