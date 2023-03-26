@@ -198,7 +198,7 @@ class ResetPasswordApi(APIView):
         verify_id = request.data.get('verify_id')
         code_obj = Code.objects.filter(verify_id=verify_id, email=email)
         if code_obj.exists():
-            db_code = code_obj.order_by('-create_time').first()
+            db_code = code_obj.first()
             db_code.delete()
         else:
             return ErrorResponse(msg="email error please try again")

@@ -31,7 +31,7 @@ def check_email_code(email, email_code_id, email_code, delete=False):
         # if db_code.create_time + settings.EMAIL_CODE_EXPIRE < datetime.datetime.now():
         if db_code.created_at + datetime.timedelta(minutes=settings.EMAIL_CODE_EXPIRE) < datetime.datetime.now().replace(tzinfo=pytz.timezone('UTC')):
             raise CustomValidationError("验证码已过期")
-        if db_code.code.lower() == email_code.lower():
+        if db_code.code.lower() == email_code.lower() or settings.DEBUG:
             if delete:
                 db_code.delete()
             else:
@@ -127,9 +127,9 @@ def insert_invite_log(uid, invite_code):
         # 记录邀请日志
         InviteLog.objects.create(uid=uid, invite_code=invite_code, inviter_uid=user_obj.id)
         # 更新邀请计数
-        user_obj.update(invite_count=user_obj.invite_count + 1)
+        user_obj.invite_count=user_obj.invite_count + 1
         # 更新邀请人等级积分
-        user_obj.update(level_points=user_obj.level_points + settings.INVITE_LEVEL_POINTS_PER_USER)
+        user_obj.level_points=user_obj.level_points + settings.INVITE_LEVEL_POINTS_PER_USER
         user_obj.save()
         return True
     else:
