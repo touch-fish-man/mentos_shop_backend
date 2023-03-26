@@ -252,37 +252,37 @@ DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
 DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
 
 # shopify 配置
-SHOPIFY_API_KEY = "env('SHOPIFY_API_KEY')"
-SHOPIFY_API_SECRET = "env('SHOPIFY_API_SECRET')"
-SHOPIFY_SHOP_URL = "env('SHOPIFY_SHOP_URL')"
-SHOPIFY_APP_KEY = "env('SHOPIFY_APP_KEY')"
+SHOPIFY_API_KEY = env('SHOPIFY_API_KEY')
+SHOPIFY_API_SECRET = env('SHOPIFY_API_SECRET')
+SHOPIFY_SHOP_URL = env('SHOPIFY_SHOP_URL')
+SHOPIFY_APP_KEY = env('SHOPIFY_APP_KEY')
 
 # 邮件相关配置
-EMAIL_METHOD = 'mailgun'  # 邮件发送方式 mailgun or sendgrid
-EMAIL_CODE_EXPIRE = 60 * 10  # 邮件验证码过期时间
+EMAIL_METHOD = env('EMAIL_METHOD') # 邮件发送方式 mailgun or sendgrid
+EMAIL_CODE_EXPIRE = env('EMAIL_CODE_EXPIRE')   # 邮件验证码过期时间
 # smtp 配置
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
+EMAIL_BACKEND = env('EMAIL_BACKEND')  # 发送邮件配置
 # sendgrid 配置
-SENDGRID_API_KEY = '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'
+SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 # mailgun 配置
-MAILGUN_API_KEY = 'ce475dd32507d0ae303a22a6f637ef5e-30344472-085a02a4'
-MAILGUN_SENDER_DOMAIN = 'mentosproxy.com'
+MAILGUN_API_KEY = env('MAILGUN_API_KEY')
+MAILGUN_SENDER_DOMAIN = env('MAILGUN_SENDER_DOMAIN')
 
 # 系统配置
 # 客服联系方式配置
-SUPPORT_TWITTER = 'https://twitter.com/mentosproxy'
-SUPPORT_DISCORD = 'https://discord.gg/mentosproxy'
+SUPPORT_TWITTER = env('SUPPORT_TWITTER')
+SUPPORT_DISCORD = env('SUPPORT_DISCORD')
 # 等级积分配置
-INVITE_LEVEL_POINTS_PER_USER = 10  # 邀请一个用户获得等级积分
-BILLING_RATE = 0.1  # 消费获得等级积分比例 金额 * 比例 = 等级积分 消费后获得等级积分
-LEVEL_POINTS_TO_UPGRADE = 100  # 升级所需等级积分
-LEVEL_POINTS_DECAY_RATE = 0.1  # 每月等级积分衰减比例
-LEVEL_POINTS_DECAY_DAY = 1  # 每月等级积分衰减日
-MIN_LEVEL = 1  # 最低等级
-MAX_LEVEL = 5  # 最高等级
-LEVEL_DISCOUNT_RATE = 0.1  # 等级折扣比例 1 - 等级折扣比例 * (等级 - 1) = 折扣
+INVITE_LEVEL_POINTS_PER_USER = env('INVITE_LEVEL_POINTS_PER_USER')  # 邀请一个用户获得等级积分
+BILLING_RATE = env('BILLING_RATE')  # 消费获得等级积分比例 金额 * 比例 = 等级积分 消费后获得等级积分
+LEVEL_POINTS_TO_UPGRADE = env('LEVEL_POINTS_TO_UPGRADE')  # 升级所需等级积分
+LEVEL_POINTS_DECAY_RATE = env('LEVEL_POINTS_DECAY_RATE')  # 每月等级积分衰减比例
+LEVEL_POINTS_DECAY_DAY = env('LEVEL_POINTS_DECAY_DAY')  # 每月等级积分衰减日
+MIN_LEVEL = env('MIN_LEVEL')  # 最低等级
+MAX_LEVEL = env('MAX_LEVEL')  # 最高等级
+LEVEL_DISCOUNT_RATE = env('LEVEL_DISCOUNT_RATE')  # 等级折扣比例 1 - 等级折扣比例 * (等级 - 1) = 折扣
 # 邀请返利配置
-INVITE_REBATE_RATE = 0.1  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
+INVITE_REBATE_RATE = env('INVITE_REBATE_RATE')  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
 
 # 导入邮件模板配置
 from .email_templates import *
