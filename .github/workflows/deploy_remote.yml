@@ -51,16 +51,6 @@ jobs:
                 "title": "测试环境",
                 "actionURL": "https://test.mentosproxy.com"
             }
-          ,
-            {
-                "title": "测试环境swagger",
-                "actionURL": "https://test.mentosproxy.com/api/"
-            }
-          ,
-            {
-                "title": "联调环境1swagger",
-                "actionURL": "http://18.219.70.192:4000/api/"
-            }
           ]
 
     - name: send dingtalk message
