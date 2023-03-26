@@ -5,14 +5,15 @@ from rest_framework.views import APIView
 from pathlib import Path
 import os
 
+
 from apps.core.json_response import SuccessResponse
 from apps.site_settings.services import save_site_settings,change_site_settings,get_site_setting
 
 class SiteSettingsApi(APIView):
     def post(self,request):
-        change_site_settings(request=request)
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
         save_site_settings(request=request,file=os.path.join(BASE_DIR, "config\.env"))
+        change_site_settings()
         return SuccessResponse(msg="保存成功")
     
     def get(self,request):

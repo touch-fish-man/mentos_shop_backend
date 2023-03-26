@@ -1,112 +1,58 @@
 from django.conf import settings
-def change_site_settings(request):
-    discord_cliend_id = int(request.data.get("discord_cliend_id"))
-    discord_secret = request.data.get("discord_secret")
-    discord_redirect_url = request.data.get("discord_redirect_url")
-    discord_bind_redirect_url = request.data.get("discord_bind_redirect_url")
-    api_key = request.data.get("api_key")
-    api_scert = request.data.get("api_scert")
-    app_password = request.data.get("app_password")
-    shop_url = request.data.get("shop_url")
-    email_method = request.data.get("email_method")
-    email_code_expire = int(request.data.get("email_code_expire"))
-    email_backend = request.data.get("email_backend")
-    sendgrid_api_key = request.data.get("sendgrid_api_key")
-    mailgun_api_key = request.data.get("mailgun_api_key")
-    mailgun_sender_domain = request.data.get("mailgun_sender_domain")
-    twitter = request.data.get("twitter")
-    discord = request.data.get("discord")
-    invite_level_points_per_user = int(request.data.get("invite_level_points_per_user"))
-    billing_rate = float(request.data.get("billing_rate"))
-    level_points_to_upgrade = int(request.data.get("level_points_to_upgrade"))
-    level_points_decay_rate = float(request.data.get("level_points_decay_rate"))
-    level_points_decay_day = int(request.data.get("level_points_decay_day"))
-    min_level = int(request.data.get("min_level"))
-    max_level = int(request.data.get("max_level"))
-    level_discount_rate = float(request.data.get("level_discount_rate"))
-    invite_rebate_rate = float(request.data.get("invite_rebate_rate"))
+from config.env import env
 
-    settings.DISCORD_CLIENT_ID = discord_cliend_id
-    settings.DISCORD_CLIENT_SECRET = discord_secret
-    settings.DISCORD_REDIRECT_URI = discord_redirect_url
-    settings.DISCORD_BIND_REDIRECT_URI = discord_bind_redirect_url
-    settings.SHOPIFY_API_KEY = api_key
-    settings.SHOPIFY_API_SECRET = api_scert
-    settings.SHOPIFY_APP_KEY = app_password
-    settings.SHOPIFY_SHOP_URL = shop_url
-    settings.EMAIL_METHOD = email_method
-    settings.EMAIL_CODE_EXPIRE = email_code_expire
-    settings.EMAIL_BACKEND = email_backend
-    settings.SENDGRID_API_KEY = sendgrid_api_key
-    settings.MAILGUN_API_KEY = mailgun_api_key
-    settings.MAILGUN_SENDER_DOMAIN = mailgun_sender_domain        
-    settings.SUPPORT_TWITTER = twitter
-    settings.SUPPORT_DISCORD = discord
-    settings.INVITE_LEVEL_POINTS_PER_USER = invite_level_points_per_user
-    settings.BILLING_RATE = billing_rate
-    settings.LEVEL_POINTS_TO_UPGRADE = level_points_to_upgrade
-    settings.LEVEL_POINTS_DECAY_RATE = level_points_decay_rate
-    settings.LEVEL_POINTS_DECAY_DAY = level_points_decay_day
-    settings.MIN_LEVEL = min_level
-    settings.MAX_LEVEL = max_level
-    settings.LEVEL_DISCOUNT_RATE = level_discount_rate
-    settings.INVITE_REBATE_RATE = invite_rebate_rate
+def change_site_settings():
+    settings.DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
+    settings.DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET')
+    settings.DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
+    settings.DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
+    settings.SHOPIFY_API_KEY = env('SHOPIFY_API_KEY')
+    settings.SHOPIFY_API_SECRET = env('SHOPIFY_API_SECRET')
+    settings.SHOPIFY_SHOP_URL = env('SHOPIFY_SHOP_URL')
+    settings.SHOPIFY_APP_KEY = env('SHOPIFY_APP_KEY')
+    settings.EMAIL_METHOD = env('EMAIL_METHOD') 
+    settings.EMAIL_CODE_EXPIRE = env('EMAIL_CODE_EXPIRE')
+    settings.EMAIL_BACKEND = env('EMAIL_BACKEND')
+    settings.SENDGRID_API_KEY = env('SENDGRID_API_KEY')
+    settings.MAILGUN_API_KEY = env('MAILGUN_API_KEY')
+    settings.MAILGUN_SENDER_DOMAIN = env('MAILGUN_SENDER_DOMAIN')
+    settings.SUPPORT_TWITTER = env('SUPPORT_TWITTER')
+    settings.SUPPORT_DISCORD = env('SUPPORT_DISCORD')
+    settings.INVITE_LEVEL_POINTS_PER_USER = env('INVITE_LEVEL_POINTS_PER_USER') 
+    settings.BILLING_RATE = env('BILLING_RATE')
+    settings.LEVEL_POINTS_TO_UPGRADE = env('LEVEL_POINTS_TO_UPGRADE')  
+    settings.LEVEL_POINTS_DECAY_RATE = env('LEVEL_POINTS_DECAY_RATE')  
+    settings.LEVEL_POINTS_DECAY_DAY = env('LEVEL_POINTS_DECAY_DAY')  
+    settings.MIN_LEVEL = env('MIN_LEVEL') 
+    settings.MAX_LEVEL = env('MAX_LEVEL') 
+    settings.LEVEL_DISCOUNT_RATE = env('LEVEL_DISCOUNT_RATE') 
+    settings.INVITE_REBATE_RATE = env('INVITE_REBATE_RATE')
+
+
 
 def save_site_settings(request,file):
     """
     保存网站设置
     """
-    discord_cliend_id = int(request.data.get("discord_cliend_id"))
-    discord_secret = request.data.get("discord_secret")
-    discord_redirect_url = request.data.get("discord_redirect_url")
-    discord_bind_redirect_url = request.data.get("discord_bind_redirect_url")
-    api_key = request.data.get("api_key")
-    api_scert = request.data.get("api_scert")
-    app_password = request.data.get("app_password")
-    shop_url = request.data.get("shop_url")
-    email_method = request.data.get("email_method")
-    email_code_expire = int(request.data.get("email_code_expire"))
-    email_backend = request.data.get("email_backend")
-    sendgrid_api_key = request.data.get("sendgrid_api_key")
-    mailgun_api_key = request.data.get("mailgun_api_key")
-    mailgun_sender_domain = request.data.get("mailgun_sender_domain")
-    twitter = request.data.get("twitter")
-    discord = request.data.get("discord")
-    invite_level_points_per_user = int(request.data.get("invite_level_points_per_user"))
-    billing_rate = float(request.data.get("billing_rate"))
-    level_points_to_upgrade = int(request.data.get("level_points_to_upgrade"))
-    level_points_decay_rate = float(request.data.get("level_points_decay_rate"))
-    level_points_decay_day = int(request.data.get("level_points_decay_day"))
-    min_level = int(request.data.get("min_level"))
-    max_level = int(request.data.get("max_level"))
-    level_discount_rate = float(request.data.get("level_discount_rate"))
-    invite_rebate_rate = float(request.data.get("invite_rebate_rate"))
-
-    settings_var = ['DISCORD_CLIENT_ID','DISCORD_CLIENT_SECRET','DISCORD_REDIRECT_URI',
-                'DISCORD_BIND_REDIRECT_URI','SHOPIFY_API_KEY','SHOPIFY_API_SECRET','SHOPIFY_APP_KEY',
-                'SHOPIFY_SHOP_URL','EMAIL_METHOD','EMAIL_CODE_EXPIRE','EMAIL_BACKEND','SENDGRID_API_KEY',
-                'MAILGUN_API_KEY','MAILGUN_SENDER_DOMAIN','SUPPORT_TWITTER','SUPPORT_DISCORD',
-                'INVITE_LEVEL_POINTS_PER_USER','BILLING_RATE','LEVEL_POINTS_TO_UPGRADE','LEVEL_POINTS_DECAY_RATE',
-                'LEVEL_POINTS_DECAY_DAY','MIN_LEVEL','MAX_LEVEL','LEVEL_DISCOUNT_RATE','INVITE_REBATE_RATE']
-    
-    new_value = [discord_cliend_id,discord_secret,discord_redirect_url,
-                discord_bind_redirect_url,api_key,api_scert,app_password,
-                shop_url,email_method,email_code_expire,email_backend,sendgrid_api_key,
-                mailgun_api_key,mailgun_sender_domain,twitter,discord,
-                invite_level_points_per_user,billing_rate,level_points_to_upgrade,
-                level_points_decay_rate,level_points_decay_day,min_level, max_level,
-                    level_discount_rate,invite_rebate_rate ]
+    request_data = {}
+    int_var = ['DISCORD_CLIENT_ID','EMAIL_CODE_EXPIRE','INVITE_LEVEL_POINTS_PER_USER',
+               'LEVEL_POINTS_TO_UPGRADE','LEVEL_POINTS_DECAY_DAY','MIN_LEVEL','MAX_LEVEL']
+    float_var = ['BILLING_RATE','LEVEL_POINTS_DECAY_RATE','LEVEL_DISCOUNT_RATE','INVITE_REBATE_RATE']
+    for key,_ in request.data.items():
+        key_upper = key.upper()
+        env.ENVIRON[key_upper] = request.data.get(key)
+        if key_upper not in int_var and key_upper not in float_var:
+            request_data[key_upper] = "'" +request.data.get(key)+"'"
+        else:
+            request_data[key_upper] = request.data.get(key)
     data = ""
     with open(file, "r", encoding="utf-8") as f1:
         data = f1.readlines()
-        for i in range(len(settings_var)):
+        for key,value in request_data.items():
             for line in range(len(data)):
-                if settings_var[i]+'=' in data[line] and isinstance(new_value[i],str):
-                    data[line] = settings_var[i] + "='" + new_value[i] + "'\n"
-                elif settings_var[i]+'=' in data[line] and isinstance(new_value[i],int):
-                    data[line] = settings_var[i] + "=" + str(new_value[i]) + "\n"
-                elif settings_var[i]+'=' in data[line] and isinstance(new_value[i],float):
-                    data[line] = settings_var[i] + "=" + str(new_value[i]) + "\n"
+                if key+'=' in data[line]:
+                    data[line] = '{}={}\n'.format(key,value) 
+
     with open(file, "w", encoding="utf-8") as f2:
         [f2.write(item) for item in data]
 
@@ -122,7 +68,6 @@ def get_site_setting():
         'shop_url':settings.SHOPIFY_SHOP_URL,
         'email_method':settings.EMAIL_METHOD,
         'email_code_expire':settings.EMAIL_CODE_EXPIRE,
-        'email_backend':settings.EMAIL_BACKEND,
         'sendgrid_api_key':settings.SENDGRID_API_KEY,
         'mailgun_api_key':settings.MAILGUN_API_KEY,
         'mailgun_sender_domain':settings.MAILGUN_SENDER_DOMAIN, 
