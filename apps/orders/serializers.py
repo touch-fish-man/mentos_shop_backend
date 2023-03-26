@@ -62,3 +62,9 @@ class OrdersListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
         fields = "__all__"
+class OrdersStatusSerializer(serializers.ModelSerializer):
+    order_id = serializers.IntegerField(required=True)
+
+    class Meta:
+        model = Orders
+        fields = ["order_id", "pay_status"]
