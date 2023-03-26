@@ -12,7 +12,6 @@ def change_site_settings():
     settings.SHOPIFY_APP_KEY = env('SHOPIFY_APP_KEY')
     settings.EMAIL_METHOD = env('EMAIL_METHOD') 
     settings.EMAIL_CODE_EXPIRE = env('EMAIL_CODE_EXPIRE')
-    settings.EMAIL_BACKEND = env('EMAIL_BACKEND')
     settings.SENDGRID_API_KEY = env('SENDGRID_API_KEY')
     settings.MAILGUN_API_KEY = env('MAILGUN_API_KEY')
     settings.MAILGUN_SENDER_DOMAIN = env('MAILGUN_SENDER_DOMAIN')
