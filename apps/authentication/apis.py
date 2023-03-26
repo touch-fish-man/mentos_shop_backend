@@ -95,13 +95,14 @@ class DiscordOauth2RedirectApi(APIView):
         discord_id = user.get('id')
         # 查询用户是否存在
         user = User.objects.filter(discord_id=discord_id).first()
+
         if user is None:
             # 返回标志，前端跳转到注册页面，注册附带discord_id
             return redirect(f'/#/createAccount?discord_id={discord_id}')
         else:
             # 登录
-            discord_user = authenticate(request, user=user)
-            login(request, discord_user)
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            login(request, user)
             # 重定向到用户页面
             return redirect("/#/dashboard/")
 
