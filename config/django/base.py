@@ -262,7 +262,7 @@ SHOPIFY_APP_KEY = env('SHOPIFY_APP_KEY')
 EMAIL_METHOD = env('EMAIL_METHOD') # 邮件发送方式 mailgun or sendgrid
 EMAIL_CODE_EXPIRE = env('EMAIL_CODE_EXPIRE')   # 邮件验证码过期时间
 # smtp 配置
-EMAIL_BACKEND = env('EMAIL_BACKEND')  # 发送邮件配置
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
 # sendgrid 配置
 SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 # mailgun 配置
