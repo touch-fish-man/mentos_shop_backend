@@ -4,8 +4,8 @@ from config.env import env
 def change_site_settings():
     settings.DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
     settings.DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET')
-    settings.DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
-    settings.DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
+    settings.DISCORD_REDIRECT_URL = env('DISCORD_REDIRECT_URL')
+    settings.DISCORD_BIND_REDIRECT_URL = env('DISCORD_BIND_REDIRECT_URL')
     settings.SHOPIFY_API_KEY = env('SHOPIFY_API_KEY')
     settings.SHOPIFY_API_SECRET = env('SHOPIFY_API_SECRET')
     settings.SHOPIFY_SHOP_URL = env('SHOPIFY_SHOP_URL')
