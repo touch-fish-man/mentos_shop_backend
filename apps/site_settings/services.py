@@ -4,8 +4,8 @@ from config.env import env
 def change_site_settings():
     settings.DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
     settings.DISCORD_CLIENT_SECRET = env('DISCORD_CLIENT_SECRET')
-    settings.DISCORD_REDIRECT_URL = env('DISCORD_REDIRECT_URL')
-    settings.DISCORD_BIND_REDIRECT_URL = env('DISCORD_BIND_REDIRECT_URL')
+    settings.DISCORD_REDIRECT_URI = env('DISCORD_REDIRECT_URI')
+    settings.DISCORD_BIND_REDIRECT_URI = env('DISCORD_BIND_REDIRECT_URI')
     settings.SHOPIFY_API_KEY = env('SHOPIFY_API_KEY')
     settings.SHOPIFY_API_SECRET = env('SHOPIFY_API_SECRET')
     settings.SHOPIFY_SHOP_URL = env('SHOPIFY_SHOP_URL')
@@ -59,8 +59,8 @@ def get_site_setting():
     data ={
         'discord_client_id':settings.DISCORD_CLIENT_ID,
         'discord_client_secret':settings.DISCORD_CLIENT_SECRET,
-        'discord_redirect_url':settings.DISCORD_REDIRECT_URL,
-        'discord_bind_redirect_url':settings.DISCORD_BIND_REDIRECT_URL,
+        'discord_redirect_uri':settings.DISCORD_REDIRECT_URI,
+        'discord_bind_redirect_uri':settings.DISCORD_BIND_REDIRECT_URI,
         'shopify_api_key':settings.SHOPIFY_API_KEY,
         'shopify_api_secret':settings.SHOPIFY_API_SECRET,
         'shopify_app_key':settings.SHOPIFY_APP_KEY,
