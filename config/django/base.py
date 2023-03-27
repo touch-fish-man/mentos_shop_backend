@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "captcha",
     "django_extensions",
     "apps.orders",
+    "apps.rewards",
 ]
 
 MIDDLEWARE = [
