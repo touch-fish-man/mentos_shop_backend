@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from apps.core.validators import CustomUniqueValidator
-from apps.users.models import User
+from apps.users.models import User, InviteLog, RebateRecord
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -89,3 +89,13 @@ class UserPasswordSerializer(serializers.ModelSerializer):
         instance.password = make_password(validated_data['password'])
         instance.save()
         return instance
+class InviteLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InviteLog
+        fields = '__all__'
+
+class RebateRecordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RebateRecord
+        fields = '__all__'
+

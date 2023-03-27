@@ -12,11 +12,11 @@ from rest_framework.views import APIView
 
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
-from apps.users.models import User, Code
+from apps.users.models import User, Code, InviteLog, RebateRecord
 from apps.users.selectors import user_get_login_data
-from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer
+from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer, \
+    InviteLogSerializer, RebateRecordSerializer
 from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
-
 
 # class UserInfoApi(LoginRequiredMixin, APIView):
 #     """
@@ -248,22 +248,42 @@ class ChangePasswordApi(APIView):
             return ErrorResponse(msg="原密码错误")
 
 
-class InviteCodeApi(ComModelViewSet):
+class InviteLogApi(ComModelViewSet):
     """
     邀请记录
     """
-    serializer_class = UserSerializer
-    ordering_fields = ('username', 'email', 'level', 'is_active')
-    search_fields = ('username', 'email')  # 搜索字段
-    filter_fields = ['uid', 'username', 'email', 'is_superuser', 'level', 'is_active']  # 过滤字段
-    queryset = User.objects.all()
-    create_serializer_class = UserCreateSerializer
-    update_serializer_class = UserUpdateSerializer
-    reset_password_serializer_class = UserSerializer
-    baned_user_serializer_class = BanUserSerializer
+    serializer_class = InviteLogSerializer
+    ordering_fields = ('inviter_username', 'username')
+    search_fields = ('inviter_username', 'username')  # 搜索字段
+    filter_fields = ('inviter_username', 'username')  # 过滤字段
+    queryset = InviteLog.objects.all()
+    create_serializer_class = InviteLogSerializer
+    update_serializer_class = InviteLogSerializer
+    # todo 只保留list接口
 
-    @action(methods=['get'], detail=False, url_path='get_invite_code', url_name='get_invite_code')
-    def get_invite_code(self, request, *args, **kwargs):
-        user = request.user
-        invite_code = user.invite_code
-        return SuccessResponse(msg="success", data={"invite_code": invite_code})
+
+class RebateRecordApi(ComModelViewSet):
+    """
+    返利记录
+    """
+    serializer_class = RebateRecordSerializer
+    ordering_fields = ('username','consumer_username')
+    search_fields = ('username','consumer_username')  # 搜索字段
+    filter_fields = ('username','consumer_username')  # 过滤字段
+    queryset = RebateRecord.objects.all()
+    create_serializer_class = RebateRecordSerializer
+    update_serializer_class = RebateRecordSerializer
+    # todo 只保留list接口
+
+
+# class UserLevelRecordApi(ComModelViewSet):
+#     """
+#     用户等级变更记录
+#     """
+#     serializer_class = UserLevelRecordSerializer
+#     ordering_fields = ('username', 'email', 'level', 'is_active')
+#     search_fields = ('username', 'email')  # 搜索字段
+#     filter_fields = ['uid', 'username', 'email', 'is_superuser', 'level', 'is_active']  # 过滤字段
+#     queryset = UserLevelRecord.objects.all()
+#     create_serializer_class = UserLevelRecordSerializer
+#     update_serializer_class = UserLevelRecordSerializer

@@ -70,9 +70,10 @@ class User(AbstractUser, BaseModel):
 
 class InviteLog(BaseModel):
     """邀请记录表"""
-    id = models.AutoField(primary_key=True)
     uid = models.IntegerField(verbose_name="用户id")
+    username = models.CharField(max_length=100, verbose_name="用户名")
     inviter_uid = models.IntegerField(verbose_name="邀请人id")
+    inviter_username = models.CharField(max_length=100, verbose_name="邀请人用户名")
     invite_code = models.CharField(max_length=100, verbose_name="邀请码")
 
     class Meta:
@@ -85,10 +86,14 @@ class RebateRecord(BaseModel):
     """邀请人返利记录"""
 
     uid = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
+    username = models.CharField(max_length=100, verbose_name="返利人用户名")
     consumer_uid = models.PositiveIntegerField(
         verbose_name="消费者ID", null=True, blank=True
     )
-    money = models.PositiveIntegerField(verbose_name="返利金额", default=0)
+    consumer_username = models.CharField(
+        max_length=100, verbose_name="消费者用户名", null=True, blank=True
+    )
+    reward_points = models.PositiveIntegerField(verbose_name="奖励金额", default=0)
 
     class Meta:
         db_table = "rebate_record"
@@ -97,16 +102,16 @@ class RebateRecord(BaseModel):
         ordering = ("-created_at",)
 
 
-class UserLevlRecord(BaseModel):
-    """用户等级记录表"""
-    uid = models.IntegerField(verbose_name="用户uid")
-    level = models.IntegerField(verbose_name="等级")
-    level_points = models.IntegerField(verbose_name="等级积分")
+# class UserLevelRecord(BaseModel):
+#     """用户等级记录表"""
+#     uid = models.IntegerField(verbose_name="用户uid")
+#     level = models.IntegerField(verbose_name="等级")
+#     level_points = models.IntegerField(verbose_name="等级积分")
 
-    class Meta:
-        db_table = 'user_level_record'
-        verbose_name = '用户等级记录'
-        verbose_name_plural = verbose_name
+#     class Meta:
+#         db_table = 'user_level_record'
+#         verbose_name = '用户等级记录'
+#         verbose_name_plural = verbose_name
 
 
 class UserOrder(BaseModel):

@@ -1,10 +1,12 @@
 from django.urls import path
 from .apis import  EmailValidateApi, ResetPasswordApi, \
-    ChangePasswordApi, ResetPasswordVerifyApi, UserApi
+    ChangePasswordApi, ResetPasswordVerifyApi, UserApi,RebateRecordApi,InviteLogApi
 from rest_framework import routers
 
 router = routers.DefaultRouter()
 router.register(r'', UserApi)
+router.register(r'rebate_record', RebateRecordApi)
+router.register(r'invite_log', InviteLogApi)
 
 
 urlpatterns = [
