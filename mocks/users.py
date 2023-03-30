@@ -3,17 +3,14 @@
 import random
 import string
 import uuid
-
+from init_env import *
 from django.contrib.auth.hashers import make_password
 from faker import Faker
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from rich.console import Console
-import django
 
-django.setup()
 
 from apps.users.models import User
 

@@ -33,8 +33,6 @@ class ServerGroup(BaseModel):
         db_table = 'server_group'
         verbose_name = '服务器组'
         verbose_name_plural = '服务器组'
-
-
 class Server(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
@@ -46,6 +44,17 @@ class Server(BaseModel):
         db_table = 'server'
         verbose_name = '代理服务器'
         verbose_name_plural = '代理服务器'
+
+class ServerGroupThrough(BaseModel):
+    server_group = models.ForeignKey(ServerGroup, on_delete=modekls.CASCADE)
+    server = models.ForeignKey(Server, on_delete=models.CASCADE)
+
+
+
+    class Meta:
+        db_table = 'server_group_through'
+        verbose_name = '服务器组关联'
+        verbose_name_plural = '服务器组关联'
 
 
 class ProxyList(BaseModel):

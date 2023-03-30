@@ -5,13 +5,9 @@ from faker import Faker
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from init_env import *
 
-import django
-
-django.setup()
-
-from apps.proxy_server.models import Acls
+from apps.proxy_server.models import Acls,AclGroup
 from rich.console import Console
 
 console = Console()
@@ -19,6 +15,11 @@ fake = Faker(locale='zh_CN')
 
 def main():
     with console.status("[bold green]Generating proxy servers...") as status:
+        AclGroup.objects.all().delete()
+        for i in range(100):
+            name = 'test acl group {}'.format(i)
+            description = fake.sentence()
+            AclGroup.objects.create(name=name, description=description)
         Acls.objects.all().delete()
         for i in range(100):
             name = 'test acl rule {}'.format(i)
@@ -28,7 +29,9 @@ def main():
                 acl_value.append(fake.domain_name())
 
             acl_value='\n'.join(acl_value)
-            Acls.objects.create(name=name, description=description, acl_value=acl_value)
+            acl=Acls.objects.create(name=name, description=description, acl_value=acl_value)
+            acl.acl_groups.add(random.choice(AclGroup.objects.all()))
+
 
 if __name__ == '__main__':
     main()
