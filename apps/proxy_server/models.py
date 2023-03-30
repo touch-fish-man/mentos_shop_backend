@@ -46,7 +46,7 @@ class Server(BaseModel):
         verbose_name_plural = '代理服务器'
 
 class ServerGroupThrough(BaseModel):
-    server_group = models.ForeignKey(ServerGroup, on_delete=modekls.CASCADE)
+    server_group = models.ForeignKey(ServerGroup, on_delete=models.CASCADE)
     server = models.ForeignKey(Server, on_delete=models.CASCADE)
 
 
