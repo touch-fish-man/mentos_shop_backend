@@ -1,24 +1,24 @@
 from rest_framework.views import APIView
 from apps.core.json_response import SuccessResponse, ErrorResponse
-from apps.proxy_server.models import AclList, ProxyServer, ProxyList
-from apps.proxy_server.serializers import AclListSerializer, AclListCreateSerializer, AclListUpdateSerializer, \
+from apps.proxy_server.models import Acls, ProxyServer, ProxyList
+from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
     ProxyServerSerializer, ProxyServerCreateSerializer, ProxyServerUpdateSerializer
 from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
 
 
-class AclListApi(ComModelViewSet):
+class AclsApi(ComModelViewSet):
     """
     ACL列表
     """
-    queryset = AclList.objects.all()
-    serializer_class = AclListSerializer
+    queryset = Acls.objects.all()
+    serializer_class = AclsSerializer
     ordering_fields = ('id', 'name', 'created_at')
     search_fields = ('name', 'description')  # 搜索字段
     filterset_fields = ['id', 'name', 'description', 'acl_value', 'created_at']  # 过滤字段
-    create_serializer_class = AclListCreateSerializer
-    update_serializer_class = AclListUpdateSerializer
+    create_serializer_class = AclsCreateSerializer
+    update_serializer_class = AclsUpdateSerializer
 
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
@@ -86,7 +86,7 @@ class ProxyServerApi(ComModelViewSet):
         获取代理服务器ACL信息
         """
         proxy_server = self.get_object()
-        proxy_server_info = AclList.objects.filter(proxy_server=proxy_server)
+        proxy_server_info = Acls.objects.filter(proxy_server=proxy_server)
         return SuccessResponse(data=proxy_server_info)
 
     @action(methods=['get'], detail=True, url_path='get-server-info', url_name='get-server-info')

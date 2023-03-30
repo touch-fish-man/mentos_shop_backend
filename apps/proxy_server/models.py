@@ -4,15 +4,15 @@ from django.db import models
 # Create your models here.
 
 
-class AclList(BaseModel):
+class Acls(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     acl_value = models.TextField(blank=True, null=True, verbose_name='ACL值')
 
     class Meta:
-        db_table = 'acl_list'
-        verbose_name = 'ACL列表'
-        verbose_name_plural = 'ACL列表'
+        db_table = 'acls'
+        verbose_name = '访问控制列表'
+        verbose_name_plural = '访问控制列表'
 
 
 class ProxyServer(BaseModel):
