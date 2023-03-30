@@ -16,6 +16,8 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         script: |
           cd /root/mentos_shop_backend
+          git fetch --all
+          git reset --hard origin/main 
           git pull
           sh redeploy.sh
     - name: send dingtalk message
