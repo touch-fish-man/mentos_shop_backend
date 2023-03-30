@@ -2,22 +2,8 @@ from apps.core.models import BaseModel
 from django.db import models
 
 
-class Product(BaseModel):
-    product_name = models.CharField(max_length=255, verbose_name='产品名')
-    product_desc = models.TextField(verbose_name='描述')
-    shopify_product_id = models.CharField(max_length=255, verbose_name='shopify产品id')
-    product_tags = models.CharField(max_length=255, verbose_name='产品标签')
-    product_collection = models.CharField(max_length=255, verbose_name='产品集合')
-
-    def variants(self):
-        variants = Variant.objects.filter(product=self)
-        for variant in variants:
-            variant.attributes = VariantAttribute.objects.filter(variant=variant)
-        return variants
-
-
 class ProductTag(BaseModel):
-    product_tag = models.CharField(max_length=255, verbose_name='产品标签')
+    tag_name = models.CharField(max_length=255, verbose_name='标签名')
     tag_desc = models.TextField(verbose_name='描述')
     shopify_tag_id = models.CharField(max_length=255, verbose_name='shopify标签id')
 
@@ -26,6 +12,20 @@ class ProductCollection(BaseModel):
     product_collection = models.CharField(max_length=255, verbose_name='产品集合')
     collection_desc = models.TextField(verbose_name='描述')
     shopify_collection_id = models.CharField(max_length=255, verbose_name='shopify集合id')
+
+
+class Product(BaseModel):
+    product_name = models.CharField(max_length=255, verbose_name='产品名')
+    product_desc = models.TextField(verbose_name='描述')
+    shopify_product_id = models.CharField(max_length=255, verbose_name='shopify产品id')
+    product_tags = models.ManyToManyField(ProductTag)
+    product_collections = models.ManyToManyField(ProductCollection)
+
+    def variants(self):
+        variants = Variant.objects.filter(product=self)
+        for variant in variants:
+            variant.attributes = VariantAttribute.objects.filter(variant=variant)
+        return variants
 
 
 class Attribute(BaseModel):

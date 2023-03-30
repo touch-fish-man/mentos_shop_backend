@@ -1,13 +1,23 @@
 from apps.core.models import BaseModel
 from django.db import models
 
+
 # Create your models here.
+class AclGroup(BaseModel):
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL组名')
+    description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
+
+    class Meta:
+        db_table = 'acl_group'
+        verbose_name = 'ACL组'
+        verbose_name_plural = 'ACL组'
 
 
 class Acls(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     acl_value = models.TextField(blank=True, null=True, verbose_name='ACL值')
+    acl_groups = models.ManyToManyField(AclGroup)
 
     class Meta:
         db_table = 'acls'
@@ -15,14 +25,25 @@ class Acls(BaseModel):
         verbose_name_plural = '访问控制列表'
 
 
-class ProxyServer(BaseModel):
+class ServerGroup(BaseModel):
+    name = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器组名')
+    description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
+
+    class Meta:
+        db_table = 'server_group'
+        verbose_name = '服务器组'
+        verbose_name_plural = '服务器组'
+
+
+class Server(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
     cidr_prefix = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR前缀')
+    server_groups = models.ManyToManyField(ServerGroup)
 
     class Meta:
-        db_table = 'proxy_server'
+        db_table = 'server'
         verbose_name = '代理服务器'
         verbose_name_plural = '代理服务器'
 

@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from apps.core.json_response import SuccessResponse, ErrorResponse
-from apps.proxy_server.models import Acls, ProxyServer, ProxyList
+from apps.proxy_server.models import Acls, Server, ProxyList
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
-    ProxyServerSerializer, ProxyServerCreateSerializer, ProxyServerUpdateSerializer
+    ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer
 from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
@@ -49,13 +49,13 @@ class ProxyServerApi(ComModelViewSet):
     get_acl_info: 获取代理服务器ACL信息
     get_server_info: 获取代理服务器信息
     """
-    queryset = ProxyServer.objects.all()
-    serializer_class = ProxyServerSerializer
+    queryset = Server.objects.all()
+    serializer_class = ServerSerializer
     ordering_fields = ('id', 'name', 'created_at')
     search_fields = ('name', 'description')  # 搜索字段
     filterset_fields = ['id', 'name', 'description', 'created_at']  # 过滤字段
-    create_serializer_class = ProxyServerCreateSerializer
-    update_serializer_class = ProxyServerUpdateSerializer
+    create_serializer_class = ServerCreateSerializer
+    update_serializer_class = ServerUpdateSerializer
 
     @action(methods=['post'], detail=True, url_path='change-domain-blacklist', url_name='change-domain-blacklist')
     def change_domain_blacklist(self, request, *args, **kwargs):
