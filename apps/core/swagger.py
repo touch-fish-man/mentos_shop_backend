@@ -1,9 +1,6 @@
 from drf_yasg.generators import OpenAPISchemaGenerator
 from drf_yasg.inspectors import SwaggerAutoSchema
 
-from django.conf import settings
-
-
 def get_summary(string):
     if string is not None:
         result = string.strip().replace(" ", "").split("\n")
