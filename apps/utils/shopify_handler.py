@@ -1,7 +1,10 @@
 import contextlib
+import os
 import time
+from collections import OrderedDict
 from pprint import pprint
 
+import django
 import shopify
 
 shop_url = 'https://mentosproxy.myshopify.com/'
@@ -12,7 +15,8 @@ private_app_password = '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'
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+
+# logging.basicConfig(level=logging.DEBUG)
 
 
 # scopes = ['read_products', 'read_orders']
@@ -50,31 +54,66 @@ class ShopifyClient:
             self.__get_session()
         yield self.session
 
-    def get_products(self):
+    def get_products(self, format=False):
         product_list = []
         for product in shopify.Product.find():
-            product_list.append(product.to_dict())
+            if format:
+                product_list.append(self.format_product_info(product.to_dict()))
+            else:
+                product_list.append(product.to_dict())
         return product_list
+
+    def format_variant_info(self, variant):
+        variant_info = {}
+        variant_info["variant_id"] = variant['id']
+        variant_info["variant_title"] = variant['title']
+        variant_info["variant_price"] = variant['price']
+        variant_info["variant_stock"] = variant['inventory_quantity']
+        variant_info["variant_option1"] = variant['option1']
+        variant_info["variant_option2"] = variant['option2']
+        variant_info["variant_option3"] = variant['option3']
+        return variant_info
+
+    def format_product_info(self, product):
+        product_info = {}
+        product_info["product_tile"] = product['title']
+        product_info["product_id"] = product['id']
+        product_info["product_tags"] = product['tags']
+        product_info["product_desc"] = product['body_html']
+        product_info["vaiant_options"] = product['options']
+        product_info["variants"] = [self.format_variant_info(x) for x in product['variants']]
+        return product_info
 
     def get_product_collections(self):
         # 获取产品系列
         collection_list = []
         for collection in shopify.CustomCollection.find():
-            collection_list.append(collection.to_dict())
+            dict_collection = {}
+            dict_collection['id'] = collection.id
+            dict_collection['title'] = collection.title
+            dict_collection['desc'] = collection.body_html
+            collection_list.append(dict_collection)
         return collection_list
 
     def get_product_tags(self):
         # 获取产品标签
         tag_list = []
-        for tag in shopify.Product.find():
-            tag_list.append(tag.to_dict())
+        products=self.get_products()
+        for product in products:
+            tags = product['tags'].split(',')
+            for tag in tags:
+                if tag not in tag_list:
+                    tag_list.append(tag)
         return tag_list
 
-    def get_product_variants(self, product_id):
+    def get_product_variants(self, product_id, format=False):
         variant = shopify.Variant.find(product_id=product_id)
         variant_list = []
         for v in variant:
-            variant_list.append(v.to_dict())
+            if format:
+                variant_list.append(self.format_variant_info(v.to_dict()))
+            else:
+                variant_list.append(v.to_dict())
         return variant_list
 
     def get_discounts(self):
@@ -82,6 +121,14 @@ class ShopifyClient:
         for discount in shopify.DiscountCode.find():
             discount_list.append(discount.to_dict())
         return discount_list
+    def list_gift_cards(self):
+        # 获取所有礼品卡
+        # 需要开通shopify plus
+        giftcards = shopify.GiftCard.find()
+        giftcard_list = []
+        for giftcard in giftcards:
+            giftcard_list.append(giftcard.to_dict())
+        return giftcard_list
 
     def list_price_rules(self):
         # 获取所有价格规则
@@ -213,9 +260,17 @@ class ShopifyClient:
         return order.to_dict()
 
 
-class SyncClient:
+class SyncClient(ShopifyClient):
+    def setup(self):
+        # 初始化
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'PV_Moniter.settings')
+        django.setup()
+
     def sync_customers(self):
         # 同步客户信息
+        # 1. 获取本地所有客户
+        # 2. 更新客户信息到shopify
+        # 3. 更新客户等级
         pass
 
     def sync_customer_tags(self):
@@ -249,12 +304,14 @@ class SyncClient:
 
 if __name__ == '__main__':
     shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
-    # for product in shopify_client.get_products():
-    #     pprint(product)
+    for product in shopify_client.get_products(format=True):
+        pprint(product)
+
     # pprint(shopify_client.list_orders())
     # pprint(shopify_client.get_order_status("5327981838646"))
     # pprint(shopify_client.get_customers())
     # 创建客户
+
     customer_info = {
         "first_name": "test",
         "last_name": "test",
@@ -263,4 +320,5 @@ if __name__ == '__main__':
     }
     # pprint(shopify_client.create_customer(customer_info))
     pprint(shopify_client.get_product_collections())
+    pprint(shopify_client.get_product_tags())
     # pprint(shopify_client.get_customers())

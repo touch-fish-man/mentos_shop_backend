@@ -11,7 +11,7 @@ import django
 
 django.setup()
 
-from apps.proxy_server.models import AclList
+from apps.proxy_server.models import Acls
 from rich.console import Console
 
 console = Console()
@@ -19,7 +19,7 @@ fake = Faker(locale='zh_CN')
 
 def main():
     with console.status("[bold green]Generating proxy servers...") as status:
-        AclList.objects.all().delete()
+        Acls.objects.all().delete()
         for i in range(100):
             name = 'test acl rule {}'.format(i)
             description = fake.sentence()
@@ -28,7 +28,7 @@ def main():
                 acl_value.append(fake.domain_name())
 
             acl_value='\n'.join(acl_value)
-            AclList.objects.create(name=name, description=description, acl_value=acl_value)
+            Acls.objects.create(name=name, description=description, acl_value=acl_value)
 
 if __name__ == '__main__':
     main()
