@@ -15,9 +15,10 @@ class SiteSettingsApi(APIView):
     """
     def post(self,request):
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
-        save_site_settings(request=request,file=os.path.join(BASE_DIR, "config\.env"))
+        save_site_settings(request=request,file=os.path.join(BASE_DIR, "config",".env"))
         change_site_settings()
-        return SuccessResponse(msg="保存成功")
+        data = get_site_setting()
+        return SuccessResponse(msg="保存成功",data=data)
     
     def get(self,request):
         data = get_site_setting()
