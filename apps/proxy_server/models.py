@@ -38,7 +38,7 @@ class Server(BaseModel):
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
     cidr_prefix = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR前缀')
-    server_groups = models.ManyToManyField(ServerGroup)
+    server_groups = models.ManyToManyField(ServerGroup,blank=True)
 
     class Meta:
         db_table = 'server'

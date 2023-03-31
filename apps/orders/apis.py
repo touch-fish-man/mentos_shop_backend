@@ -84,14 +84,21 @@ class OrdersApi(ComModelViewSet):
                 tzinfo=datetime.timezone.utc)
         except Exception as e:
             return ErrorResponse(data={}, msg="过期时间格式错误")
-        proxy = ProxyList.objects.filter(order_id=order_id)
-        if proxy.exists():
-            for p in proxy.all():
-                if p.expired_at > expired_at:
-                    return ErrorResponse(data={}, msg="代理过期时间不能小于当前时间")
-                p.expired_at = expired_at
-                p.save()
-                # todo 重置代理密码
+        order=Orders.objects.filter(id=order_id)
+        if order.exists():
+            order=order.first()
+            proxy = ProxyList.objects.filter(order_id=order_id)
+            if proxy.exists():
+                for p in proxy.all():
+                    if p.expired_at > expired_at:
+                        return ErrorResponse(data={}, msg="代理过期时间不能小于当前时间")
+                    p.expired_at = expired_at
+                    p.save()
+                    # todo 重置代理密码
+            order.expired_at=expired_at
+            order.save()
+        else:
+            return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理过期时间更新成功")
     
 

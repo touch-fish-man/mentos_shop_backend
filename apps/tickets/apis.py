@@ -4,6 +4,7 @@ from apps.core.viewsets import ComModelViewSet
 from apps.tickets.serializers import TicketsSerializer
 from apps.authentication.services import check_chaptcha
 from apps.core.json_response import ErrorResponse
+from django.conf import settings
 # Create your views here.
 
 class TicksApi(ComModelViewSet):
@@ -24,10 +25,11 @@ class TicksApi(ComModelViewSet):
     def create(self, request, *args, **kwargs):
         captcha_id = request.data.get('captcha_id')
         captcha_code = request.data.get('captcha')
-        try:
-            check_chaptcha(captcha_id, captcha_code)
-        except Exception as e:
-            return ErrorResponse(msg=e.message)
+        if not settings.DEBUG:
+            try:
+                check_chaptcha(captcha_id, captcha_code)
+            except Exception as e:
+                return ErrorResponse(msg=e.message)
         return super().create(request, *args, **kwargs)
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
