@@ -9,6 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.validators import validate_email
 from rest_framework.decorators import action
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView
 
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
@@ -17,6 +18,7 @@ from apps.users.selectors import user_get_login_data
 from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer, \
     InviteLogSerializer, RebateRecordSerializer
 from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
+
 
 # class UserInfoApi(LoginRequiredMixin, APIView):
 #     """
@@ -87,8 +89,8 @@ class UserApi(ComModelViewSet):
         resp = super().create(request, *args, **kwargs)
         if invite_code:
             # 插入邀请记录
-            if resp.data.get("data",{}).get('id'):
-                insert_invite_log(resp.data.get("data",{}).get('id'), invite_code)
+            if resp.data.get("data", {}).get('id'):
+                insert_invite_log(resp.data.get("data", {}).get('id'), invite_code)
         return resp
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
@@ -118,19 +120,19 @@ class UserApi(ComModelViewSet):
             else:
                 return ErrorResponse(msg="密码错误")
 
-    @action(methods=['post'], detail=False, url_path='reset_password', url_name='reset_password')
-    def reset_password(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-        verify_id = request.data.get('verify_id')
-        is_success = check_verify_id(email, verify_id)
-        if not is_success:
-            return ErrorResponse(msg="验证码错误")
-        user = User.objects.get(email=email)
-        user.password = make_password(password)
-        user.save()
-        data = user_get_login_data(user=user)
-        return SuccessResponse(msg="success", data=data)
+    # @action(methods=['post'], detail=False, url_path='reset_password', url_name='reset_password')
+    # def reset_password(self, request):
+    #     email = request.data.get('email')
+    #     password = request.data.get('password')
+    #     verify_id = request.data.get('verify_id')
+    #     is_success = check_verify_id(email, verify_id)
+    #     if not is_success:
+    #         return ErrorResponse(msg="验证码错误")
+    #     user = User.objects.get(email=email)
+    #     user.password = make_password(password)
+    #     user.save()
+    #     data = user_get_login_data(user=user)
+    #     return SuccessResponse(msg="success", data=data)
 
     @action(methods=['post'], detail=True, url_path='baned_user', url_name='baned_user')
     def baned_user(self, request, *args, **kwargs):
@@ -248,33 +250,21 @@ class ChangePasswordApi(APIView):
             return ErrorResponse(msg="原密码错误")
 
 
-class InviteLogApi(ComModelViewSet):
+class InviteLogApi(ListAPIView):
     """
     邀请记录
     """
     serializer_class = InviteLogSerializer
-    ordering_fields = ('inviter_username', 'username')
-    search_fields = ('inviter_username', 'username')  # 搜索字段
-    filter_fields = ('inviter_username', 'username')  # 过滤字段
+
     queryset = InviteLog.objects.all()
-    create_serializer_class = InviteLogSerializer
-    update_serializer_class = InviteLogSerializer
-    # todo 只保留list接口
 
 
-class RebateRecordApi(ComModelViewSet):
+class RebateRecordApi(ListAPIView):
     """
     返利记录
     """
     serializer_class = RebateRecordSerializer
-    ordering_fields = ('username','consumer_username')
-    search_fields = ('username','consumer_username')  # 搜索字段
-    filter_fields = ('username','consumer_username')  # 过滤字段
     queryset = RebateRecord.objects.all()
-    create_serializer_class = RebateRecordSerializer
-    update_serializer_class = RebateRecordSerializer
-    # todo 只保留list接口
-
 
 # class UserLevelRecordApi(ComModelViewSet):
 #     """
@@ -287,3 +277,17 @@ class RebateRecordApi(ComModelViewSet):
 #     queryset = UserLevelRecord.objects.all()
 #     create_serializer_class = UserLevelRecordSerializer
 #     update_serializer_class = UserLevelRecordSerializer
+class InviteCodeAPIView(APIView):
+    """
+    邀请码
+    """
+
+    def get(self, request):
+        user = request.user
+        if user.is_authenticated:
+            invite_code = user.invite_code
+            data = {"invite_url": "https://www.mentosproxy.com/register?invite_code=" + invite_code,
+                    "invite_code": invite_code}
+            return SuccessResponse(data=invite_code)
+        else:
+            return ErrorResponse(msg="error")

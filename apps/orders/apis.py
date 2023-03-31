@@ -71,6 +71,7 @@ class OrdersApi(ComModelViewSet):
                 p.save()
                 # todo 重置代理密码
         return SuccessResponse(data={}, msg="代理密码重置成功")
+
     @action(methods=['post'], detail=True, url_path='update_proxy_expired_at', url_name='update_proxy_expired_at')
     def update_proxy_expired_at(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
@@ -79,7 +80,8 @@ class OrdersApi(ComModelViewSet):
             return SuccessResponse(data={}, msg="过期时间不能为空")
         # 字符串时间格式转换datetime tzinfo
         try:
-            expired_at = datetime.datetime.strptime(expired_at, "%Y-%m-%d %H:%M:%S").replace(tzinfo=datetime.timezone.utc)
+            expired_at = datetime.datetime.strptime(expired_at, "%Y-%m-%d %H:%M:%S").replace(
+                tzinfo=datetime.timezone.utc)
         except Exception as e:
             return ErrorResponse(data={}, msg="过期时间格式错误")
         proxy = ProxyList.objects.filter(order_id=order_id)

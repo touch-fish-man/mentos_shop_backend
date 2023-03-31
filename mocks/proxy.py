@@ -5,13 +5,11 @@ from faker import Faker
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from init_env import *
 from rich.console import Console
-import django
+
 
 console = Console()
-django.setup()
 
 from apps.proxy_server.models import ProxyList
 from django.utils import timezone

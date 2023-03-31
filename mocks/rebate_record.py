@@ -4,14 +4,11 @@ import string
 from faker import Faker
 import os
 import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from init_env import *
 
 from rich.console import Console
-import django
 
 console = Console()
-django.setup()
 
 from apps.users.models import RebateRecord
 from django.utils import timezone
@@ -23,8 +20,10 @@ def main():
         for i in range(100):
             uid = random.randint(1, 100)
             consumer_uid = random.randint(1, 100)
-            money = random.randint(1, 100)
-            RebateRecord.objects.create(uid=uid, consumer_uid=consumer_uid, money=money)
+            reward_points = random.randint(1, 100)
+            username = 'test'
+            consumer_username = 'test'
+            RebateRecord.objects.create(uid=uid, consumer_uid=consumer_uid, reward_points=reward_points, username=username, consumer_username=consumer_username)
 
 if __name__ == '__main__':
     main()

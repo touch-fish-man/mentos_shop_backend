@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "django_extensions",
     "apps.orders",
     "apps.rewards",
+    "apps.products",
 ]
 
 MIDDLEWARE = [
@@ -188,13 +189,13 @@ SWAGGER_SETTINGS = {
     "VALIDATOR_URL": None,
     "AUTO_SCHEMA_TYPE": 2,  # 分组根据url层级分，0、1 或 2 层
     "DEFAULT_AUTO_SCHEMA_CLASS": "apps.core.swagger.CustomSwaggerAutoSchema",
-    "DEFAULT_PAGINATOR_INSPECTORS": ['apps.core.pagination.LimitOffsetPaginationInspector', 'drf_yasg.inspectors.CoreAPICompatInspector',]
+    "DEFAULT_PAGINATOR_INSPECTORS": ['apps.core.swagger_ext.LimitOffsetPaginationInspector', 'drf_yasg.inspectors.CoreAPICompatInspector',]
 }
 REST_FRAMEWORK = {
     # 配置默认页面大小
     'PAGE_SIZE': 10,
     # 配置默认的分页类
-    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.LimitOffsetPagination',
+    'DEFAULT_PAGINATION_CLASS': 'apps.core.pagination.CustomLimitOffsetPagination',
     # 配置默认的过滤类
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
