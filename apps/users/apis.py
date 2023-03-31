@@ -65,7 +65,6 @@ class UserApi(ComModelViewSet):
     destroy:删除
     user_info:获取用户信息
     change_password:修改密码
-    reset_password:重置密码
     baned_user:禁用用户
     unbaned_user:解禁用户
     """
@@ -76,7 +75,6 @@ class UserApi(ComModelViewSet):
     queryset = User.objects.all()
     create_serializer_class = UserCreateSerializer
     update_serializer_class = UserUpdateSerializer
-    reset_password_serializer_class = UserSerializer
     baned_user_serializer_class = BanUserSerializer
 
     def create(self, request, *args, **kwargs):
@@ -288,6 +286,6 @@ class InviteCodeAPIView(APIView):
             invite_code = user.invite_code
             data = {"invite_url": "https://www.mentosproxy.com/register?invite_code=" + invite_code,
                     "invite_code": invite_code}
-            return SuccessResponse(data=invite_code)
+            return SuccessResponse(data=data)
         else:
             return ErrorResponse(msg="error")

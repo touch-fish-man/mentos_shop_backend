@@ -98,3 +98,15 @@ class OrdersApi(ComModelViewSet):
         else:
             return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理过期时间更新成功")
+    @action(methods=['get'], detail=True, url_path='get_proxy_detail', url_name='get_proxy_detail')
+    def get_proxy_detail(self, request, *args, **kwargs):
+        order_id = kwargs.get('pk')
+        proxy = ProxyList.objects.filter(order_id=order_id)
+        proxy_list = []
+        if proxy.exists():
+            proxy_data = proxy.all()
+            serializer = ProxyListSerializer(proxy_data, many=True)
+            proxy_list = serializer.data
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
