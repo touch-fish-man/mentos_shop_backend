@@ -74,3 +74,15 @@ class ProxyListSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProxyList
         fields = "__all__"
+
+class UserOrdersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Orders
+        fields = ['id','created_at','product_name','proxy_num',"pay_amount",
+                  "pay_remark","expired_at"]
+        
+class UserProxyListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProxyList
+        fields = ['id','created_at',"ip","port","proxy_type","server_id",
+                  "acl_ids","order_id","expired_at"]

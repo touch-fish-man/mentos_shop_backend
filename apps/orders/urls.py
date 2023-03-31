@@ -1,9 +1,10 @@
 from django.urls import path
-from .apis import OrdersApi
+from .apis import OrdersApi,UserOrdersApi
 from rest_framework import routers
 
 router = routers.DefaultRouter()
-router.register(r'', OrdersApi, basename='orders')
+router.register(r'order', OrdersApi, basename='orders')
+router.register(r'userorders',UserOrdersApi,basename="userorders")
 
 
 urlpatterns = []
