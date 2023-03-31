@@ -16,7 +16,7 @@ fake = Faker(locale='zh_CN')
 def main():
     with console.status("[bold green]Generating invite logs...") as status:
         InviteLog.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             uid = random.randint(1, 100)
             inviter_uid = random.randint(1, 100)
             username = 'test'

@@ -18,7 +18,7 @@ fake = Faker(locale='zh_CN')
 def main():
     with console.status("[bold green]Generating proxy servers...") as status:
         ProxyList.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             ip = fake.ipv4()
             port = fake.port_number()
             username = fake.user_name()+str(random.randint(1, 100))

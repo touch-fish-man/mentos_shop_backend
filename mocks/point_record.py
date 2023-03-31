@@ -15,7 +15,7 @@ fake = Faker(locale='zh_CN')
 def main():
     with console.status("[bold green]Generating coupon codes...") as status:
         PointRecord.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             uid = random.randint(-100, 100)
             username = 'test'
             point = random.randint(1, 100)
