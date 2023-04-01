@@ -47,7 +47,7 @@ class OrdersApi(ComModelViewSet):
         return SuccessResponse(data=serializer.data, msg="获取成功")
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data,request=request)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return SuccessResponse(data=serializer.data, msg="新增成功")
