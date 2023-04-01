@@ -17,12 +17,12 @@ fake = Faker(locale='zh_CN')
 def main():
     with console.status("[bold green]Generating proxy servers...") as status:
         ServerGroup.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             name = 'test proxy server group {}'.format(i)
             description = fake.sentence()
             ServerGroup.objects.create(name=name, description=description)
         Server.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             name = 'test proxy server {}'.format(i)
             description = fake.sentence()
             ip = fake.ipv4()

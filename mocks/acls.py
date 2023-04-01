@@ -16,12 +16,12 @@ fake = Faker(locale='zh_CN')
 def main():
     with console.status("[bold green]Generating proxy servers...") as status:
         AclGroup.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             name = 'test acl group {}'.format(i)
             description = fake.sentence()
             AclGroup.objects.create(name=name, description=description)
         Acls.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             name = 'test acl rule {}'.format(i)
             description = fake.sentence()
             acl_value = []

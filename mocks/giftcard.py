@@ -18,7 +18,7 @@ discount_choices = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,"$1","$2","$3
 def main():
     with console.status("[bold green]Generating gift cards...") as status:
         GiftCard.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             point = random.randint(1, 100)
             code = ''.join(random.sample(string.ascii_letters + string.digits, 8))
             mount = random.randint(1, 100)

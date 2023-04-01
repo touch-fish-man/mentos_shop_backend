@@ -17,7 +17,7 @@ def main():
     console = Console()
     with console.status("[bold green]Generating tickets...") as status:
         Tickets.objects.all().delete()
-        for i in range(100):
+        for i in range(50):
             username = fake.name()
             email = fake.email()
             phone = fake.phone_number()

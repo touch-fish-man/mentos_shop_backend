@@ -57,16 +57,20 @@ class ShopifyClient:
     def get_products(self, format=False):
         product_list = []
         for product in shopify.Product.find():
+
             if format:
-                product_list.append(self.format_product_info(product.to_dict()))
+                product_dict = self.format_product_info(product.to_dict())
             else:
-                product_list.append(product.to_dict())
+                product_dict = product.to_dict()
+            product_dict["product_collections"] = self.format_collection_info(product.collections())
+            product_list.append(product_dict)
         return product_list
 
     def format_variant_info(self, variant):
         variant_info = {}
+        print(variant)
         variant_info["variant_id"] = variant['id']
-        variant_info["variant_title"] = variant['title']
+        variant_info["variant_name"] = variant['title']
         variant_info["variant_price"] = variant['price']
         variant_info["variant_stock"] = variant['inventory_quantity']
         variant_info["variant_option1"] = variant['option1']
@@ -76,13 +80,22 @@ class ShopifyClient:
 
     def format_product_info(self, product):
         product_info = {}
-        product_info["product_tile"] = product['title']
-        product_info["product_id"] = product['id']
+        product_info["product_name"] = product['title']
+        product_info["shopify_product_id"] = product['id']
         product_info["product_tags"] = product['tags']
         product_info["product_desc"] = product['body_html']
         product_info["vaiant_options"] = product['options']
         product_info["variants"] = [self.format_variant_info(x) for x in product['variants']]
         return product_info
+    def format_collection_info(self, collection):
+        collection_list = []
+        for x in collection:
+            collection_info = {}
+            collection_info["collection_id"] = x.id
+            collection_info["collection_title"] = x.title
+            collection_info["collection_desc"] = x.body_html
+            collection_list.append(collection_info)
+        return collection_list
 
     def get_product_collections(self):
         # 获取产品系列
@@ -288,9 +301,13 @@ class SyncClient(ShopifyClient):
     def sync_product_variants(self):
         # 同步产品变体
         pass
+    def sync_product_collections(self):
+        # 同步产品集合
+        pass
 
     def sync_product_tags(self):
         # 同步产品标签
+        # 从shopify获取所有产品，插入到本地数据库
         pass
 
     def sync_promotions(self):
@@ -304,20 +321,20 @@ class SyncClient(ShopifyClient):
 
 if __name__ == '__main__':
     shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
-    for product in shopify_client.get_products(format=True):
-        pprint(product)
-
-    # pprint(shopify_client.list_orders())
-    # pprint(shopify_client.get_order_status("5327981838646"))
-    # pprint(shopify_client.get_customers())
-    # 创建客户
-
-    customer_info = {
-        "first_name": "test",
-        "last_name": "test",
-        "email": "tes2t@test.com",
-        "tags": "vip2"
-    }
+    # for product in shopify_client.get_products(format=True):
+    #     pprint(product)
+    #
+    # # pprint(shopify_client.list_orders())
+    # # pprint(shopify_client.get_order_status("5327981838646"))
+    # # pprint(shopify_client.get_customers())
+    # # 创建客户
+    #
+    # customer_info = {
+    #     "first_name": "test",
+    #     "last_name": "test",
+    #     "email": "tes2t@test.com",
+    #     "tags": "vip2"
+    # }
     # pprint(shopify_client.create_customer(customer_info))
     pprint(shopify_client.get_product_collections())
     pprint(shopify_client.get_product_tags())

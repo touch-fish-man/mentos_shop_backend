@@ -9,7 +9,7 @@ router.register(r'u', UserApi)
 
 urlpatterns = [
     path("email_validate", EmailValidateApi.as_view(), name="email_validate"),
-    path("forgot_password", ResetPasswordApi.as_view(), name="reset_password"),
+    path("forgot_password", ResetPasswordApi.as_view(), name="forgot_password"),
     path("change_password", ChangePasswordApi.as_view(), name="change_password"),
     path("forgot_password_verify", ResetPasswordVerifyApi.as_view(),
          name="reset_password_verify"),
