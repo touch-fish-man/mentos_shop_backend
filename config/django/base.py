@@ -246,6 +246,25 @@ SIMPLE_JWT = {
     # token刷新后的有效时间
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
 
+# 配置 Redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/8",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD":'fan123456'
+        }
+    }
+}
+
+# Celery配置
+CELERY_BROKER_URL = 'redis://:fan123456@127.0.0.1:6379/9'
+CELERY_RESULT_BACKEND = 'redis://:fan123456@127.0.0.1:6379/7'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+
 # 配置日志
 
 # ---------需要动态配置的配置项----------------

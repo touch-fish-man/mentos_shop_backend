@@ -2,6 +2,7 @@ import datetime
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
+import pytz
 
 from apps.core.json_response import SuccessResponse,ErrorResponse,LimitOffsetResponse
 from apps.core.viewsets import ComModelViewSet
@@ -10,6 +11,15 @@ from apps.orders.serializers import OrdersSerializer, OrdersCreateSerializer, Or
     OrdersStatusSerializer, ProxyListSerializer,UserOrdersSerializer,UserProxyListSerializer
 from apps.proxy_server.models import ProxyList
 from django.forms.models import model_to_dict
+from django.utils import timezone
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .tasks import add
+from datetime import datetime, timedelta
+from celery.result import AsyncResult
+from django.utils.timezone import get_current_timezone
+
 
 
 class OrdersApi(ComModelViewSet):
@@ -44,6 +54,8 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+        result = add.apply_async((2,2),countdown=60*24*60*60)
+        task_id = result.id
         return SuccessResponse(data=serializer.data, msg="新增成功")
 
     def retrieve(self, request, *args, **kwargs):
@@ -148,3 +160,35 @@ class UserOrdersApi(ComModelViewSet):
         proxylist = ProxyList.objects.filter(order_id=request.GET.get('id'))
         proxylist.delete()
         return SuccessResponse(msg="删除成功")
+
+
+
+
+class EmailView(APIView):
+    def post(self, request):
+        print("第一次。")
+        a = request.data['a']
+        b = request.data['b']
+        current_time = timezone.now().astimezone(pytz.utc)
+        eta_time = current_time + timedelta(seconds=5)
+        result = add.apply_async((2,2),eta=eta_time)
+        task_id = result.id
+        print(result.status)
+        print(task_id)
+        # 异步调用send_email任务
+        # c = add.delay(a, b)
+        
+        return Response(data={'message': 'success','task_id': task_id})
+
+class VerifyView(APIView):
+    def post(self, request):
+        print("第二次。")
+        task_id = request.data['task_id']
+        print(task_id)
+        result = AsyncResult(task_id)
+        print(result.status)
+        print(result.ready())
+        # 异步调用send_email任务
+        # c = add.delay(a, b)
+        
+        return Response(data={'message': 'success','result': result.ready()})
