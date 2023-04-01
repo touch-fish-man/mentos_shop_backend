@@ -1,8 +1,9 @@
 from rest_framework.views import APIView
 from apps.core.json_response import SuccessResponse, ErrorResponse
-from apps.proxy_server.models import Acls, Server, ProxyList
+from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
-    ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer
+    ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer, AclGroupSerializer, ServerGroupSerializer, \
+    AclGroupCreateSerializer, ServerGroupUpdateSerializer
 from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
@@ -10,7 +11,12 @@ from rest_framework.decorators import action
 
 class AclsApi(ComModelViewSet):
     """
-    ACL列表
+    ACL
+    list: ACL列表
+    create: 创建ACL
+    update: 更新ACL
+    retrieve: ACL详情
+    destroy: 删除ACL
     """
     queryset = Acls.objects.all()
     serializer_class = AclsSerializer
@@ -19,21 +25,6 @@ class AclsApi(ComModelViewSet):
     filterset_fields = ['id', 'name', 'description', 'acl_value', 'created_at']  # 过滤字段
     create_serializer_class = AclsCreateSerializer
     update_serializer_class = AclsUpdateSerializer
-
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    def create(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
 
 
 class ProxyServerApi(ComModelViewSet):
@@ -95,5 +86,40 @@ class ProxyServerApi(ComModelViewSet):
         获取代理服务器信息
         """
         proxy_server = self.get_object()
-        proxy_server_info = ProxyList.objects.filter(proxy_server=proxy_server)
+        proxy_server_info = Proxy.objects.filter(proxy_server=proxy_server)
         return SuccessResponse(data=proxy_server_info)
+
+
+class AclGroupApi(ComModelViewSet):
+    """
+    ACL组
+    list: ACL组列表
+    create: 创建ACL组
+    update: 更新ACL组
+    retrieve: ACL组详情
+    destroy: 删除ACL组
+    """
+    queryset = AclGroup.objects.all()
+    serializer_class = AclGroupSerializer
+    create_serializer_class = AclGroupCreateSerializer
+    update_serializer_class = AclGroupCreateSerializer
+    ordering_fields = ('id', 'name', 'created_at')
+    search_fields = ('name', 'description')  # 搜索字段
+    filterset_fields = ['id', 'name', 'description']  # 过滤字段
+
+class ServerGroupApi(ComModelViewSet):
+    """
+    服务器组
+    list: 服务器组列表
+    create: 创建服务器组
+    update: 更新服务器组
+    retrieve: 服务器组详情
+    destroy: 删除服务器组
+    """
+    queryset = ServerGroup.objects.all()
+    serializer_class = ServerGroupSerializer
+    create_serializer_class = ServerGroupSerializer
+    update_serializer_class = ServerGroupUpdateSerializer
+    ordering_fields = ('id', 'name', 'created_at')
+    search_fields = ('name', 'description')  # 搜索字段
+    filterset_fields = ['id', 'name', 'description']  # 过滤字段

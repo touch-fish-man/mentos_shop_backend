@@ -1,10 +1,11 @@
 from rest_framework import viewsets
-from .models import Product, Variant
-from .serializers import ProductSerializer
+from .models import Product, Variant, ProductCollection, ProductTag
+from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer
 from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient
 from rest_framework.decorators import action
 from apps.core.json_response import SuccessResponse
+
 
 class ProductViewSet(ComModelViewSet):
     queryset = Product.objects.all()
@@ -20,11 +21,15 @@ class ProductViewSet(ComModelViewSet):
         api_scert = 'f729623ef6a576808a5e83d426723fc1'
         private_app_password = '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'
         shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
-        product_dict=shopify_client.get_products(format=True)
+        product_dict = shopify_client.get_products(format=True)
         return SuccessResponse(data=product_dict)
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        #  删除产品时，删除产品下的所有变体
-        # Variant.objects.filter(product_id=instance.id).delete()
-        self.perform_destroy(instance)
-        return SuccessResponse()
+
+
+class ProductCollectionViewSet(ComModelViewSet):
+    queryset = ProductCollection.objects.all()
+    serializer_class = ProductCollectionSerializer
+
+
+class ProductTagViewSet(ComModelViewSet):
+    queryset = ProductTag.objects.all()
+    serializer_class = ProductTagSerializer

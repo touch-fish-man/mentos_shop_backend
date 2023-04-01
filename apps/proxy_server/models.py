@@ -6,6 +6,7 @@ from django.db import models
 class AclGroup(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL组名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
+    acls = models.ManyToManyField('Acls', verbose_name='ACL')
 
     class Meta:
         db_table = 'acl_group'
@@ -17,7 +18,6 @@ class Acls(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     acl_value = models.TextField(blank=True, null=True, verbose_name='ACL值')
-    acl_groups = models.ManyToManyField(AclGroup)
 
     class Meta:
         db_table = 'acls'
@@ -28,6 +28,7 @@ class Acls(BaseModel):
 class ServerGroup(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器组名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
+    servers = models.ManyToManyField('Server', verbose_name='服务器')
 
     class Meta:
         db_table = 'server_group'
@@ -38,26 +39,14 @@ class Server(BaseModel):
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
     cidr_prefix = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR前缀')
-    server_groups = models.ManyToManyField(ServerGroup,blank=True)
-
     class Meta:
         db_table = 'server'
         verbose_name = '代理服务器'
         verbose_name_plural = '代理服务器'
 
-class ServerGroupThrough(BaseModel):
-    server_group = models.ForeignKey(ServerGroup, on_delete=models.CASCADE)
-    server = models.ForeignKey(Server, on_delete=models.CASCADE)
 
 
-
-    class Meta:
-        db_table = 'server_group_through'
-        verbose_name = '服务器组关联'
-        verbose_name_plural = '服务器组关联'
-
-
-class ProxyList(BaseModel):
+class Proxy(BaseModel):
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
     username = models.CharField(max_length=255, blank=True, null=True, verbose_name='用户名')
     password = models.CharField(max_length=255, blank=True, null=True, verbose_name='密码')
@@ -70,6 +59,6 @@ class ProxyList(BaseModel):
     uid = models.CharField(max_length=255, blank=True, null=True, verbose_name='用户ID')
 
     class Meta:
-        db_table = 'proxy_list'
+        db_table = 'proxy'
         verbose_name = '代理列表'
         verbose_name_plural = '代理列表'

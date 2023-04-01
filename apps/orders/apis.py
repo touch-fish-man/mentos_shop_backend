@@ -8,7 +8,7 @@ from apps.core.viewsets import ComModelViewSet
 from apps.orders.models import Orders
 from apps.orders.serializers import OrdersSerializer, OrdersCreateSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
-from apps.proxy_server.models import ProxyList
+from apps.proxy_server.models import Proxy
 
 
 
@@ -52,7 +52,7 @@ class OrdersApi(ComModelViewSet):
         return SuccessResponse(data=serializer.data, msg="新增成功")
 
     def retrieve(self, request, *args, **kwargs):
-        proxy = ProxyList.objects.filter(order_id=kwargs.get('pk'))
+        proxy = Proxy.objects.filter(order_id=kwargs.get('pk'))
         proxy_list = []
         if proxy.exists():
             proxy_data = proxy.all()
@@ -69,7 +69,7 @@ class OrdersApi(ComModelViewSet):
         new_password = request.data.get('new_password', None)
         if not new_password:
             return SuccessResponse(data={}, msg="新密码不能为空")
-        proxy = ProxyList.objects.filter(order_id=order_id)
+        proxy = Proxy.objects.filter(order_id=order_id)
         if proxy.exists():
             for p in proxy.all():
                 p.password = new_password
@@ -92,7 +92,7 @@ class OrdersApi(ComModelViewSet):
         order=Orders.objects.filter(id=order_id)
         if order.exists():
             order=order.first()
-            proxy = ProxyList.objects.filter(order_id=order_id)
+            proxy = Proxy.objects.filter(order_id=order_id)
             if proxy.exists():
                 for p in proxy.all():
                     if p.expired_at > expired_at:
@@ -108,7 +108,7 @@ class OrdersApi(ComModelViewSet):
     @action(methods=['get'], detail=True, url_path='get_proxy_detail', url_name='get_proxy_detail')
     def get_proxy_detail(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
-        proxy = ProxyList.objects.filter(order_id=order_id)
+        proxy = Proxy.objects.filter(order_id=order_id)
         proxy_list = []
         if proxy.exists():
             proxy_data = proxy.all()
