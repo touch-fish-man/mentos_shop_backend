@@ -12,7 +12,6 @@ from apps.proxy_server.models import ProxyList
 
 
 
-from .tasks import add
 from datetime import datetime
 
 

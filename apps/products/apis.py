@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from .models import Product, Variant, VariantAttribute
+from .models import Product, Variant
 from .serializers import ProductSerializer
 from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient
@@ -22,3 +22,9 @@ class ProductViewSet(ComModelViewSet):
         shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
         product_dict=shopify_client.get_products(format=True)
         return SuccessResponse(data=product_dict)
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        #  删除产品时，删除产品下的所有变体
+        # Variant.objects.filter(product_id=instance.id).delete()
+        self.perform_destroy(instance)
+        return SuccessResponse()

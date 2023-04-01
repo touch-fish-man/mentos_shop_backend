@@ -69,31 +69,50 @@ class ShopifyClient:
 
     def format_variant_info(self, variant):
         variant_info = {}
-        print(variant)
-        variant_info["variant_id"] = variant['id']
+        variant_info["shopify_variant_id"] = variant['id']
         variant_info["variant_name"] = variant['title']
         variant_info["variant_price"] = variant['price']
         variant_info["variant_stock"] = variant['inventory_quantity']
-        variant_info["variant_option1"] = variant['option1']
-        variant_info["variant_option2"] = variant['option2']
-        variant_info["variant_option3"] = variant['option3']
+        variant_info["variant_option1"] = variant['option1'] if variant['option1'] else ""
+        variant_info["variant_option2"] =  variant['option2'] if variant['option2'] else ""
+        variant_info["variant_option3"] = variant['option3'] if variant['option3'] else ""
         return variant_info
 
     def format_product_info(self, product):
         product_info = {}
         product_info["product_name"] = product['title']
         product_info["shopify_product_id"] = product['id']
-        product_info["product_tags"] = product['tags']
+        tags = []
+        for t in product['tags'].split(','):
+            tags.append({
+                "tag_name": t,
+                "tag_desc": ""
+            })
+        product_info["product_tags"] = tags
         product_info["product_desc"] = product['body_html']
-        product_info["vaiant_options"] = product['options']
+        options = []
+        for o in product['options']:
+            values = []
+            for v in o.get('values'):
+                values.append({
+                    "option_value": v,
+                })
+            options.append({
+                "option_name": o.get('name'),
+                "option_values": values,
+                "shopify_option_id": o.get('id'),
+                "option_type": ""
+
+            })
+        product_info["variant_options"] = options
         product_info["variants"] = [self.format_variant_info(x) for x in product['variants']]
         return product_info
     def format_collection_info(self, collection):
         collection_list = []
         for x in collection:
             collection_info = {}
-            collection_info["collection_id"] = x.id
-            collection_info["collection_title"] = x.title
+            collection_info["shopify_collection_id"] = x.id
+            collection_info["collection_name"] = x.title
             collection_info["collection_desc"] = x.body_html
             collection_list.append(collection_info)
         return collection_list
@@ -319,7 +338,7 @@ class SyncClient(ShopifyClient):
                 continue
             else:
                 ProductTag.objects.create(tag_name=tag)
-            
+
 
     def sync_promotions(self):
         # 同步促销

@@ -246,6 +246,8 @@ SIMPLE_JWT = {
     # token刷新后的有效时间
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
 
+REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
+REDIS_HOST = '177.8.0.14'
 
 # 配置日志
 
@@ -288,8 +290,7 @@ MAX_LEVEL = env('MAX_LEVEL')  # 最高等级
 LEVEL_DISCOUNT_RATE = env('LEVEL_DISCOUNT_RATE')  # 等级折扣比例 1 - 等级折扣比例 * (等级 - 1) = 折扣
 # 邀请返利配置
 INVITE_REBATE_RATE = env('INVITE_REBATE_RATE')  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
-
+# ---------需要动态配置的配置项----------------
 # 导入邮件模板配置
 from .email_templates import *
-
-# ---------需要动态配置的配置项----------------
+from .celery import *

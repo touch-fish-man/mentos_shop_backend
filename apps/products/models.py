@@ -4,53 +4,55 @@ from django.db import models
 
 class ProductTag(BaseModel):
     tag_name = models.CharField(max_length=255, verbose_name='标签名')
-    tag_desc = models.TextField(verbose_name='描述')
+    tag_desc = models.TextField(verbose_name='描述', blank=True, null=True)
 
 
 class ProductCollection(BaseModel):
-    product_collection = models.CharField(max_length=255, verbose_name='产品集合')
+    collection_name = models.CharField(max_length=255, verbose_name='集合名称')
     collection_desc = models.TextField(verbose_name='描述')
     shopify_collection_id = models.CharField(max_length=255, verbose_name='shopify集合id')
 
 
-class Product(BaseModel):
-    product_name = models.CharField(max_length=255, verbose_name='产品名')
-    product_desc = models.TextField(verbose_name='描述')
-    shopify_product_id = models.CharField(max_length=255, verbose_name='shopify产品id')
-    product_tags = models.ManyToManyField(ProductTag)
-    product_collections = models.ManyToManyField(ProductCollection)
-
-    def variants(self):
-        variants = Variant.objects.filter(product=self)
-        for variant in variants:
-            variant.attributes = VariantAttribute.objects.filter(variant=variant)
-        return variants
+class OptionValue(BaseModel):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='option_values')
+    option = models.ForeignKey('Option', on_delete=models.CASCADE, related_name='option_values')
+    option_value = models.CharField(max_length=255, verbose_name='选项值')
 
 
-class Attribute(BaseModel):
-    attribute_name = models.CharField(max_length=255, verbose_name='属性名')
-    attribute_type = models.CharField(max_length=255, verbose_name='属性类型')
-
-
-class AttributeValue(BaseModel):
-    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
-    attribute_value = models.CharField(max_length=255, verbose_name='属性值')
-
+class Option(BaseModel):
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='options')
+    option_name = models.CharField(max_length=255, verbose_name='选项名')
+    option_type = models.CharField(max_length=255, verbose_name='选项类型', blank=True, null=True)
+    shopify_option_id = models.CharField(max_length=255, verbose_name='shopify选项id')
 
 class Variant(BaseModel):
     shopify_variant_id = models.CharField(max_length=255, verbose_name='shopify变体id')
-    variant_name = models.CharField(max_length=255)
-    variant_price = models.ForeignKey(Product, on_delete=models.CASCADE)
-    variant_desc = models.TextField(verbose_name='描述')
-    server_group = models.CharField(max_length=255, verbose_name='服务器组')
-    acl_group = models.CharField(max_length=255, verbose_name='acl组')
-    cart_step = models.IntegerField(default=1, verbose_name='购物车步长')
-    is_active = models.BooleanField(default=True, verbose_name='是否上架')
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='价格')
-    stock = models.IntegerField(verbose_name='库存')
+    variant_name = models.CharField(max_length=255, verbose_name='变体名')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='variants')
+    # 可以为空
+    variant_desc = models.TextField(verbose_name='描述', blank=True, null=True)
+    server_group = models.CharField(max_length=255, verbose_name='服务器组', blank=True, null=True)
+    acl_group = models.CharField(max_length=255, verbose_name='acl组', blank=True, null=True)
+    cart_step = models.IntegerField(default=8, verbose_name='购物车步长', choices=((8, 8), (16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (512, 512), (1024, 1024)))
+    is_active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
+    variant_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='价格')
+    variant_stock = models.IntegerField(verbose_name='库存',default=0)
+    variant_option1 = models.CharField(max_length=255, verbose_name='选项1', blank=True, null=True)
+    variant_option2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
+    variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
 
 
-class VariantAttribute(BaseModel):
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE)
-    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
-    attribute_value = models.ForeignKey(AttributeValue, on_delete=models.CASCADE)
+class Product(BaseModel):
+    product_name = models.CharField(max_length=255, verbose_name='产品名')
+    product_desc = models.TextField(verbose_name='描述', blank=True, null=True)
+    shopify_product_id = models.CharField(max_length=255, verbose_name='shopify产品id')
+    product_tags = models.ManyToManyField(ProductTag)
+    product_collections = models.ManyToManyField(ProductCollection)
+    # variants = models.ManyToManyField(Variant)
+    # variant_options = models.ManyToManyField(Option)
+
+    def variants(self):
+        return Variant.objects.filter(product_id=self.id)
+
+    def variant_options(self):
+        return Option.objects.filter(product_id=self.id)

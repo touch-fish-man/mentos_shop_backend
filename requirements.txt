@@ -21,3 +21,6 @@ drf-yasg
 rich
 ShopifyAPI
 django_extensions
+celery
+django-celery-results
+django-celery-beat
