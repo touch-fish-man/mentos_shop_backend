@@ -11,6 +11,7 @@ from rich.console import Console
 console = Console()
 
 from apps.orders.models import Orders
+from apps.users.models import User
 from django.utils import timezone
 fake = Faker(locale='zh_CN')
 
@@ -19,8 +20,8 @@ def main():
         Orders.objects.all().delete()
         for i in range(50):
             order_id = fake.md5()
-            uid = random.randint(1, 100)
-            username = fake.name()
+            # 随机获取一个用户
+            user = random.choice(User.objects.all())
             shopify_order_id = fake.md5()
             product_id = random.randint(1, 100)
             product_name = fake.name()
@@ -40,10 +41,8 @@ def main():
             pay_callback_status = random.randint(1, 5)
             expired_at = fake.date_time().replace(tzinfo=timezone.utc)
             proxy_num = 4**random.randint(1, 5)
-            Orders.objects.create(
+            order=Orders.objects.create(
                 order_id=order_id,
-                uid=uid,
-                username=username,
                 shopify_order_id=shopify_order_id,
                 product_id=product_id,
                 product_name=product_name,
@@ -63,5 +62,9 @@ def main():
                 pay_callback_status=pay_callback_status,
                 expired_at=expired_at,
                 proxy_num=proxy_num,
+                user=user
             )
+
         status.update("[bold green]Done!")
+if __name__ == '__main__':
+    main()

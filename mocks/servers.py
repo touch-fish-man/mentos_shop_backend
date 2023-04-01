@@ -7,7 +7,7 @@ import sys
 
 from init_env import *
 
-from apps.proxy_server.models import Server,ServerGroup
+from apps.proxy_server.models import Server,ServerGroup,Cidr,cidr_ip_count
 from rich.console import Console
 
 console = Console()
@@ -22,8 +22,11 @@ def main():
             name = 'test proxy server {}'.format(i)
             description = fake.sentence()
             ip = fake.ipv4()
-            cidr_prefix = ",".join([fake.ipv4(network=True) for i in range(4)])
-            Server.objects.create(name=name, description=description, ip=ip, cidr_prefix=cidr_prefix)
+            cidr = fake.ipv4(network=True)
+            ip_count=cidr_ip_count(cidr)
+            cidr=Cidr.objects.create(cidr=cidr,ip_count=ip_count)
+            server=Server.objects.create(name=name, description=description, ip=ip)
+            server.cidrs.add(cidr)
         for i in range(10):
             name = 'test proxy server group {}'.format(i)
             description = fake.sentence()

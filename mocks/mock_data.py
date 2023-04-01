@@ -16,8 +16,8 @@ from point_record import main as mock_point_record
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
 executor = ThreadPoolExecutor(10)
 def main():
+    mock_users()
     threads = []
-    threads.append(executor.submit(mock_users))
     threads.append(executor.submit(mock_tickets))
     threads.append(executor.submit(mock_acls))
     threads.append(executor.submit(mock_proxy))

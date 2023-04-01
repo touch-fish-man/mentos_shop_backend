@@ -31,6 +31,18 @@ class AclGroupCreateSerializer(CommonSerializer):
                                  validators=[CustomUniqueValidator(AclGroup.objects.all(), message="acl组名称已存在")])
     description = serializers.CharField(required=True)
 
+    def create(self, validated_data):
+        acl_value = []
+        for acl in validated_data['acls']:
+            acl_value.extend(acl.acl_value.split('\n'))
+        acl_value = list(set(acl_value))
+        acl_value.sort()
+        validated_data['acl_value'] = "\n".join(acl_value)
+        # 判断是否有重复的acl_value
+        if AclGroup.objects.filter(acl_value=validated_data['acl_value']).exists():
+            raise serializers.ValidationError("acl组已存在")
+        return super().create(validated_data)
+
     class Meta:
         model = AclGroup
         fields = ('id', 'name', 'description', 'acls')
@@ -94,19 +106,15 @@ class ServerCreateSerializer(CommonSerializer):
 
     name = serializers.CharField(required=True, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
-    ip = serializers.CharField(required=True, validators=[
-        CustomUniqueValidator(Server.objects.all(), message="代理服务器ip已存在")])
 
 
 class ServerUpdateSerializer(CommonSerializer):
     class Meta:
         model = Server
-        fields = ('id', 'name', 'ip', 'description', 'cidr_prefix')
+        fields = ('id', 'name', 'ip', 'description', 'cidrs')
 
     name = serializers.CharField(required=False, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
-    ip = serializers.CharField(required=False, validators=[
-        CustomUniqueValidator(Server.objects.all(), message="代理服务器ip已存在")])
     extra_kwargs = {
         'id': {'read_only': True},
         'created_at': {'read_only': True},

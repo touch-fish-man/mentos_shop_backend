@@ -75,6 +75,9 @@ class InviteLog(BaseModel):
     inviter_uid = models.IntegerField(verbose_name="邀请人id")
     inviter_username = models.CharField(max_length=100, verbose_name="邀请人用户名")
     invite_code = models.CharField(max_length=100, verbose_name="邀请码")
+    inviter_user= models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='inviter_user')
+    user= models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='user')
+
 
     class Meta:
         db_table = 'invite_log'

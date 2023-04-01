@@ -29,9 +29,16 @@ def main():
             name = 'test acl group {}'.format(i)
             description = fake.sentence()
             acl_group=AclGroup.objects.create(name=name, description=description)
-            random_acls = Acls.objects.order_by('?')[:random.randint(1, 10)]
+            random_acls = random.sample(list(Acls.objects.all()), random.randint(1, 10))
+            acl_group.acls.set(random_acls)
+            acl_value=[]
             for acl in random_acls:
-                acl_group.acls.add(acl)
+                acl_value.extend(acl.acl_value.split('\n'))
+            acl_value=list(set(acl_value))
+            acl_value.sort()
+            acl_group.acl_value='\n'.join(acl_value)
+            acl_group.save()
+
 
 
 

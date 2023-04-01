@@ -31,8 +31,8 @@ class Variant(BaseModel):
     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='variants')
     # 可以为空
     variant_desc = models.TextField(verbose_name='描述', blank=True, null=True)
-    server_group = models.ManyToManyField('proxy_server.ServerGroup', verbose_name='服务器组', blank=True)
-    acl_group = models.ManyToManyField('proxy_server.AclGroup', verbose_name='acl组', blank=True)
+    server_group = models.ForeignKey('proxy_server.ServerGroup', verbose_name='服务器组', blank=True, null=True, on_delete=models.CASCADE)
+    acl_group = models.ForeignKey('proxy_server.AclGroup', verbose_name='acl组', blank=True, null=True, on_delete=models.CASCADE)
     cart_step = models.IntegerField(default=8, verbose_name='购物车步长', choices=((8, 8), (16, 16), (32, 32), (64, 64), (128, 128), (256, 256), (512, 512), (1024, 1024)))
     is_active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
     variant_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='价格')

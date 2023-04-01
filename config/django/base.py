@@ -48,11 +48,11 @@ INSTALLED_APPS = [
     'drf_yasg',
     "apps.users",
     "apps.tickets",
+    "apps.orders",
     "apps.proxy_server",
     "apps.site_settings",
     "captcha",
     "django_extensions",
-    "apps.orders",
     "apps.rewards",
     "apps.products",
 ]

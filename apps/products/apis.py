@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from .models import Product, Variant, ProductCollection, ProductTag
-from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer
+from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer, \
+    ProductCreateSerializer
 from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient
 from rest_framework.decorators import action
@@ -10,6 +11,7 @@ from apps.core.json_response import SuccessResponse
 class ProductViewSet(ComModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    create_serializer_class = ProductCreateSerializer
     search_fields = ('product_name', 'product_desc', 'product_tags', 'product_collections')
     filter_fields = ('product_name', 'product_desc', 'product_tags', 'product_collections')
 

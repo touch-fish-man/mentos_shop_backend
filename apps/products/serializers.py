@@ -2,7 +2,9 @@ from pprint import pprint
 
 from rest_framework import serializers
 from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue
-from ..proxy_server.models import Acls
+from apps.proxy_server.models import Acls, Cidr, ProxyStock
+from apps.proxy_server.serializers import ServersGroupSerializer,AclsGroupSerializer,AclGroup,ServerGroup
+from apps.proxy_server.models import ServerGroupThrough,ServerCidrThrough
 
 
 class OptionValueSerializer(serializers.ModelSerializer):
@@ -49,6 +51,8 @@ class OptionSerializer(serializers.ModelSerializer):
 
 
 class VariantSerializer(serializers.ModelSerializer):
+    # server_group = ServersGroupSerializer()
+    # acl_group = AclsGroupSerializer()
     class Meta:
         model = Variant
         fields = (
@@ -56,26 +60,39 @@ class VariantSerializer(serializers.ModelSerializer):
             'variant_price',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3')
 
-    def create(self, validated_data):
-        acl_group = []
-        server_group = []
-        if "acl_group" in validated_data:
-            acl_group = validated_data.pop('acl_group')
-        if "server_group" in validated_data:
-            server_group = validated_data.pop('server_group')
-        if Variant.objects.filter(shopify_variant_id=validated_data.get('shopify_variant_id')).exists():
-            variant = Variant.objects.get(shopify_variant_id=validated_data.get('shopify_variant_id'))
-            for k, v in validated_data.items():
-                setattr(variant, k, v)
-            variant.save()
-        else:
-            variant = Variant.objects.create(**validated_data)
-        if acl_group:
-            variant.acl_group.set(acl_group)
+class VariantCreateSerializer(serializers.ModelSerializer):
+    cart_step = serializers.IntegerField(required=True)
+    variant_price = serializers.FloatField(required=True)
+    server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
+    acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
+    class Meta:
+        model = Variant
+        fields = (
+            "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
+            'variant_price',
+            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3')
+    def get_cidr(self,server_group):
+        cidr_ids = []
         if server_group:
-            variant.server_group.set(server_group)
-        return variant
 
+            server_ids=ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id', flat=True)
+            cidr_ids=ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
+            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
+            return cidr_ids,ip_count
+        else:
+            return cidr_ids,[]
+
+    def create(self, validated_data):
+        variant = Variant.objects.create(**validated_data)
+        cidr_ids,ip_count=self.get_cidr(validated_data.get('server_group'))
+        variant_stock = sum(ip_count)
+        variant.variant_stock =variant_stock
+        variant.save()
+        acl_group_id=validated_data.get('acl_group').id
+        for idx,cidr_id in enumerate(cidr_ids):
+            cart_stock=ip_count[idx]//validated_data.get('cart_step')
+            ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=variant.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
+        return variant
 
 class ProductTagSerializer(serializers.ModelSerializer):
     class Meta:
@@ -99,14 +116,7 @@ class ProductCollectionSerializer(serializers.ModelSerializer):
         fields = ('id', 'collection_name', 'collection_desc', 'shopify_collection_id')
 
     def create(self, validated_data):
-        if ProductCollection.objects.filter(shopify_collection_id=validated_data.get('shopify_collection_id')).exists():
-            product_collection = ProductCollection.objects.get(
-                shopify_collection_id=validated_data.get('shopify_collection_id'))
-            for k, v in validated_data.items():
-                setattr(product_collection, k, v)
-            product_collection.save()
-        else:
-            product_collection = ProductCollection.objects.create(**validated_data)
+        product_collection,_=ProductCollection.objects.get_or_create(**validated_data)
         return product_collection
 
 
@@ -123,6 +133,20 @@ class ProductSerializer(serializers.ModelSerializer):
                   'variants',
                   'variant_options')
 
+
+class ProductCreateSerializer(serializers.ModelSerializer):
+    product_collections = ProductCollectionSerializer(many=True)
+    product_tags = ProductTagSerializer(many=True)
+    variants = VariantCreateSerializer(many=True)
+    variant_options = OptionSerializer(many=True)
+
+    class Meta:
+        model = Product
+        fields = (
+            'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
+            'variants',
+            'variant_options')
+
     def create(self, validated_data):
         # 先创建variant,再创建product,再add
         variants_data = validated_data.pop('variants')
@@ -136,7 +160,7 @@ class ProductSerializer(serializers.ModelSerializer):
             OptionSerializer().create(option_data)  # 创建variant
         for variant_data in variants_data:
             variant_data['product'] = product
-            VariantSerializer().create(variant_data)
+            VariantCreateSerializer().create(variant_data)
         # 创建product_collection
         for product_collection_data in product_collections_data:
             product_collection = ProductCollectionSerializer().create(product_collection_data)
