@@ -54,8 +54,6 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        result = add.apply_async((2,2),countdown=60*24*60*60)
-        task_id = result.id
         return SuccessResponse(data=serializer.data, msg="新增成功")
 
     def retrieve(self, request, *args, **kwargs):

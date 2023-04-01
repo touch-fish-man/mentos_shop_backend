@@ -6,6 +6,7 @@ from pprint import pprint
 
 import django
 import shopify
+from apps.products.models import ProductCollection,ProductTag
 
 shop_url = 'https://mentosproxy.myshopify.com/'
 api_version = '2023-01'
@@ -302,13 +303,23 @@ class SyncClient(ShopifyClient):
         # 同步产品变体
         pass
     def sync_product_collections(self):
-        # 同步产品集合
-        pass
+        collection_list=self.get_product_collections()
+        for i in collection_list:
+            if ProductCollection.objects.filter(shopify_collection_id=i['id']).exists():
+                continue
+            else:
+                ProductCollection.objects.create(shopify_collection_id=i['id'],collection_desc=i['desc'],product_collection=i['title'])
 
     def sync_product_tags(self):
         # 同步产品标签
         # 从shopify获取所有产品，插入到本地数据库
-        pass
+        tag_list=self.get_product_tags()
+        for tag in tag_list:
+            if ProductTag.objects.filter(tag_name=tag).exists():
+                continue
+            else:
+                ProductTag.objects.create(tag_name=tag)
+            
 
     def sync_promotions(self):
         # 同步促销
@@ -321,6 +332,7 @@ class SyncClient(ShopifyClient):
 
 if __name__ == '__main__':
     shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
+
     # for product in shopify_client.get_products(format=True):
     #     pprint(product)
     #
@@ -336,6 +348,9 @@ if __name__ == '__main__':
     #     "tags": "vip2"
     # }
     # pprint(shopify_client.create_customer(customer_info))
-    pprint(shopify_client.get_product_collections())
-    pprint(shopify_client.get_product_tags())
+    # pprint(shopify_client.get_product_collections())
+    # pprint(shopify_client.get_product_tags())
     # pprint(shopify_client.get_customers())
+    syncclient = SyncClient(shop_url, api_version, api_key, api_scert, private_app_password)
+    print(syncclient.sync_product_collections())
+    print(syncclient.sync_product_tags())
