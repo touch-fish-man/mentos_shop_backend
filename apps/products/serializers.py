@@ -13,12 +13,12 @@ class VariantSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Variant
-        fields = ('variant_name', 'price', 'stock', 'attributes')
+        fields = ('variant_name', 'variant_price', 'variant_stock', 'attributes')
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    variants = VariantSerializer(many=True, read_only=True)
+    variants = VariantSerializer(many=True)
 
     class Meta:
         model = Product
-        fields = ('product_name', 'product_desc', 'product_tags', 'variants', 'product_collections')
+        fields = ('product_name', 'product_desc','shopify_product_id','product_tags','product_collections', 'variants')

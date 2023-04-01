@@ -9,8 +9,8 @@ from apps.core.json_response import SuccessResponse
 class ProductViewSet(ComModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    search_fields = ('product_name', 'product_desc', 'product_tags', 'product_collection')
-    filter_fields = ('product_name', 'product_desc', 'product_tags', 'product_collection')
+    search_fields = ('product_name', 'product_desc', 'product_tags', 'product_collections')
+    filter_fields = ('product_name', 'product_desc', 'product_tags', 'product_collections')
 
     @action(methods=['get'], detail=False, url_path='get_product_from_shopify', url_name='get_product_from_shopify')
     def get_product_from_shopify(self, request):

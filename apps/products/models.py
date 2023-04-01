@@ -5,7 +5,6 @@ from django.db import models
 class ProductTag(BaseModel):
     tag_name = models.CharField(max_length=255, verbose_name='标签名')
     tag_desc = models.TextField(verbose_name='描述')
-    shopify_tag_id = models.CharField(max_length=255, verbose_name='shopify标签id')
 
 
 class ProductCollection(BaseModel):
@@ -41,7 +40,7 @@ class AttributeValue(BaseModel):
 class Variant(BaseModel):
     shopify_variant_id = models.CharField(max_length=255, verbose_name='shopify变体id')
     variant_name = models.CharField(max_length=255)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    variant_price = models.ForeignKey(Product, on_delete=models.CASCADE)
     variant_desc = models.TextField(verbose_name='描述')
     server_group = models.CharField(max_length=255, verbose_name='服务器组')
     acl_group = models.CharField(max_length=255, verbose_name='acl组')
