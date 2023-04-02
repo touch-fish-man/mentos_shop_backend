@@ -1,5 +1,6 @@
 from .base import *
 DEBUG = True
+DATABASES["default"]["NAME"] = "mentos_test"
 CELERY_BROKER_BACKEND = "memory"
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True

@@ -6,8 +6,6 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    print("manage.py")
-    print(os.environ.get('DJANGO_ENV'))
     if os.environ.get('DJANGO_ENV'):
         if os.path.exists(os.path.join(os.getcwd(), 'config', 'django', os.environ.get('DJANGO_ENV') + '.py')):
             os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django." + os.environ.get('DJANGO_ENV'))
