@@ -21,7 +21,8 @@ def main():
         for i in range(50):
             order_id = fake.md5()
             # 随机获取一个用户
-            user = random.choice(User.objects.all())
+            uid= random.randint(1, 100)
+            username = fake.user_name()
             shopify_order_id = fake.md5()
             product_id = random.randint(1, 100)
             product_name = fake.name()
@@ -62,7 +63,8 @@ def main():
                 pay_callback_status=pay_callback_status,
                 expired_at=expired_at,
                 proxy_num=proxy_num,
-                user=user
+                uid=uid,
+                username=username
             )
 
         status.update("[bold green]Done!")

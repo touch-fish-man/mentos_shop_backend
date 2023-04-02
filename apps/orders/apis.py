@@ -12,8 +12,6 @@ from apps.proxy_server.models import Proxy
 
 
 
-from datetime import datetime
-
 
 
 
@@ -83,10 +81,9 @@ class OrdersApi(ComModelViewSet):
         expired_at = request.data.get('expired_at', None)
         if not expired_at:
             return SuccessResponse(data={}, msg="过期时间不能为空")
-        # 字符串时间格式转换datetime tzinfo
+        # 时间戳转换
         try:
-            expired_at = datetime.datetime.strptime(expired_at, "%Y-%m-%d %H:%M:%S").replace(
-                tzinfo=datetime.timezone.utc)
+            expired_at = datetime.datetime.fromtimestamp(int(expired_at)).replace(tzinfo=datetime.timezone.utc)
         except Exception as e:
             return ErrorResponse(data={}, msg="过期时间格式错误")
         order=Orders.objects.filter(id=order_id)

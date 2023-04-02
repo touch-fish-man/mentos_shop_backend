@@ -10,7 +10,8 @@ def gen_order_id():
 
 class Orders(BaseModel):
     # 用户
-    user = models.ForeignKey('users.User', on_delete=models.CASCADE, verbose_name='用户')
+    uid = models.CharField(max_length=255, verbose_name='用户id')
+    username = models.CharField(max_length=255, verbose_name='用户名')
     # 订单号
     order_id = models.CharField(max_length=255, verbose_name='订单号', default=gen_order_id)
     # shopify订单号
