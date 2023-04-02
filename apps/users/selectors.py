@@ -11,8 +11,8 @@ def user_get_login_data(*, user: User):
         "username": user.username,
         "is_active": user.is_active,
         "is_superuser": user.is_superuser,
-        "discord_id": user.discord_id,
-        "discord_name": user.discord_name,
+        "discord_id":user.discord_id if len(user.discord_id) else None,
+        "discord_name": user.discord_name if len(user.discord_name) else None,
     }
 
 
