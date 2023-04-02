@@ -29,6 +29,7 @@ services:
     privileged: true
     environment:
       - TZ=Asia/Shanghai
+      - DJANGO_ENV=prod
   mentos_shop_backend_test:
     restart: always
     container_name: mentos_shop_backend_test.local
@@ -47,6 +48,7 @@ services:
     privileged: true
     environment:
       - TZ=Asia/Shanghai
+      - DJANGO_ENV=test
   redis:
     container_name: redis.local
     image: 'redis:latest'
