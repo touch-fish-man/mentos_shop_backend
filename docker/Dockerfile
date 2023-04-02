@@ -1,7 +1,8 @@
-ARG DJANGO_ENV=prod
+# define an alias for the specfic python version used in this file.
+ARG DJANGO_ENV_ARG=prod
 # define an alias for the specfic python version used in this file.
 FROM python:3.10
-ENV DJANGO_ENV=$DJANGO_ENV
+ENV DJANGO_ENV=${DJANGO_ENV_ARG}
 RUN mkdir /opt/mentos_shop_backend
 COPY . /opt/mentos_shop_backend
 WORKDIR /opt/mentos_shop_backend
