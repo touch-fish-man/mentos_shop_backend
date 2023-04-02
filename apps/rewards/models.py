@@ -63,3 +63,21 @@ class GiftCard(BaseModel):
         verbose_name = '礼品卡'
         verbose_name_plural = verbose_name
         ordering = ('-created_at',)
+class LevelCode(BaseModel):
+    """
+    等级码
+    """
+    code = models.CharField(max_length=32, verbose_name='等级码')
+    level = models.IntegerField(verbose_name='等级')
+    discount = models.CharField(max_length=32, verbose_name='折扣') # 0.8, 0.9, 0.95, 0.98 $10, $20, $50, $100
+    point = models.IntegerField(verbose_name='积分')
+
+
+    class Meta:
+        db_table = 'level_code'
+        verbose_name = '等级码'
+        verbose_name_plural = verbose_name
+        ordering = ('-created_at',)
+
+    def __str__(self):
+        return self.code

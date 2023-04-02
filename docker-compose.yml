@@ -11,9 +11,9 @@ services:
   #     - POSTGRES_DB=mentos_shop_db
   #     - POSTGRES_USER=postgres
   #     - POSTGRES_PASSWORD=postgres
-  mentos_shop_backend:
+  mentos:
     restart: always
-    container_name: mentos_shop_backend.local
+    container_name: mentos
     build:
       context: ./
       dockerfile: docker/Dockerfile
@@ -30,12 +30,12 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - DJANGO_ENV=prod
-  mentos_shop_backend_test:
+  mentos_test:
     restart: always
-    container_name: mentos_shop_backend_test.local
+    container_name: mentos_test
     build:
       context: ./
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile_test
       args:
         DJANGO_ENV: test
     networks:

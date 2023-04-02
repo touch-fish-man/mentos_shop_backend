@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.rewards.models import CouponCode, PointRecord, GiftCard
+from apps.rewards.models import CouponCode, PointRecord, GiftCard,LevelCode
 
 
 class CouponCodeSerializer(serializers.ModelSerializer):
@@ -24,4 +24,11 @@ class GiftCardSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = GiftCard
+        fields = '__all__'
+class LevelCodeSerializer(serializers.ModelSerializer):
+    """
+    等级码
+    """
+    class Meta:
+        model = LevelCode
         fields = '__all__'

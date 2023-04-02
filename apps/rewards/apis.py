@@ -2,8 +2,8 @@ from rest_framework.decorators import action
 
 from apps.core.json_response import SuccessResponse
 from apps.core.viewsets import ComModelViewSet
-from apps.rewards.models import CouponCode, PointRecord, GiftCard
-from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer
+from apps.rewards.models import CouponCode, PointRecord, GiftCard, LevelCode
+from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer,LevelCodeSerializer
 from rest_framework.views import APIView
 
 
@@ -48,3 +48,9 @@ class GiftCardViewSet(ComModelViewSet):
             giftcard_amount_point_dict[amount] = queryset.filter(amount=amount).first().point
         return SuccessResponse(data=giftcard_amount_point_dict)
 
+class LevelCodeViewSet(ComModelViewSet):
+    """
+    等级码
+    """
+    queryset = LevelCode.objects.all()
+    serializer_class = LevelCodeSerializer
