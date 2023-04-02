@@ -10,7 +10,7 @@ class ComModelViewSet(ModelViewSet):
     ordering_fields = '__all__'
     create_serializer_class = None
     update_serializer_class = None
-    # filter_fields = '__all__'
+    filter_fields = '__all__'
     filterset_fields = '__all__'
     search_fields = ()
     # extra_filter_backends = [DataLevelPermissionsFilter]
