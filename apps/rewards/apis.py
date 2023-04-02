@@ -33,8 +33,7 @@ class GiftCardViewSet(ComModelViewSet):
     """
     queryset = GiftCard.objects.all()
     serializer_class = GiftCardSerializer
-    search_fields = ('code', 'username')
-    filter_fields = ('is_used', 'product_id', 'shopify_coupon_id')
+    search_fields = ('code')
     @action(methods=['get'], detail=False, url_path='base-info', url_name='base-info')
     def get_giftcard_base_info(self, request, *args, **kwargs):
         """

@@ -53,10 +53,6 @@ class GiftCard(BaseModel):
     code = models.CharField(max_length=32, verbose_name='礼品卡码')
     mount = models.IntegerField(verbose_name='金额')
     is_exchanged = models.BooleanField(default=False, verbose_name='是否兑换')
-    is_used = models.BooleanField(default=False, verbose_name='是否使用')
-    uid = models.IntegerField(null=True, blank=True, verbose_name='用户ID')
-    username = models.CharField(max_length=32, null=True, blank=True, verbose_name='用户名')
-    used_at = models.DateTimeField(null=True, blank=True, verbose_name='使用时间')
 
     class Meta:
         db_table = 'gift_card'

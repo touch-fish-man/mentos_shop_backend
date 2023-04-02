@@ -32,8 +32,8 @@ class OrdersApi(ComModelViewSet):
     create_serializer_class = OrdersCreateSerializer
     update_serializer_class = OrdersUpdateSerializer
     get_status_serializer_class = OrdersStatusSerializer
-    search_fields = ('order_id', 'username', 'uid', 'product_name', 'status')
-    filter_fields = ('order_id', 'username', 'uid', 'product_name', 'status')
+    search_fields = ('order_id', 'username', 'uid', 'product_name')
+    filterset_fields = ('order_id', 'username', 'uid', 'product_name')
 
     @swagger_auto_schema(operation_description="获取订单状态", responses={200: OrdersStatusSerializer},
                          query_serializer=OrdersStatusSerializer)

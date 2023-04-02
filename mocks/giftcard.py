@@ -25,11 +25,7 @@ def main():
             code = ''.join(random.sample(string.ascii_letters + string.digits, 8))
             mount = random.randint(1, 100)
             is_exchanged = random.choice([True, False])
-            is_used = random.choice([True, False])
-            uid = random.randint(1, 100)
-            username = 'test'
-            used_at = timezone.now()
-            GiftCard.objects.create(point=point, code=code, mount=mount, is_exchanged=is_exchanged, is_used=is_used, uid=uid, username=username, used_at=used_at)
+            GiftCard.objects.create(point=point, code=code, mount=mount, is_exchanged=is_exchanged)
         LevelCode.objects.all().delete()
         for i in range(5):
             discount = level_choices[i]

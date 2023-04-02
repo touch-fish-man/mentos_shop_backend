@@ -10,7 +10,8 @@ class ComModelViewSet(ModelViewSet):
     ordering_fields = '__all__'
     create_serializer_class = None
     update_serializer_class = None
-    filter_fields = '__all__'
+    # filter_fields = '__all__'
+    filterset_fields = '__all__'
     search_fields = ()
     # extra_filter_backends = [DataLevelPermissionsFilter]
     permission_classes = []
@@ -60,7 +61,6 @@ class ComModelViewSet(ModelViewSet):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data)
-        print(serializer)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return SuccessResponse(data=serializer.data, msg="修改成功")
