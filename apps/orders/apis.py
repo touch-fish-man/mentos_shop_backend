@@ -83,7 +83,7 @@ class OrdersApi(ComModelViewSet):
             return SuccessResponse(data={}, msg="过期时间不能为空")
         # 时间戳转换
         try:
-            expired_at = datetime.datetime.fromtimestamp(int(expired_at)).replace(tzinfo=datetime.timezone.utc)
+            expired_at = datetime.datetime.fromtimestamp(int(expired_at)//1000).replace(tzinfo=datetime.timezone.utc)
         except Exception as e:
             return ErrorResponse(data={}, msg="过期时间格式错误")
         order=Orders.objects.filter(id=order_id)
