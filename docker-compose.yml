@@ -35,7 +35,7 @@ services:
     container_name: mentos_test
     build:
       context: ./
-      dockerfile: docker/Dockerfile_test
+      dockerfile: docker/Dockerfile
       args:
         DJANGO_ENV: test
     networks:
