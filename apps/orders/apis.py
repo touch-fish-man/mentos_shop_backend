@@ -12,7 +12,9 @@ from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
 from .services import verify_webhook,shopify_order
 import logging
+from django.utils.decorators import method_decorator
 
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -129,7 +131,7 @@ class OrderCallbackApi(APIView):
         # 验证签名
         logging.error(request.query_params)
         return SuccessResponse(data={}, msg="回调成功")
-
+@method_decorator(csrf_exempt, name="dispatch")
 class ShopifyWebhookApi(APIView):
     """
     shopify回调接口
