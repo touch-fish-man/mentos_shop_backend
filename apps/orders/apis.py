@@ -124,7 +124,7 @@ class OrderCallbackApi(APIView):
     订单回调接口
     """
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request):
         # todo 订单回调
         # 通过pix脚本回调
         # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
@@ -136,8 +136,7 @@ class ShopifyWebhookApi(APIView):
     """
     shopify回调接口
     """
-
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         # todo 订单回调
         # 通过pix脚本回调
         # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
