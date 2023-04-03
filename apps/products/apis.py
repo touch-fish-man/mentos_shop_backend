@@ -6,32 +6,57 @@ from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient
 from rest_framework.decorators import action
 from apps.core.json_response import SuccessResponse
+from django.conf import settings
 
 
 class ProductViewSet(ComModelViewSet):
+    """
+    商品列表
+    list:列表
+    create:创建
+    update:更新
+    retrieve:详情
+    destroy:删除
+    """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
-    search_fields = ('product_name', 'product_desc', 'product_tags', 'product_collections')
-    filter_fields = ('product_name', 'product_desc', 'product_tags', 'product_collections')
+    search_fields = '__all__'
+    filter_fields = '__all__'
 
     @action(methods=['get'], detail=False, url_path='get_product_from_shopify', url_name='get_product_from_shopify')
     def get_product_from_shopify(self, request):
-        shop_url = 'https://mentosproxy.myshopify.com/'
+        shop_url = settings.SHOPIFY_SHOP_URL
         api_version = '2023-01'
-        api_key = 'dd6b4fd6efe094ef3567c61855f11385'
-        api_scert = 'f729623ef6a576808a5e83d426723fc1'
-        private_app_password = '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'
+        api_key = settings.SHOPIFY_API_KEY
+        api_scert = settings.SHOPIFY_API_SCERT
+        private_app_password = settings.SHOPIFY_PRIVATE_APP_PASSWORD
         shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
         product_dict = shopify_client.get_products(format=True)
         return SuccessResponse(data=product_dict)
 
 
 class ProductCollectionViewSet(ComModelViewSet):
+    """
+    商品系列
+    list:列表
+    create:创建
+    update:更新
+    retrieve:详情
+    destroy:删除
+    """
     queryset = ProductCollection.objects.all()
     serializer_class = ProductCollectionSerializer
 
 
 class ProductTagViewSet(ComModelViewSet):
+    """
+    商品标签
+    list:列表
+    create:创建
+    update:更新
+    retrieve:详情
+    destroy:删除
+    """
     queryset = ProductTag.objects.all()
     serializer_class = ProductTagSerializer

@@ -89,13 +89,9 @@ class RebateRecord(BaseModel):
     """邀请人返利记录"""
 
     uid = models.PositiveIntegerField(verbose_name="返利人ID", default=1)
-    username = models.CharField(max_length=100, verbose_name="返利人用户名")
-    consumer_uid = models.PositiveIntegerField(
-        verbose_name="消费者ID", null=True, blank=True
-    )
-    consumer_username = models.CharField(
-        max_length=100, verbose_name="消费者用户名", null=True, blank=True
-    )
+    username = models.CharField(max_length=32, verbose_name="返利人用户名")
+    consumer_uid = models.PositiveIntegerField(verbose_name="消费者ID", null=True, blank=True)
+    consumer_username = models.CharField(max_length=32, verbose_name="消费者用户名", null=True, blank=True)
     reward_points = models.PositiveIntegerField(verbose_name="奖励金额", default=0)
 
     class Meta:
