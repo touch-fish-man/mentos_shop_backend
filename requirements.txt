@@ -13,7 +13,7 @@ django-simple-captcha
 django-cors-headers
 Faker
 PyMySQL
-mysqlclient
+mysqlclient==2.1.1
 django-redis
 django-redis-sessions
 django-restql
