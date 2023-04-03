@@ -19,27 +19,22 @@ class TicksApi(ComModelViewSet):
     queryset = Tickets.objects.all()
     serializer_class = TicketsSerializer
     search_fields=('username', 'email', 'phone')
-    
-
 
     def create(self, request, *args, **kwargs):
         captcha_id = request.data.get('captcha_id')
+        if not captcha_id:
+            return ErrorResponse(msg='请先获取验证码')
+        else:
+            request.data.pop('captcha_id')
         captcha_code = request.data.get('captcha')
+        if not captcha_code:
+            return ErrorResponse(msg='请输入验证码')
+        else:
+            request.data.pop('captcha')
         if not settings.DEBUG:
             try:
                 check_chaptcha(captcha_id, captcha_code)
             except Exception as e:
                 return ErrorResponse(msg=e.message)
         return super().create(request, *args, **kwargs)
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-    
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-    
-    def retrieve(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
     
