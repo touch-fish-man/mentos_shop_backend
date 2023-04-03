@@ -4,14 +4,16 @@ import base64
 SECRET='1383b8c99cd60a619305a73c998a7707819d69272b1e5b6933c854e6f3e52137'
 
 
-def verify_webhook(data, hmac_header):
-    """
-    Verify that the data is from Shopify
-    """
-    digest = hmac.new(SECRET.encode('utf-8'), data, hashlib.sha256).digest()
+def verify_webhook(request):
+    shopify_hmac_header = request.META.get("HTTP_X_SHOPIFY_HMAC_SHA256")
+    encoded_secret = SECRET.encode("utf-8")
+    digest = hmac.new(
+        encoded_secret,
+        request.body,
+        digestmod=hashlib.sha256,
+    ).digest()
     computed_hmac = base64.b64encode(digest)
-    return hmac.compare_digest(computed_hmac, hmac_header.encode('utf-8'))
-
+    return hmac.compare_digest(computed_hmac, shopify_hmac_header.encode("utf-8"))
 
 def shopify_order(data):
     """

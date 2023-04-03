@@ -140,7 +140,7 @@ class ShopifyWebhookApi(APIView):
         # 通过pix脚本回调
         # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
         # 验证签名
-        if not verify_webhook(request.data, request.headers.get('X-SHOPIFY_HMAC_SHA256')):
+        if not verify_webhook(request):
             return ErrorResponse(data={}, msg="签名验证失败")
         logging.error(request.data)
         # shopify订单回调
