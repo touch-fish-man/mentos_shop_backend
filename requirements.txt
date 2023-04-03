@@ -12,8 +12,8 @@ sendgrid
 django-simple-captcha
 django-cors-headers
 Faker
-PyMySQL==1.0.3
-mysqlclient==2.1.1
+PyMySQL
+mysqlclient
 django-redis
 django-redis-sessions
 django-restql
@@ -21,3 +21,6 @@ drf-yasg
 rich
 ShopifyAPI
 django_extensions
+celery
+django-celery-results
+django-celery-beat
