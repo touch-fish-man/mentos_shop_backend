@@ -17,6 +17,7 @@ discount_choices = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,"$1","$2","$3
 
 def main():
     with console.status("[bold green]Generating coupon codes...") as status:
+        print("Generating coupon codes...")
         CouponCode.objects.all().delete()
         for i in range(50):
             code = ''.join(random.sample(string.ascii_letters + string.digits, 8))

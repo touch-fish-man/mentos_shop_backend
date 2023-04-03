@@ -19,6 +19,7 @@ fake = Faker(locale='zh_CN')
 
 def main():
     with console.status("[bold green]Generating proxy servers...") as status:
+        print("Generating proxy servers...")
         Proxy.objects.all().delete()
         order_count = Orders.objects.count()
         while order_count < 15:
@@ -26,6 +27,7 @@ def main():
             time.sleep(10)
         for order in Orders.objects.all()[:10]:
             for i in range(50):
+                print(i)
                 ip = fake.ipv4()
                 port = fake.port_number()
                 user= random.choice(User.objects.all())

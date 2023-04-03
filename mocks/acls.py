@@ -15,6 +15,7 @@ fake = Faker(locale='zh_CN')
 
 def main():
     with console.status("[bold green]Generating proxy servers...") as status:
+        print("Generating proxy servers...")
         AclGroup.objects.all().delete()
         Acls.objects.all().delete()
         for i in range(50):

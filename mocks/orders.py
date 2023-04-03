@@ -18,6 +18,7 @@ fake = Faker(locale='zh_CN')
 def main():
     with console.status("[bold green]Generating orders...") as status:
         Orders.objects.all().delete()
+        print("Generating orders...")
         for i in range(50):
             order_id = fake.md5()
             # 随机获取一个用户

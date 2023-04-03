@@ -16,6 +16,7 @@ fake = Faker(locale='zh_CN')
 
 def main():
     with console.status("[bold green]Generating rebate records...") as status:
+        print("Generating rebate records...")
         RebateRecord.objects.all().delete()
         for i in range(50):
             uid = random.randint(1, 100)
