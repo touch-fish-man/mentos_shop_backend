@@ -90,26 +90,19 @@ def save_site_settings(data,file):
 
 def get_site_setting():
     data ={
-        "discord":{
         'discord_client_id':settings.DISCORD_CLIENT_ID,
         'discord_client_secret':settings.DISCORD_CLIENT_SECRET,
         'discord_redirect_uri':settings.DISCORD_REDIRECT_URI,
         'discord_bind_redirect_uri':settings.DISCORD_BIND_REDIRECT_URI,
-        },
-        "shopify":{
         'shopify_api_key':settings.SHOPIFY_API_KEY,
         'shopify_api_secret':settings.SHOPIFY_API_SECRET,
         'shopify_app_key':settings.SHOPIFY_APP_KEY,
         'shopify_shop_url':settings.SHOPIFY_SHOP_URL,
-        },
-        "email":{
         'email_method':settings.EMAIL_METHOD,
         'email_code_expire':settings.EMAIL_CODE_EXPIRE,
         'sendgrid_api_key':settings.SENDGRID_API_KEY,
         'mailgun_api_key':settings.MAILGUN_API_KEY,
         'mailgun_sender_domain':settings.MAILGUN_SENDER_DOMAIN, 
-        },
-        "system":{
         'support_twitter':settings.SUPPORT_TWITTER,
         'support_discord':settings.SUPPORT_DISCORD,
         'invite_level_points_per_user':settings.INVITE_LEVEL_POINTS_PER_USER,
@@ -121,6 +114,5 @@ def get_site_setting():
         'max_level':settings.MAX_LEVEL,
         'level_discount_rate':settings.LEVEL_DISCOUNT_RATE,
         'invite_rebate_rate':settings.INVITE_REBATE_RATE
-        }
     }
     return data
