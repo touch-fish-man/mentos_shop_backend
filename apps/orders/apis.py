@@ -10,7 +10,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersCreateSerializer, Or
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook,shopify_order
+from .services import verify_webhook,shopify_order,get_checkout_link
 import logging
 from django.utils.decorators import method_decorator
 
@@ -147,3 +147,34 @@ class ShopifyWebhookApi(APIView):
         # shopify订单回调
         shopify_order(request.data)
         return SuccessResponse()
+class CheckoutApi(APIView):
+    """
+    订单结算接口
+    """
+    def post(self, request, *args, **kwargs):
+        # 生成订单
+        user = request.user
+        if user.is_authenticated:
+            checkout_url,order_id=get_checkout_link(request)
+            if not checkout_url:
+                return ErrorResponse(data={}, msg="订单生成失败")
+            return SuccessResponse(data={"checkout_url": checkout_url,"order_id":order_id}, msg="订单生成成功")
+        else:
+            return ErrorResponse(data={}, msg="用户未登录")
+    def get(self, request, *args, **kwargs):
+        order_id = request.query_params.get('order_id', None)
+        user = request.user
+        if user.is_authenticated:
+            order = Orders.objects.filter(order_id=order_id)
+            if order.exists():
+                order = order.first()
+                if order.pay_status == 1:
+                    return SuccessResponse(data={}, msg="订单已支付")
+                elif order.pay_status == 0:
+                    return ErrorResponse(data={}, msg="订单未支付")
+                else:
+                    return ErrorResponse(data={}, msg="订单支付失败")
+            else:
+                return ErrorResponse(data={}, msg="订单不存在")
+        else:
+            return ErrorResponse(data={}, msg="用户未登录")
