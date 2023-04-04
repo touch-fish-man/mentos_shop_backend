@@ -266,7 +266,7 @@ SHOPIFY_APP_KEY = env('SHOPIFY_APP_KEY')
 
 # 邮件相关配置
 EMAIL_METHOD = env('EMAIL_METHOD') # 邮件发送方式 mailgun or sendgrid
-EMAIL_CODE_EXPIRE = env('EMAIL_CODE_EXPIRE')   # 邮件验证码过期时间
+EMAIL_CODE_EXPIRE = int(env('EMAIL_CODE_EXPIRE'))   # 邮件验证码过期时间
 # smtp 配置
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
 # sendgrid 配置
@@ -280,16 +280,16 @@ MAILGUN_SENDER_DOMAIN = env('MAILGUN_SENDER_DOMAIN')
 SUPPORT_TWITTER = env('SUPPORT_TWITTER')
 SUPPORT_DISCORD = env('SUPPORT_DISCORD')
 # 等级积分配置
-INVITE_LEVEL_POINTS_PER_USER = env('INVITE_LEVEL_POINTS_PER_USER')  # 邀请一个用户获得等级积分
-BILLING_RATE = env('BILLING_RATE')  # 消费获得等级积分比例 金额 * 比例 = 等级积分 消费后获得等级积分
-LEVEL_POINTS_TO_UPGRADE = env('LEVEL_POINTS_TO_UPGRADE')  # 升级所需等级积分
-LEVEL_POINTS_DECAY_RATE = env('LEVEL_POINTS_DECAY_RATE')  # 每月等级积分衰减比例
-LEVEL_POINTS_DECAY_DAY = env('LEVEL_POINTS_DECAY_DAY')  # 每月等级积分衰减日
-MIN_LEVEL = env('MIN_LEVEL')  # 最低等级
-MAX_LEVEL = env('MAX_LEVEL')  # 最高等级
-LEVEL_DISCOUNT_RATE = env('LEVEL_DISCOUNT_RATE')  # 等级折扣比例 1 - 等级折扣比例 * (等级 - 1) = 折扣
+INVITE_LEVEL_POINTS_PER_USER = int(env('INVITE_LEVEL_POINTS_PER_USER'))  # 邀请一个用户获得等级积分
+BILLING_RATE = float(env('BILLING_RATE'))  # 消费获得等级积分比例 金额 * 比例 = 等级积分 消费后获得等级积分
+LEVEL_POINTS_TO_UPGRADE = int(env('LEVEL_POINTS_TO_UPGRADE'))  # 升级所需等级积分
+LEVEL_POINTS_DECAY_RATE = float(env('LEVEL_POINTS_DECAY_RATE'))  # 每月等级积分衰减比例
+LEVEL_POINTS_DECAY_DAY = int(env('LEVEL_POINTS_DECAY_DAY'))  # 每月等级积分衰减日
+MIN_LEVEL = int(env('MIN_LEVEL'))  # 最低等级
+MAX_LEVEL = int(env('MAX_LEVEL'))  # 最高等级
+LEVEL_DISCOUNT_RATE = float(env('LEVEL_DISCOUNT_RATE'))  # 等级折扣比例 1 - 等级折扣比例 * (等级 - 1) = 折扣
 # 邀请返利配置
-INVITE_REBATE_RATE = env('INVITE_REBATE_RATE')  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
+INVITE_REBATE_RATE = float(env('INVITE_REBATE_RATE'))  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
 # ---------需要动态配置的配置项----------------
 # 导入邮件模板配置
 from .email_templates import *
