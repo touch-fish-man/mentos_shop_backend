@@ -9,9 +9,12 @@ from apps.orders.models import Orders
 from apps.orders.serializers import OrdersSerializer, OrdersCreateSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
+from rest_framework.views import APIView
+from .services import verify_webhook,shopify_order
+import logging
+from django.utils.decorators import method_decorator
 
-
-
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -31,17 +34,18 @@ class OrdersApi(ComModelViewSet):
     serializer_class = OrdersSerializer
     create_serializer_class = OrdersCreateSerializer
     update_serializer_class = OrdersUpdateSerializer
-    # get_status_serializer_class = OrdersStatusSerializer
+    get_status_serializer_class = OrdersStatusSerializer
     search_fields = ('order_id', 'username', 'uid', 'product_name')
     filterset_fields = ('order_id', 'username', 'uid', 'product_name')
 
     # @swagger_auto_schema(operation_description="获取订单状态", responses={200: OrdersStatusSerializer},
     #                      query_serializer=OrdersStatusSerializer)
-    # @action(methods=['get'], detail=False, url_path='get_status', url_name='get_status')
-    # def get_status(self, request):
-    #     serializer = self.get_status_serializer_class(data=request.query_params)
-    #     serializer.is_valid(raise_exception=True)
-    #     return SuccessResponse(data=serializer.data, msg="获取成功")
+    @action(methods=['get'], detail=False, url_path='get_status', url_name='get_status')
+    def get_status(self, request):
+        # 用于前端轮询订单状态
+        serializer = self.get_status_serializer_class(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        return SuccessResponse(data=serializer.data, msg="获取成功")
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data,request=request)
@@ -115,3 +119,31 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(instance)
         return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
     
+class OrderCallbackApi(APIView):
+    """
+    订单回调接口
+    """
+
+    def get(self, request):
+        # todo 订单回调
+        # 通过pix脚本回调
+        # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
+        # 验证签名
+        logging.error(request.query_params)
+        return SuccessResponse(data={}, msg="回调成功")
+@method_decorator(csrf_exempt, name="dispatch")
+class ShopifyWebhookApi(APIView):
+    """
+    shopify回调接口
+    """
+    def post(self, request):
+        # todo 订单回调
+        # 通过pix脚本回调
+        # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
+        # 验证签名
+        if not verify_webhook(request):
+            return ErrorResponse(data={}, msg="签名验证失败")
+        logging.error(request.data)
+        # shopify订单回调
+        shopify_order(request.data)
+        return SuccessResponse()

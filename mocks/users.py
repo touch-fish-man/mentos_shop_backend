@@ -75,7 +75,8 @@ def make_user():
 
 
 def create_users():
-    for i in range(50):
+    for i in range(30):
+        print(i)
         while True:
             user_dict = make_user()
             if User.objects.filter(username=user_dict['username']).exists():

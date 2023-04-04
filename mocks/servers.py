@@ -18,6 +18,7 @@ def main():
     with console.status("[bold green]Generating proxy servers...") as status:
         ServerGroup.objects.all().delete()
         Server.objects.all().delete()
+        print("Generating proxy servers...")
         for i in range(50):
             name = 'test proxy server {}'.format(i)
             description = fake.sentence()

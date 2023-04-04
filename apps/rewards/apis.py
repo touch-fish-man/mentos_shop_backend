@@ -1,6 +1,6 @@
 from rest_framework.decorators import action
 
-from apps.core.json_response import SuccessResponse
+from apps.core.json_response import SuccessResponse,ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.rewards.models import CouponCode, PointRecord, GiftCard, LevelCode
 from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer,LevelCodeSerializer
@@ -10,46 +10,124 @@ from rest_framework.views import APIView
 class CouponCodeViewSet(ComModelViewSet):
     """
     优惠码
+    list:列表
+    create:创建
+    update:更新
+    retrieve:详情
+    destroy:删除
     """
     queryset = CouponCode.objects.all()
     serializer_class = CouponCodeSerializer
-    search_fields = ('code', 'holder_username')
-    filter_fields = ('is_used', 'product_id', 'shopify_coupon_id')
+    def list(self, request, *args, **kwargs):
+        # 获取当前用户优惠码
+        user=request.user
+        if user.is_authenticated:
+            if user.is_superuser:
+                # 管理员获取所有优惠码
+                return super().list(request, *args, **kwargs)
+            # 普通用户获取自己的优惠码
+            self.queryset = self.queryset.filter(uid=user.id)
+            return super().list(request, *args, **kwargs)
+        else:
+            return ErrorResponse(msg="请先登录")
+    def create(self, request, *args, **kwargs):
+        # 创建优惠码
+        user=request.user
+        if user.is_authenticated:
+            if user.is_superuser:
+                # 管理员创建优惠码
+                return super().create(request, *args, **kwargs)
+            else:
+                return ErrorResponse(msg="没有权限")
+        else:
+            return ErrorResponse(msg="请先登录")
+    def update(self, request, *args, **kwargs):
+        # 更新优惠码
+        user=request.user
+        if user.is_authenticated:
+            if user.is_superuser:
+                # 管理员更新优惠码
+                return super().update(request, *args, **kwargs)
+            else:
+                return ErrorResponse(msg="没有权限")
+        else:
+            return ErrorResponse(msg="请先登录")
+    def destroy(self, request, *args, **kwargs):
+        # 删除优惠码
+        user=request.user
+        if user.is_authenticated:
+            if user.is_superuser:
+                # 管理员删除优惠码
+                return super().destroy(request, *args, **kwargs)
+            else:
+                return ErrorResponse(msg="没有权限")
+        else:
+            return ErrorResponse(msg="请先登录")
+    def retrieve(self, request, *args, **kwargs):
+        # 获取优惠码详情
+        user=request.user
+        if user.is_authenticated:
+            if user.is_superuser:
+                # 管理员获取优惠码详情
+                return super().retrieve(request, *args, **kwargs)
+            else:
+                return ErrorResponse(msg="没有权限")
+        else:
+            return ErrorResponse(msg="请先登录")
+
 
 
 class PointRecordViewSet(ComModelViewSet):
     """
-    兑换记录
+    积分变动记录
+    list:列表
     """
     queryset = PointRecord.objects.all()
     serializer_class = PointRecordSerializer
-    search_fields = ('username', 'coupon_code')
-    filter_fields = ('product_id', 'shopify_coupon_id')
+    def list(self, request, *args, **kwargs):
+        # 获取当前用户积分变动记录
+        user=request.user
+        if user.is_authenticated:
+            self.queryset = self.queryset.filter(uid=user.id)
+            return super().list(request, *args, **kwargs)
+        else:
+            return ErrorResponse(msg="请先登录")
 
 
 class GiftCardViewSet(ComModelViewSet):
     """
     管理员礼品卡列表
+    list:列表
+    create:创建
+    update:更新
+    retrieve:详情
+    destroy:删除
+    base_info:获取礼品卡基本信息
     """
     queryset = GiftCard.objects.all()
     serializer_class = GiftCardSerializer
     search_fields = ('code')
     @action(methods=['get'], detail=False, url_path='base-info', url_name='base-info')
-    def get_giftcard_base_info(self, request, *args, **kwargs):
+    def base_info(self, request, *args, **kwargs):
         """
         获取礼品卡基本信息
         """
         queryset = self.get_queryset()
-        giftcard_amount_list = queryset.values_list('amount', flat=True).distinct()
+        giftcard_amount_list = queryset.values_list('mount', flat=True).distinct()
         # 查询不同金额礼品卡对应的point
-        giftcard_amount_point_dict = {}
-        for amount in giftcard_amount_list:
-            giftcard_amount_point_dict[amount] = queryset.filter(amount=amount).first().point
-        return SuccessResponse(data=giftcard_amount_point_dict)
+        data_list = []
+        for mount in giftcard_amount_list:
+            giftcard_amount_point_dict = {}
+            giftcard_amount_point_dict["mount"] = mount
+            giftcard_amount_point_dict["point"] = queryset.filter(mount=mount).first().point
+            data_list.append(giftcard_amount_point_dict)
+        return SuccessResponse(data=data_list, msg="获取成功")
 
 class LevelCodeViewSet(ComModelViewSet):
     """
-    等级码
+    等级码配置
+    list:列表
+    put:更新
     """
     queryset = LevelCode.objects.all()
     serializer_class = LevelCodeSerializer

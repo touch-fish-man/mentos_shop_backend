@@ -238,31 +238,53 @@ class ChangePasswordApi(APIView):
 
     def post(self, request):
         user = request.user
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
-        if user.check_password(old_password):
-            user.password = make_password(new_password)
-            user.save()
-            return SuccessResponse(msg="修改成功")
+        if user.is_authenticated:
+            old_password = request.data.get('old_password')
+            new_password = request.data.get('new_password')
+            if user.check_password(old_password):
+                user.password = make_password(new_password)
+                user.save()
+                return SuccessResponse(msg="修改成功")
+            else:
+                return ErrorResponse(msg="原密码错误")
         else:
-            return ErrorResponse(msg="原密码错误")
+            return ErrorResponse(msg="error")
 
 
 class InviteLogApi(ListAPIView):
     """
     邀请记录
+    get:获取邀请记录
     """
     serializer_class = InviteLogSerializer
 
     queryset = InviteLog.objects.all()
+    def get(self, request, *args, **kwargs):
+        # 获取当前用户的邀请记录
+        user = request.user
+        if user.is_authenticated:
+            self.queryset = self.queryset.filter(invite_user=user)
+            return self.list(request, *args, **kwargs)
+        else:
+            return ErrorResponse(msg="error")
 
 
 class RebateRecordApi(ListAPIView):
     """
     返利记录
+    get:获取返利记录
     """
     serializer_class = RebateRecordSerializer
     queryset = RebateRecord.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        # 获取当前用户的返利记录
+        user = request.user
+        if user.is_authenticated:
+            self.queryset = self.queryset.filter(uid=user.id)
+            return self.list(request, *args, **kwargs)
+        else:
+            return ErrorResponse(msg="error")
 
 # class UserLevelRecordApi(ComModelViewSet):
 #     """

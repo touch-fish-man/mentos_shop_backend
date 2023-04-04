@@ -19,6 +19,7 @@ level_points = [0,1000,2000,3000,4000]
 
 def main():
     with console.status("[bold green]Generating gift cards...") as status:
+        print("Generating gift cards...")
         GiftCard.objects.all().delete()
         for i in range(50):
             point = random.randint(1, 100)

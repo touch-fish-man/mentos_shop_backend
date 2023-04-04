@@ -18,6 +18,7 @@ fake = Faker(locale='zh_CN')
 def main():
     with console.status("[bold green]Generating orders...") as status:
         Orders.objects.all().delete()
+        print("Generating orders...")
         for i in range(50):
             order_id = fake.md5()
             # 随机获取一个用户
@@ -40,7 +41,7 @@ def main():
             pay_remark = fake.text()
             pay_callback_time = fake.date_time().replace(tzinfo=timezone.utc)
             pay_callback_status = random.randint(1, 5)
-            expired_at = fake.date_time().replace(tzinfo=timezone.utc)
+            expired_at = fake.future_datetime().replace(tzinfo=timezone.utc)
             proxy_num = 4**random.randint(1, 5)
             order=Orders.objects.create(
                 order_id=order_id,
