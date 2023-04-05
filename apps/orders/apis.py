@@ -3,19 +3,18 @@ import datetime
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 
-from apps.core.json_response import SuccessResponse,ErrorResponse
+from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.orders.models import Orders
 from apps.orders.serializers import OrdersSerializer, OrdersCreateSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook,shopify_order,get_checkout_link
+from .services import verify_webhook, shopify_order, get_checkout_link
 import logging
 from django.utils.decorators import method_decorator
 
 from django.views.decorators.csrf import csrf_exempt
-
 
 
 class OrdersApi(ComModelViewSet):
@@ -48,7 +47,7 @@ class OrdersApi(ComModelViewSet):
         return SuccessResponse(data=serializer.data, msg="获取成功")
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data,request=request)
+        serializer = self.get_serializer(data=request.data, request=request)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return SuccessResponse(data=serializer.data, msg="新增成功")
@@ -63,7 +62,6 @@ class OrdersApi(ComModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
-    
 
     @action(methods=['post'], detail=True, url_path='reset_proxy_password', url_name='reset_proxy_password')
     def reset_proxy_password(self, request, *args, **kwargs):
@@ -87,12 +85,12 @@ class OrdersApi(ComModelViewSet):
             return SuccessResponse(data={}, msg="过期时间不能为空")
         # 时间戳转换
         try:
-            expired_at = datetime.datetime.fromtimestamp(int(expired_at)//1000).replace(tzinfo=datetime.timezone.utc)
+            expired_at = datetime.datetime.fromtimestamp(int(expired_at) // 1000).replace(tzinfo=datetime.timezone.utc)
         except Exception as e:
             return ErrorResponse(data={}, msg="过期时间格式错误")
-        order=Orders.objects.filter(id=order_id)
+        order = Orders.objects.filter(id=order_id)
         if order.exists():
-            order=order.first()
+            order = order.first()
             proxy = Proxy.objects.filter(order_id=order_id)
             if proxy.exists():
                 for p in proxy.all():
@@ -101,11 +99,12 @@ class OrdersApi(ComModelViewSet):
                     p.expired_at = expired_at
                     p.save()
                     # todo 重置代理密码
-            order.expired_at=expired_at
+            order.expired_at = expired_at
             order.save()
         else:
             return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理过期时间更新成功")
+
     @action(methods=['get'], detail=True, url_path='get_proxy_detail', url_name='get_proxy_detail')
     def get_proxy_detail(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
@@ -118,7 +117,8 @@ class OrdersApi(ComModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
-    
+
+
 class OrderCallbackApi(APIView):
     """
     订单回调接口
@@ -131,11 +131,14 @@ class OrderCallbackApi(APIView):
         # 验证签名
         logging.error(request.query_params)
         return SuccessResponse(data={}, msg="回调成功")
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class ShopifyWebhookApi(APIView):
     """
     shopify回调接口
     """
+
     def post(self, request):
         # todo 订单回调
         # 通过pix脚本回调
@@ -147,20 +150,24 @@ class ShopifyWebhookApi(APIView):
         # shopify订单回调
         shopify_order(request.data)
         return SuccessResponse()
+
+
 class CheckoutApi(APIView):
     """
     订单结算接口
     """
+
     def post(self, request, *args, **kwargs):
         # 生成订单
         user = request.user
         if user.is_authenticated:
-            checkout_url,order_id=get_checkout_link(request)
+            checkout_url, order_id = get_checkout_link(request)
             if not checkout_url:
                 return ErrorResponse(data={}, msg="订单生成失败")
-            return SuccessResponse(data={"checkout_url": checkout_url,"order_id":order_id}, msg="订单生成成功")
+            return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="订单生成成功")
         else:
             return ErrorResponse(data={}, msg="用户未登录")
+
     def get(self, request, *args, **kwargs):
         order_id = request.query_params.get('order_id', None)
         user = request.user
