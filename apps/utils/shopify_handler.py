@@ -210,15 +210,15 @@ class ShopifyClient:
             return order[0].to_dict()
         else:
             return None
-
-    def gen_permalink(self, data):
-        base_url = self.shop_url + "/cart/clear?return_to=/cart/"
+    @staticmethod
+    def get_checkout_link(shop_url, data):
+        base_url = shop_url + "/cart/clear?return_to=/cart/"
 
         cart_quantity_pairs = data.get("cart_quantity_pairs")
         email = data.get("email")
         note = data.get("note")
-        discount = data.get("discount")
-        ref = data.get("ref")
+        discount_str = "&discount=" + data.get("discount") if data.get("discount") else ""
+        ref_str = "&ref=" + data.get("ref") if data.get("ref") else ""
 
         # 将cart_id和quantity分别存储在两个列表中
         cart_ids = []
@@ -231,7 +231,7 @@ class ShopifyClient:
         # 将多个cart_id和quantity拼接成字符串，用逗号隔开
         cart_quantity_str = ",".join([cart_ids[i] + ":" + quantities[i] for i in range(len(cart_ids))])
 
-        url = base_url + cart_quantity_str + "?checkout[email]=" + email + "&note=" + note + "&discount=" + discount + "&ref=" + ref
+        url = base_url + cart_quantity_str + "?checkout[email]=" + email + "&note=" + note + discount_str + ref_str
         return url
 
     def get_customers(self):
