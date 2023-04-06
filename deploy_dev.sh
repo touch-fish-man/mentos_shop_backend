@@ -8,7 +8,7 @@ export DJANGO_ENV=dev
 /root/anaconda3/envs/py38/bin/python manage.py makemigrations
 /root/anaconda3/envs/py38/bin/python manage.py migrate
 
-# kill the process running on port 4000
+# kill the process running on port 4000 
 kill -9 $(lsof -t -i:4000)
 # 删除已经存在的django screen
 screen -X -S django quit
