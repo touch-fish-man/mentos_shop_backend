@@ -15,6 +15,7 @@ from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.users.models import User, Code, InviteLog, RebateRecord
 from apps.users.selectors import user_get_login_data
+from apps.users.task import del_emailcode
 from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer, \
     InviteLogSerializer, RebateRecordSerializer
 from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
@@ -176,6 +177,7 @@ class EmailValidateApi(APIView):
                 data = {"email_code_id": fake_code_id}
                 return SuccessResponse(data=data, msg=msg)
         code_id = send_email_code(email, req_type)
+        # del_emailcode(code_id=code_id)
         if code_id:
             msg = "send success"
             data = {"email_code_id": code_id}
