@@ -7,7 +7,7 @@ class AclGroup(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL组名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     acls = models.ManyToManyField('Acls', verbose_name='ACL', through='AclGroupThrough')
-    acl_value = models.CharField(max_length=1024, null=True, verbose_name='ACL值',unique=True,help_text='ACL值不能重复')
+    acl_value = models.CharField(max_length=1024, null=True, verbose_name='ACL值')
 
     class Meta:
         db_table = 'acl_group'
