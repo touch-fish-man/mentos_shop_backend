@@ -14,7 +14,6 @@ import datetime
 from pathlib import Path
 import os
 import pymysql
-import djcelery
 if os.environ.get('DJANGO_ENV') != 'prod' or os.environ.get('DJANGO_ENV') != 'test':
     pymysql.version_info = (1, 4, 6, "final", 0)
     pymysql.install_as_MySQLdb()
@@ -57,8 +56,7 @@ INSTALLED_APPS = [
     "captcha",
     "django_extensions",
     "apps.rewards",
-    "apps.products",
-    "djcelery"
+    "apps.products"
 ]
 
 MIDDLEWARE = [
@@ -253,20 +251,6 @@ SIMPLE_JWT = {
 REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
 REDIS_HOST = '177.8.0.14'
 
-djcelery.setup_loader()
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TIMEZONE = 'UTC'
-CELERY_ENABLE_UTC = True
-
-
-
-CELERY_BROKER_URL = 'redis://root:fan123456@127.0.0.1:6379/0'
-# RESULT_BACKEND 结果保存数据库
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
-# SCHEDULER 定时任务保存数据库
-CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 
 # 配置日志
 
@@ -283,6 +267,7 @@ SHOPIFY_API_SECRET = env('SHOPIFY_API_SECRET')
 SHOPIFY_SHOP_URL = env('SHOPIFY_SHOP_URL')
 SHOPIFY_APP_KEY = env('SHOPIFY_APP_KEY')
 SHOPIFY_WEBHOOK_KEY = env('SHOPIFY_WEBHOOK_KEY')
+SHOPIFY_PRIVATE_APP_PASSWORD = env('SHOPIFY_PRIVATE_APP_PASSWORD')
 
 # 邮件相关配置
 EMAIL_METHOD = env('EMAIL_METHOD') # 邮件发送方式 mailgun or sendgrid

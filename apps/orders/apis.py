@@ -13,7 +13,6 @@ from rest_framework.views import APIView
 from .services import verify_webhook, shopify_order, get_checkout_link
 import logging
 from django.utils.decorators import method_decorator
-from apps.orders.task import del_order_proxy,email_notification
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -50,8 +49,6 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(data=request.data, request=request)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        del_order_proxy(serializer.data['order_id'])
-        email_notification(order_id=serializer.data['order_id'])
         return SuccessResponse(data=serializer.data, msg="新增成功")
 
     def retrieve(self, request, *args, **kwargs):

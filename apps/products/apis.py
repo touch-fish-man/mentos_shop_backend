@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.views import APIView
 from .models import Product, Variant, ProductCollection, ProductTag
 from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer, \
     ProductCreateSerializer
@@ -29,7 +30,7 @@ class ProductViewSet(ComModelViewSet):
         shop_url = settings.SHOPIFY_SHOP_URL
         api_version = '2023-01'
         api_key = settings.SHOPIFY_API_KEY
-        api_scert = settings.SHOPIFY_API_SCERT
+        api_scert = settings.SHOPIFY_API_SECRET
         private_app_password = settings.SHOPIFY_PRIVATE_APP_PASSWORD
         shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
         product_dict = shopify_client.get_products(format=True)
@@ -47,6 +48,16 @@ class ProductCollectionViewSet(ComModelViewSet):
     """
     queryset = ProductCollection.objects.all()
     serializer_class = ProductCollectionSerializer
+    @action(methods=['get'], detail=False, url_path='get_collection_from_shopify', url_name='get_collection_from_shopify')
+    def get_collection_from_shopify(self, request):
+        shop_url = settings.SHOPIFY_SHOP_URL
+        api_version = '2023-01'
+        api_key = settings.SHOPIFY_API_KEY
+        api_scert = settings.SHOPIFY_API_SECRET
+        private_app_password = settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
+        productcollection = shopify_client.get_product_collections()
+        return SuccessResponse(data=productcollection)
 
 
 class ProductTagViewSet(ComModelViewSet):
@@ -60,3 +71,13 @@ class ProductTagViewSet(ComModelViewSet):
     """
     queryset = ProductTag.objects.all()
     serializer_class = ProductTagSerializer
+    @action(methods=['get'], detail=False, url_path='get_tags_from_shopify', url_name='get_tags_from_shopify')
+    def get_tags_from_shopify(self, request):
+        shop_url = settings.SHOPIFY_SHOP_URL
+        api_version = '2023-01'
+        api_key = settings.SHOPIFY_API_KEY
+        api_scert = settings.SHOPIFY_API_SECRET
+        private_app_password = settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
+        product_tags = shopify_client.get_product_tags()
+        return SuccessResponse(data=product_tags)
