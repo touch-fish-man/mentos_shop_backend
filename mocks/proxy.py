@@ -22,10 +22,10 @@ def main():
         print("Generating proxy servers...")
         Proxy.objects.all().delete()
         order_count = Orders.objects.count()
-        while order_count < 15:
+        while order_count < 10:
             order_count = Orders.objects.count()
-            time.sleep(10)
-        for order in Orders.objects.all()[:10]:
+            time.sleep(1)
+        for order in Orders.objects.all()[:5]:
             for i in range(50):
                 print(i)
                 ip = fake.ipv4()
