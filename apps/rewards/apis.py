@@ -26,7 +26,7 @@ class CouponCodeViewSet(ComModelViewSet):
                 # 管理员获取所有优惠码
                 return super().list(request, *args, **kwargs)
             # 普通用户获取自己的优惠码
-            self.queryset = self.queryset.filter(uid=user.id)
+            self.queryset = self.queryset.filter(holder_uid=user.id)
             return super().list(request, *args, **kwargs)
         else:
             return ErrorResponse(msg="请先登录")

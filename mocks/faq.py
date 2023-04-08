@@ -18,7 +18,7 @@ def main():
         Question.objects.all().delete()
         print("Generating faq...")
         for i in range(50):
-            question = fake.sentence()
+            question = "问题"+str(i)+"?"
             answer = fake.text()
             Question.objects.create(question=question, answer=answer)
 

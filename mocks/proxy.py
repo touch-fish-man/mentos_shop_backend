@@ -27,7 +27,6 @@ def main():
             time.sleep(1)
         for order in Orders.objects.all()[:5]:
             for i in range(50):
-                print(i)
                 ip = fake.ipv4()
                 port = fake.port_number()
                 user= random.choice(User.objects.all())

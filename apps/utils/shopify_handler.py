@@ -363,6 +363,11 @@ class SyncClient(ShopifyClient):
             else:
                 ProductTag.objects.create(tag_name=tag)
         return True
+    def sync_shopify(self):
+        # 同步shopify
+        self.sync_customers()
+        self.sync_product_collections()
+        self.sync_product_tags()
 
 
     def sync_promotions(self):

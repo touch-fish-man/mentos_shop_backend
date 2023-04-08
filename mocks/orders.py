@@ -26,7 +26,7 @@ def main():
             username = fake.user_name()
             shopify_order_id = fake.md5()
             product_id = random.randint(1, 100)
-            product_name = fake.name()
+            product_name = "产品"+str(i)
             variant_id = random.randint(1, 100)
             product_price = random.randint(1, 100)
             product_quantity = random.randint(1, 100)

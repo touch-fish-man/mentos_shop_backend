@@ -21,16 +21,16 @@ def main():
     with console.status("[bold green]Generating gift cards...") as status:
         print("Generating gift cards...")
         GiftCard.objects.all().delete()
-        for i in range(50):
+        for i in range(10):
             point = random.randint(1, 100)
             code = ''.join(random.sample(string.ascii_letters + string.digits, 8))
-            mount = random.randint(1, 100)
+            mount = "$"+str(random.randint(1, 100))
             is_exchanged = random.choice([True, False])
             GiftCard.objects.create(point=point, code=code, mount=mount, is_exchanged=is_exchanged)
         LevelCode.objects.all().delete()
         for i in range(5):
             discount = level_choices[i]
-            code = ''.join(random.sample(string.ascii_letters + string.digits, 8))
+            code = 'VIP'+str(i+1)+'_DISCOUNT'
             level_point=level_points[i]
             level=i+1
             LevelCode.objects.create(discount=discount, code=code,point=level_point,level=level)
