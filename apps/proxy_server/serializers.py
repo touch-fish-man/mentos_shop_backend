@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.core.serializers import CommonSerializer
-from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr
+from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr,cidr_ip_count
 from apps.core.validators import CustomUniqueValidator
 
 
@@ -110,9 +110,15 @@ class ServerCreateSerializer(CommonSerializer):
 
     name = serializers.CharField(required=True, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
-
+class CidrCreateSerializer(CommonSerializer):
+    class Meta:
+        model = Cidr
+        fields = ('cidr','ip_count')
+        extra_kwargs = {
+        'ip_count': {'read_only': True}}
 
 class ServerUpdateSerializer(CommonSerializer):
+    cidrs = CidrCreateSerializer(many=True)
     class Meta:
         model = Server
         fields = ('id', 'name', 'ip', 'description', 'cidrs')
@@ -123,3 +129,12 @@ class ServerUpdateSerializer(CommonSerializer):
         'id': {'read_only': True},
         'created_at': {'read_only': True},
         'updated_at': {'read_only': True}}
+    def update(self, instance, validated_data):
+        cidrs = validated_data.pop('cidrs')
+        instance.cidrs.clear()
+        for cidr in cidrs:
+            cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
+            cidr_obj= Cidr.objects.get_or_create(**cidr)
+            instance.cidrs.add(cidr_obj[0].id)
+        instance = super().update(instance, validated_data)
+        return instance

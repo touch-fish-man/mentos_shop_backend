@@ -28,6 +28,11 @@ def main():
             cidr=Cidr.objects.create(cidr=cidr,ip_count=ip_count)
             server=Server.objects.create(name=name, description=description, ip=ip)
             server.cidrs.add(cidr)
+            cidr = fake.ipv4(network=True)
+            ip_count=cidr_ip_count(cidr)
+            cidr=Cidr.objects.create(cidr=cidr,ip_count=ip_count)
+            server.cidrs.add(cidr)
+
         for i in range(10):
             name = 'test proxy server group {}'.format(i)
             description = fake.sentence()
