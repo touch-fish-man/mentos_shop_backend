@@ -16,9 +16,9 @@ def main():
     with console.status("[bold green]Generating coupon codes...") as status:
         PointRecord.objects.all().delete()
         for i in range(50):
-            uid = random.randint(-100, 100)
+            uid = random.randint(1,3)
             username = 'test'
-            point = random.randint(1, 100)
+            point = random.randint(-100, 100)
             reason = random.choice(['签到', '邀请好友', '兑换礼品卡'])
             PointRecord.objects.create(uid=uid, username=username, point=point, reason=reason)
 

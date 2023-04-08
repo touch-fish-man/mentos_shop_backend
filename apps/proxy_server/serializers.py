@@ -102,20 +102,32 @@ class ServerGroupUpdateSerializer(CommonSerializer):
                                                                    message="代理服务器组名称已存在")])
     description = serializers.CharField(required=False)
 
-
-class ServerCreateSerializer(CommonSerializer):
-    class Meta:
-        model = Server
-        fields = '__all__'
-
-    name = serializers.CharField(required=True, validators=[
-        CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
 class CidrCreateSerializer(CommonSerializer):
     class Meta:
         model = Cidr
         fields = ('cidr','ip_count')
         extra_kwargs = {
         'ip_count': {'read_only': True}}
+
+class ServerCreateSerializer(CommonSerializer):
+    cidrs = CidrCreateSerializer(many=True)
+    class Meta:
+        model = Server
+        fields = '__all__'
+
+    name = serializers.CharField(required=True, validators=[
+        CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
+    def create(self, validated_data):
+        cidrs = validated_data.pop('cidrs')
+        server = Server.objects.create(**validated_data)
+        cidrs_list = []
+        for cidr in cidrs:
+            cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
+            cidr_obj= Cidr.objects.get_or_create(**cidr)
+            cidrs_list.append(cidr_obj[0].id)
+        server.cidrs.set(cidrs_list)
+        return server
+
 
 class ServerUpdateSerializer(CommonSerializer):
     cidrs = CidrCreateSerializer(many=True)
