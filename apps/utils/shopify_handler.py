@@ -8,11 +8,7 @@ import django
 import shopify
 from apps.products.models import ProductCollection,ProductTag
 
-shop_url = 'https://mentosproxy.myshopify.com/'
-api_version = '2023-01'
-api_key = 'dd6b4fd6efe094ef3567c61855f11385'
-api_scert = 'f729623ef6a576808a5e83d426723fc1'
-private_app_password = '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'
+
 
 import logging
 

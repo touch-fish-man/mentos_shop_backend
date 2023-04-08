@@ -31,7 +31,7 @@ class ProductViewSet(ComModelViewSet):
         api_version = '2023-01'
         api_key = settings.SHOPIFY_API_KEY
         api_scert = settings.SHOPIFY_API_SECRET
-        private_app_password = settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
         product_dict = shopify_client.get_products(format=True)
         return SuccessResponse(data=product_dict)
@@ -54,7 +54,7 @@ class ProductCollectionViewSet(ComModelViewSet):
         api_version = '2023-01'
         api_key = settings.SHOPIFY_API_KEY
         api_scert = settings.SHOPIFY_API_SECRET
-        private_app_password = settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
         productcollection = shopify_client.get_product_collections()
         return SuccessResponse(data=productcollection)
@@ -77,7 +77,7 @@ class ProductTagViewSet(ComModelViewSet):
         api_version = '2023-01'
         api_key = settings.SHOPIFY_API_KEY
         api_scert = settings.SHOPIFY_API_SECRET
-        private_app_password = settings.SHOPIFY_PRIVATE_APP_PASSWORD
+        private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
         product_tags = shopify_client.get_product_tags()
         return SuccessResponse(data=product_tags)

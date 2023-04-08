@@ -3,7 +3,7 @@ from .apis import OrdersApi,OrderCallbackApi,ShopifyWebhookApi,CheckoutApi
 from rest_framework import routers
 
 router = routers.DefaultRouter()
-router.register(r'order', OrdersApi, basename='orders')
+router.register(r'order_list', OrdersApi, basename='orders')
 
 
 
