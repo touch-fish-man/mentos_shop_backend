@@ -8,7 +8,18 @@ from pprint import pprint
 import django
 import shopify
 
-
+if os.environ.get('DJANGO_ENV'):
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    print(base_dir)
+    if os.path.exists(os.path.join(base_dir, 'config', 'django', os.environ.get('DJANGO_ENV') + '.py')):
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django." + os.environ.get('DJANGO_ENV'))
+    else:
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
+else:
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+django.setup()
+from apps.products.models import *
 
 
 import logging
@@ -23,9 +34,9 @@ import logging
 
 
 class ShopifyClient:
-    def __init__(self, shop_url, api_version, api_key, api_scert, access_token):
+    def __init__(self, shop_url=None, api_key=None, api_scert=None, access_token=None,api_version=None):
         self.shop_url = shop_url
-        self.api_version = api_version
+        self.api_version = api_version if api_version else '2023-01'
         self.api_key = api_key
         self.api_scert = api_scert
         self.access_token = access_token
@@ -291,23 +302,8 @@ class ShopifyClient:
 
 
 class SyncClient(ShopifyClient):
-    def __init__(self, shop_url, api_version, api_key, api_scert, access_token):
-        super(SyncClient, self).__init__(shop_url, api_version, api_key, api_scert, access_token)
-        self.setup()
-    def setup(self):
-        # 初始化
-        if os.environ.get('DJANGO_ENV'):
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            print(base_dir)
-            if os.path.exists(os.path.join(base_dir, 'config', 'django', os.environ.get('DJANGO_ENV') + '.py')):
-                os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django." + os.environ.get('DJANGO_ENV'))
-            else:
-                os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
-        else:
-            os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
-        # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        django.setup()
-        print("setup done")
+    def __init__(self, *args, **kwargs):
+        super(SyncClient, self).__init__(*args, **kwargs)
 
 
     def sync_customers(self):
@@ -315,7 +311,23 @@ class SyncClient(ShopifyClient):
         # 1. 获取本地所有客户
         # 2. 更新客户信息到shopify
         # 3. 更新客户等级
-        pass
+        from apps.users.models import User
+        all_users = User.objects.all()
+        shopify_users=self.get_customers()
+        shopify_users_email_dict=dict([(i['email'],i) for i in shopify_users])
+        for user in all_users:
+            if not (user.email in shopify_users_email_dict and "vip"+str(user.level)==shopify_users_email_dict[user.email]['tags']):
+                print(user.email)
+                # 创建用户
+                customer_info = {
+                    "first_name": user.username,
+                    "last_name": user.username,
+                    "email": user.email,
+                    "tags": "vip"+str(user.level)
+                }
+                self.create_customer(customer_info)
+                # 增加请求频率限制
+                time.sleep(1)
 
     def sync_customer_tags(self):
         # 同步客户标签 更新用户等级
@@ -335,11 +347,11 @@ class SyncClient(ShopifyClient):
     def sync_product_collections(self):
         collection_list=self.get_product_collections()
         for i in collection_list:
-            print(i['title'])
             if ProductCollection.objects.filter(collection_name=i['title']).exists():
                 ProductCollection.objects.filter(collection_name=i['title']).update(collection_desc=i['desc'])
             else:
                 ProductCollection.objects.create(collection_name=i['title'],collection_desc=i['desc'])
+        return True
 
     def sync_product_tags(self):
         # 同步产品标签
@@ -350,6 +362,7 @@ class SyncClient(ShopifyClient):
                 continue
             else:
                 ProductTag.objects.create(tag_name=tag)
+        return True
 
 
     def sync_promotions(self):
@@ -363,7 +376,6 @@ class SyncClient(ShopifyClient):
 
 if __name__ == '__main__':
     shop_url = 'https://mentosproxy.myshopify.com/'
-    api_version = '2023-01'
     api_key = 'dd6b4fd6efe094ef3567c61855f11385'
     api_scert = 'f729623ef6a576808a5e83d426723fc1'
     private_app_password = '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'
@@ -388,7 +400,8 @@ if __name__ == '__main__':
     # pprint(shopify_client.get_product_tags())
     # pprint(shopify_client.get_customers())
 
-    syncclient = SyncClient(shop_url, api_version, api_key, api_scert, private_app_password)
-    from apps.products.models import ProductCollection, ProductTag
-    print(syncclient.sync_product_collections())
-    print(syncclient.sync_product_tags())
+    syncclient = SyncClient(shop_url, api_key, api_scert, private_app_password)
+    # print(syncclient.sync_product_collections())
+    # print(syncclient.sync_product_tags())
+    # print(syncclient.get_customers())
+    print(syncclient.sync_customers())
