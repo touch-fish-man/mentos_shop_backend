@@ -13,6 +13,7 @@ def user_get_login_data(*, user: User):
         "is_superuser": user.is_superuser,
         "discord_id":user.discord_id if len(user.discord_id) else None,
         "discord_name": user.discord_name if len(user.discord_name) else None,
+        "level_points": user.level_points,
     }
 
 
