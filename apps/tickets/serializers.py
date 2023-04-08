@@ -29,7 +29,7 @@ class TicketsSerializer(serializers.ModelSerializer):
         return instance
 
 
-class FQASerializer(serializers.Serializer):
+class FQASerializer(serializers.ModelSerializer):
     class Meta:
         model = Question
         fields = "__all__"
