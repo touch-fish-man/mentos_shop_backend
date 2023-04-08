@@ -30,8 +30,10 @@ class Orders(BaseModel):
     product_total_price = models.FloatField(verbose_name='产品总价')
     # 产品类型
     product_type = models.IntegerField(verbose_name='产品类型')
+    # 产品类型名称
+    # product_type_name = models.CharField(max_length=255, verbose_name='产品类型名称')
     # 订单状态
-    order_status = models.IntegerField(verbose_name='订单状态', default=0)
+    order_status = models.IntegerField(verbose_name='订单状态', default=0)  # 0: 未支付 1: 已支付 2: 已取消 3: 已过期
     # 支付状态 -1: 支付失败 0: 未支付 1: 支付成功
     pay_status = models.IntegerField(verbose_name='支付状态', default=0)
     # 支付时间

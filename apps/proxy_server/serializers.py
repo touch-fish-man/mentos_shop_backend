@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.core.serializers import CommonSerializer
-from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup
+from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr
 from apps.core.validators import CustomUniqueValidator
 
 
@@ -16,7 +16,10 @@ class AclsGroupSerializer(CommonSerializer):
         model = Acls
         fields = ('id', 'name')
 
-
+class CidrSerializer(CommonSerializer):
+    class Meta:
+        model = Cidr
+        fields = ('id', 'cidr', 'ip_count')
 class AclGroupSerializer(CommonSerializer):
     acls = AclsGroupSerializer(many=True)
 
@@ -69,9 +72,10 @@ class AclsUpdateSerializer(CommonSerializer):
 
 
 class ServerSerializer(CommonSerializer):
+    cidrs = CidrSerializer(many=True)
     class Meta:
         model = Server
-        fields = '__all__'
+        fields = ('id', 'name', 'ip', 'description', 'cidrs')
 
 
 class ServersGroupSerializer(CommonSerializer):

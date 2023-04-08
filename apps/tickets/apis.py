@@ -1,7 +1,7 @@
 from rest_framework import serializers
-from apps.tickets.models import Tickets
+from apps.tickets.models import Tickets, Question
 from apps.core.viewsets import ComModelViewSet
-from apps.tickets.serializers import TicketsSerializer
+from apps.tickets.serializers import TicketsSerializer, FQASerializer
 from apps.authentication.services import check_chaptcha
 from apps.core.json_response import ErrorResponse
 from django.conf import settings
@@ -38,3 +38,16 @@ class TicksApi(ComModelViewSet):
                 return ErrorResponse(msg=e.message)
         return super().create(request, *args, **kwargs)
     
+class FQA(ComModelViewSet):
+    """
+    FAQ
+    list:列表
+    create:创建
+    update:更新
+    retrieve:详情
+    destroy:删除
+    """
+    queryset = Question.objects.all()
+    serializer_class = FQASerializer
+    search_fields=('question', 'answer')
+    filterset_fields = ('question', 'answer')

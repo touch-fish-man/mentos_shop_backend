@@ -179,6 +179,6 @@ class KaxyClient:
 if __name__ == "__main__":
     token = 'EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'
     client = KaxyClient("http://112.75.252.4:65533", token)
-    pprint(client.list_all_proxies().json())
-    pprint(client.get_server_info().json())
+    # pprint(client.list_all_proxies().json())
+    pprint(client.list_users().json())
 

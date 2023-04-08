@@ -1,12 +1,13 @@
 import contextlib
 import os
+import sys
 import time
 from collections import OrderedDict
 from pprint import pprint
 
 import django
 import shopify
-from apps.products.models import ProductCollection,ProductTag
+
 
 
 
@@ -290,10 +291,24 @@ class ShopifyClient:
 
 
 class SyncClient(ShopifyClient):
+    def __init__(self, shop_url, api_version, api_key, api_scert, access_token):
+        super(SyncClient, self).__init__(shop_url, api_version, api_key, api_scert, access_token)
+        self.setup()
     def setup(self):
         # 初始化
-        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'PV_Moniter.settings')
+        if os.environ.get('DJANGO_ENV'):
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            print(base_dir)
+            if os.path.exists(os.path.join(base_dir, 'config', 'django', os.environ.get('DJANGO_ENV') + '.py')):
+                os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django." + os.environ.get('DJANGO_ENV'))
+            else:
+                os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
+        else:
+            os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
+        # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         django.setup()
+        print("setup done")
+
 
     def sync_customers(self):
         # 同步客户信息
@@ -320,10 +335,11 @@ class SyncClient(ShopifyClient):
     def sync_product_collections(self):
         collection_list=self.get_product_collections()
         for i in collection_list:
-            if ProductCollection.objects.filter(shopify_collection_id=i['id']).exists():
-                continue
+            print(i['title'])
+            if ProductCollection.objects.filter(collection_name=i['title']).exists():
+                ProductCollection.objects.filter(collection_name=i['title']).update(collection_desc=i['desc'])
             else:
-                ProductCollection.objects.create(shopify_collection_id=i['id'],collection_desc=i['desc'],product_collection=i['title'])
+                ProductCollection.objects.create(collection_name=i['title'],collection_desc=i['desc'])
 
     def sync_product_tags(self):
         # 同步产品标签
@@ -346,7 +362,12 @@ class SyncClient(ShopifyClient):
 
 
 if __name__ == '__main__':
-    shopify_client = ShopifyClient(shop_url, api_version, api_key, api_scert, private_app_password)
+    shop_url = 'https://mentosproxy.myshopify.com/'
+    api_version = '2023-01'
+    api_key = 'dd6b4fd6efe094ef3567c61855f11385'
+    api_scert = 'f729623ef6a576808a5e83d426723fc1'
+    private_app_password = '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'
+    # shopify_client = SyncClient(shop_url, api_version, api_key, api_scert, private_app_password)
 
     # for product in shopify_client.get_products(format=True):
     #     pprint(product)
@@ -366,6 +387,8 @@ if __name__ == '__main__':
     # pprint(shopify_client.get_product_collections())
     # pprint(shopify_client.get_product_tags())
     # pprint(shopify_client.get_customers())
+
     syncclient = SyncClient(shop_url, api_version, api_key, api_scert, private_app_password)
+    from apps.products.models import ProductCollection, ProductTag
     print(syncclient.sync_product_collections())
     print(syncclient.sync_product_tags())

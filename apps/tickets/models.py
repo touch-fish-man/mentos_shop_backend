@@ -12,3 +12,11 @@ class Tickets(models.Model):
         db_table = 'tickets'
         verbose_name = '工单'
         verbose_name_plural = verbose_name
+
+
+class Question(models.Model):
+    '''
+    FAQ
+    '''
+    question = models.CharField(max_length=200)
+    answer = models.TextField()

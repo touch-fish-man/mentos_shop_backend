@@ -17,13 +17,14 @@ from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
 executor = ThreadPoolExecutor(10)
 def main():
     mock_users()
+    mock_orders()
     threads = []
     threads.append(executor.submit(mock_tickets))
     threads.append(executor.submit(mock_acls))
     threads.append(executor.submit(mock_servers))
     threads.append(executor.submit(mock_invite_log))
     threads.append(executor.submit(mock_rebate_record))
-    threads.append(executor.submit(mock_orders))
+    # threads.append(executor.submit(mock_orders))
     threads.append(executor.submit(mock_giftcard))
     threads.append(executor.submit(mock_coupon_code))
     threads.append(executor.submit(mock_point_record))
