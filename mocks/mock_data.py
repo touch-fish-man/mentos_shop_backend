@@ -12,6 +12,7 @@ from orders import main as mock_orders
 from giftcard import main as mock_giftcard
 from coupon_code import main as mock_coupon_code
 from point_record import main as mock_point_record
+from faq import main as mock_faq
 # 使用线程池，提高速度
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
 executor = ThreadPoolExecutor(10)
@@ -29,6 +30,7 @@ def main():
     threads.append(executor.submit(mock_coupon_code))
     threads.append(executor.submit(mock_point_record))
     threads.append(executor.submit(mock_proxy))
+
 
     wait(threads, return_when=ALL_COMPLETED)
     print("mock data done")

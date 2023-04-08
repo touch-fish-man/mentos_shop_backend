@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.core.serializers import CommonSerializer
-from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr,cidr_ip_count
+from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr, cidr_ip_count
 from apps.core.validators import CustomUniqueValidator
 
 
@@ -16,10 +16,13 @@ class AclsGroupSerializer(CommonSerializer):
         model = Acls
         fields = ('id', 'name')
 
+
 class CidrSerializer(CommonSerializer):
     class Meta:
         model = Cidr
         fields = ('id', 'cidr', 'ip_count')
+
+
 class AclGroupSerializer(CommonSerializer):
     acls = AclsGroupSerializer(many=True)
 
@@ -73,6 +76,7 @@ class AclsUpdateSerializer(CommonSerializer):
 
 class ServerSerializer(CommonSerializer):
     cidrs = CidrSerializer(many=True)
+
     class Meta:
         model = Server
         fields = ('id', 'name', 'ip', 'description', 'cidrs')
@@ -102,28 +106,32 @@ class ServerGroupUpdateSerializer(CommonSerializer):
                                                                    message="代理服务器组名称已存在")])
     description = serializers.CharField(required=False)
 
+
 class CidrCreateSerializer(CommonSerializer):
     class Meta:
         model = Cidr
-        fields = ('cidr','ip_count')
+        fields = ('cidr', 'ip_count')
         extra_kwargs = {
-        'ip_count': {'read_only': True}}
+            'ip_count': {'read_only': True}}
+
 
 class ServerCreateSerializer(CommonSerializer):
     cidrs = CidrCreateSerializer(many=True)
+
     class Meta:
         model = Server
         fields = '__all__'
 
     name = serializers.CharField(required=True, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
+
     def create(self, validated_data):
         cidrs = validated_data.pop('cidrs')
         server = Server.objects.create(**validated_data)
         cidrs_list = []
         for cidr in cidrs:
             cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
-            cidr_obj= Cidr.objects.get_or_create(**cidr)
+            cidr_obj = Cidr.objects.get_or_create(**cidr)
             cidrs_list.append(cidr_obj[0].id)
         server.cidrs.set(cidrs_list)
         return server
@@ -131,6 +139,7 @@ class ServerCreateSerializer(CommonSerializer):
 
 class ServerUpdateSerializer(CommonSerializer):
     cidrs = CidrCreateSerializer(many=True)
+
     class Meta:
         model = Server
         fields = ('id', 'name', 'ip', 'description', 'cidrs')
@@ -141,12 +150,13 @@ class ServerUpdateSerializer(CommonSerializer):
         'id': {'read_only': True},
         'created_at': {'read_only': True},
         'updated_at': {'read_only': True}}
+
     def update(self, instance, validated_data):
         cidrs = validated_data.pop('cidrs')
         instance.cidrs.clear()
         for cidr in cidrs:
             cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
-            cidr_obj= Cidr.objects.get_or_create(**cidr)
+            cidr_obj = Cidr.objects.get_or_create(**cidr)
             instance.cidrs.add(cidr_obj[0].id)
         instance = super().update(instance, validated_data)
         return instance

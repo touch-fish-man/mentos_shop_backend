@@ -18,8 +18,8 @@ def main():
         print("Generating invite logs...")
         InviteLog.objects.all().delete()
         for i in range(50):
-            uid = random.randint(1, 100)
-            inviter_uid = random.randint(1, 100)
+            uid = random.randint(1, 10)
+            inviter_uid = random.randint(1, 10)
             username = 'test'
             invite_code = ''.join(random.sample(string.ascii_letters + string.digits, 8))
             inviter_username = 'test'
