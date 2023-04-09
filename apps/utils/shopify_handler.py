@@ -409,4 +409,4 @@ if __name__ == '__main__':
     # print(syncclient.sync_product_collections())
     # print(syncclient.sync_product_tags())
     # print(syncclient.get_customers())
-    print(syncclient.sync_customers())
+    print(syncclient.list_price_rules())

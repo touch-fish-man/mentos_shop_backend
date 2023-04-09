@@ -33,6 +33,7 @@ class Variant(BaseModel):
     商品变体
     """
     CART_STEP = (
+        (1, 1),
         (8, 8),
         (16, 16),
         (32, 32),
