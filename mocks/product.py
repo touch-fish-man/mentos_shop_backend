@@ -29,6 +29,8 @@ def main():
             product_collections_data = product.pop('product_collections')
             product_tags_data = product.pop('product_tags')
             options_data = product.pop('variant_options')
+            acl_group = random.choice(AclGroup.objects.all())
+            server_group = random.choice(ServerGroup.objects.all())
             product = Product.objects.create(**product)
             # 创建option
             for option_data in options_data:
@@ -36,8 +38,8 @@ def main():
                 OptionSerializer().create(option_data)  # 创建variant
             for variant_data in variants_data:
                 variant_data["variant_desc"]=fake.sentence(nb_words=6, variable_nb_words=True, ext_word_list=None)
-                variant_data["acl_group"]= random.choice(AclGroup.objects.all())
-                variant_data["server_group"]= random.choice(ServerGroup.objects.all())
+                variant_data["acl_group"]= acl_group
+                variant_data["server_group"]= server_group
                 variant_data['product'] = product
                 VariantCreateSerializer().create(variant_data)
             # 创建product_collection

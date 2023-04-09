@@ -25,7 +25,7 @@ def main():
             code_type = random.choice([1, 2])
             is_used = random.choice([True, False])
             used_at = timezone.now()
-            holder_uid = random.randint(1, 100)
+            holder_uid = random.choice([1, 2])
             holder_username = 'test'
             CouponCode.objects.create(code=code, discount=discount, code_type=code_type, is_used=is_used, used_at=used_at, holder_uid=holder_uid, holder_username=holder_username)
 

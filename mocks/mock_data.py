@@ -14,6 +14,7 @@ from coupon_code import main as mock_coupon_code
 from point_record import main as mock_point_record
 from faq import main as mock_faq
 from sync_shopify import main as sync_shopify
+from product import main as mock_products
 # 使用线程池，提高速度
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
 executor = ThreadPoolExecutor(10)
@@ -34,8 +35,8 @@ def main():
     threads.append(executor.submit(mock_faq))
     threads.append(executor.submit(sync_shopify))
 
-
     wait(threads, return_when=ALL_COMPLETED)
+    mock_products()
     print("mock data done")
 
 

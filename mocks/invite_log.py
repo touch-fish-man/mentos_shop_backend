@@ -23,8 +23,8 @@ def main():
             username = 'test'
             invite_code = ''.join(random.sample(string.ascii_letters + string.digits, 8))
             inviter_username = 'test'
-            user = random.choice(User.objects.all())
-            inviter_user= random.choice(User.objects.all())
+            user = random.choice(User.objects.all()[:10])
+            inviter_user= random.choice(User.objects.all()[:10])
             InviteLog.objects.create(uid=uid, inviter_uid=inviter_uid, invite_code=invite_code,
                                      username=username, inviter_username=inviter_username, user=user, inviter_user=inviter_user)
 

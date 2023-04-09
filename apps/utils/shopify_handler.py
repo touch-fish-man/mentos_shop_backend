@@ -275,6 +275,7 @@ class ShopifyClient:
                 "country": ""
             }
         ]
+        customer.note = "mentosproxy_web"
         return customer.save()
 
     def create_product(self, product_info):
@@ -323,7 +324,6 @@ class SyncClient(ShopifyClient):
         shopify_users_email_dict=dict([(i['email'],i) for i in shopify_users])
         for user in all_users:
             if not (user.email in shopify_users_email_dict and "vip"+str(user.level)==shopify_users_email_dict[user.email]['tags']):
-                print(user.email)
                 # 创建用户
                 customer_info = {
                     "first_name": user.username,
@@ -356,7 +356,7 @@ class SyncClient(ShopifyClient):
             if ProductCollection.objects.filter(collection_name=i['title']).exists():
                 ProductCollection.objects.filter(collection_name=i['title']).update(collection_desc=i['desc'])
             else:
-                ProductCollection.objects.create(collection_name=i['title'],collection_desc=i['desc'])
+                ProductCollection.objects.create(collection_name=i['title'],collection_desc=i['desc'],shopify_collection_id=i['id'])
         return True
 
     def sync_product_tags(self):
