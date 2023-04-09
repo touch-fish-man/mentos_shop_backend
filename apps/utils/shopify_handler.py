@@ -89,7 +89,7 @@ class ShopifyClient:
         variant_info["acl_group"] = {"id": None, "name": None}
         variant_info["server_group"] = {"id": None, "name": None}
         variant_info["cart_step"] = 8
-        variant_info["is_active"] = 0
+        variant_info["is_active"] = True
         return variant_info
 
     def format_product_info(self, product):
