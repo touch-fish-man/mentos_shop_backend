@@ -2,11 +2,13 @@ import datetime
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from apps.core.permissions import IsSuperUser
 
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.orders.models import Orders
-from apps.orders.serializers import OrdersSerializer, OrdersCreateSerializer, OrdersUpdateSerializer, \
+from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
@@ -27,14 +29,20 @@ class OrdersApi(ComModelViewSet):
     get_status:获取订单状态
     reset_proxy_password:重置代理密码
     update_proxy_expired_at:更新代理过期时间
+    order_renew_checkout:订单续费结账
     """
     queryset = Orders.objects.all()
     serializer_class = OrdersSerializer
-    create_serializer_class = OrdersCreateSerializer
     update_serializer_class = OrdersUpdateSerializer
     get_status_serializer_class = OrdersStatusSerializer
     search_fields = ('order_id', 'username', 'uid', 'product_name')
-    filterset_fields = ('order_id', 'username', 'uid', 'product_name','product_type')
+    filterset_fields = ('order_id', 'username', 'uid', 'product_name', 'product_type')
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = [AllowAny]
+        return super().get_permissions()
 
     # @swagger_auto_schema(operation_description="获取订单状态", responses={200: OrdersStatusSerializer},
     #                      query_serializer=OrdersStatusSerializer)
@@ -44,12 +52,6 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_status_serializer_class(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         return SuccessResponse(data=serializer.data, msg="获取成功")
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, request=request)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return SuccessResponse(data=serializer.data, msg="新增成功")
 
     def retrieve(self, request, *args, **kwargs):
         proxy = Proxy.objects.filter(order_id=kwargs.get('pk'))
@@ -62,7 +64,7 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(instance)
         return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
 
-    @action(methods=['post'], detail=True, url_path='reset_proxy_password', url_name='reset_proxy_password')
+    @action(methods=['post'], detail=True, url_path='reset_proxy_password', url_name='reset_proxy_password', permission_classes=[IsSuperUser])
     def reset_proxy_password(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
         new_password = request.data.get('new_password', None)
@@ -76,7 +78,7 @@ class OrdersApi(ComModelViewSet):
                 # todo 重置代理密码
         return SuccessResponse(data={}, msg="代理密码重置成功")
 
-    @action(methods=['post'], detail=True, url_path='update_proxy_expired_at', url_name='update_proxy_expired_at')
+    @action(methods=['post'], detail=True, url_path='update_proxy_expired_at', url_name='update_proxy_expired_at', permission_classes=[IsSuperUser])
     def update_proxy_expired_at(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
         expired_at = request.data.get('expired_at', None)
@@ -117,6 +119,22 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(instance)
         return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
 
+    @action(methods=['post'], detail=True, url_path='order-renew-checkout', url_name='order-renew-checkout')
+    def order_renew_checkout(self, request, *args, **kwargs):
+        order_id = kwargs.get('pk')
+        order = Orders.objects.filter(id=order_id)
+        if not order.exists():
+            return ErrorResponse(data={}, msg="订单不存在")
+        order = order.first()
+        if order.status != 1:
+            return ErrorResponse(data={}, msg="订单状态不正确")
+        if order.product_type == 1:
+            return ErrorResponse(data={}, msg="订单类型不正确")
+        if order.expired_at > datetime.datetime.now().replace(tzinfo=datetime.timezone.utc):
+            return ErrorResponse(data={}, msg="订单未过期")
+        # todo 订单续费
+        return SuccessResponse(data={}, msg="订单续费成功")
+
 
 class OrderCallbackApi(APIView):
     """
@@ -155,6 +173,7 @@ class CheckoutApi(APIView):
     """
     订单结算接口
     """
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         # 生成订单

@@ -1,13 +1,13 @@
-from rest_framework import serializers
+from apps.core.permissions import IsSuperUser
 from apps.tickets.models import Tickets, Question
 from apps.core.viewsets import ComModelViewSet
 from apps.tickets.serializers import TicketsSerializer, FQASerializer
 from apps.authentication.services import check_chaptcha
 from apps.core.json_response import ErrorResponse
 from django.conf import settings
-# Create your views here.
 
-class TicksApi(ComModelViewSet):
+
+class TicketsApi(ComModelViewSet):
     """
     工单列表
     list:列表
@@ -19,6 +19,11 @@ class TicksApi(ComModelViewSet):
     queryset = Tickets.objects.all()
     serializer_class = TicketsSerializer
     search_fields=('username', 'email', 'phone')
+    permission_classes = [IsSuperUser]
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = []
+        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         captcha_id = request.data.get('captcha_id')
@@ -51,3 +56,9 @@ class FQA(ComModelViewSet):
     serializer_class = FQASerializer
     search_fields=('question', 'answer')
     filterset_fields = ('question', 'answer')
+    permission_classes = [IsSuperUser]
+
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = []
+        return super().get_permissions()

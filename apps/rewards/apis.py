@@ -5,7 +5,8 @@ from apps.core.viewsets import ComModelViewSet
 from apps.rewards.models import CouponCode, PointRecord, GiftCard, LevelCode
 from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, \
     LevelCodeSerializer
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from apps.core.permissions import IsSuperUser
 
 
 class CouponCodeViewSet(ComModelViewSet):
@@ -19,6 +20,7 @@ class CouponCodeViewSet(ComModelViewSet):
     """
     queryset = CouponCode.objects.all()
     serializer_class = CouponCodeSerializer
+    permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         # 获取当前用户优惠码
@@ -90,6 +92,7 @@ class PointRecordViewSet(ComModelViewSet):
     """
     queryset = PointRecord.objects.all()
     serializer_class = PointRecordSerializer
+    permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
         # 获取当前用户积分变动记录
@@ -114,6 +117,7 @@ class GiftCardViewSet(ComModelViewSet):
     queryset = GiftCard.objects.all()
     serializer_class = GiftCardSerializer
     search_fields = ('code')
+    permission_classes = [IsAuthenticated]
 
     @action(methods=['get'], detail=False, url_path='base-info', url_name='base-info')
     def base_info(self, request, *args, **kwargs):
@@ -138,31 +142,26 @@ class GiftCardViewSet(ComModelViewSet):
         """
         exchange_mount = request.data.get("mount")
         user = request.user
-        if user.is_authenticated:
-            giftcards = GiftCard.objects.filter(mount=exchange_mount, is_used=False).all()
-            if giftcards:
-                if user.point < giftcards.first().point:
-                    return ErrorResponse(msg="积分不足")
-                giftcard = giftcards.first()
-                giftcard.is_exchanged = True
-                giftcard.save()
-                # 扣除用户积分
-                user.point -= giftcard.point
-                user.save()
-                # 创建积分变动记录
-                PointRecord.objects.create(uid=user.id, point=-giftcard.point,
-                                           reason=PointRecord.REASON_DICT["exchange"])
-                # 给用户增加礼品卡
-                CouponCode.objects.create(holder_uid=user.id, code=giftcard.code, discount=giftcard.mount,
-                                          is_used=False, code_type=CouponCode.CODE_TYPE_DICT_REVERSE["giftcard"],
-                                          holder_username=user.username)
-                return SuccessResponse(data=giftcard, msg="兑换成功")
-            else:
-                return ErrorResponse(msg="礼品卡已兑换完")
-
+        giftcards = GiftCard.objects.filter(mount=exchange_mount, is_used=False).all()
+        if giftcards:
+            if user.point < giftcards.first().point:
+                return ErrorResponse(msg="积分不足")
+            giftcard = giftcards.first()
+            giftcard.is_exchanged = True
+            giftcard.save()
+            # 扣除用户积分
+            user.point -= giftcard.point
+            user.save()
+            # 创建积分变动记录
+            PointRecord.objects.create(uid=user.id, point=-giftcard.point,
+                                       reason=PointRecord.REASON_DICT["exchange"])
+            # 给用户增加礼品卡
+            CouponCode.objects.create(holder_uid=user.id, code=giftcard.code, discount=giftcard.mount,
+                                      is_used=False, code_type=CouponCode.CODE_TYPE_DICT_REVERSE["giftcard"],
+                                      holder_username=user.username)
+            return SuccessResponse(data=giftcard, msg="兑换成功")
         else:
-            return ErrorResponse(msg="请先登录")
-
+            return ErrorResponse(msg="礼品卡已兑换完")
 
 class LevelCodeViewSet(ComModelViewSet):
     """
@@ -170,5 +169,6 @@ class LevelCodeViewSet(ComModelViewSet):
     list:列表
     put:更新
     """
+    permission_classes = [IsSuperUser]
     queryset = LevelCode.objects.all()
     serializer_class = LevelCodeSerializer

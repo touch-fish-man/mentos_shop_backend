@@ -1,10 +1,8 @@
-from django.shortcuts import render
 
-# Create your views here.
 from rest_framework.views import APIView
 from pathlib import Path
 import os
-
+from apps.core.permissions import IsSuperUser
 
 from apps.core.json_response import SuccessResponse,ErrorResponse
 from apps.site_settings.services import save_site_settings,change_site_settings,get_site_setting
@@ -13,6 +11,7 @@ class SiteSettingsApi(APIView):
     """
     站点设置
     """
+    permission_classes = [IsSuperUser]
     def post(self,request):
         BASE_DIR = Path(__file__).resolve().parent.parent.parent
         save_site_settings(data=request.data,file=os.path.join(BASE_DIR, "config",".env"))

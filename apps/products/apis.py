@@ -1,5 +1,5 @@
-from rest_framework import viewsets
-from rest_framework.views import APIView
+
+from apps.core.permissions import IsSuperUser
 from .models import Product, Variant, ProductCollection, ProductTag
 from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer, \
     ProductCreateSerializer
@@ -25,6 +25,7 @@ class ProductViewSet(ComModelViewSet):
     search_fields = '__all__'
     filter_fields = '__all__'
     filterset_fields = '__all__'
+    permission_classes = [IsSuperUser]
 
     @action(methods=['get'], detail=False, url_path='get_product_from_shopify', url_name='get_product_from_shopify')
     def get_product_from_shopify(self, request):
@@ -35,6 +36,10 @@ class ProductViewSet(ComModelViewSet):
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
         product_dict = shopify_client.get_products(format=True)
         return SuccessResponse(data=product_dict)
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = []
+        return super(ProductViewSet, self).get_permissions()
 
 
 class ProductCollectionViewSet(ComModelViewSet):
@@ -47,6 +52,7 @@ class ProductCollectionViewSet(ComModelViewSet):
     destroy:删除
     sync_collection:从shopify同步系列
     """
+    permission_classes = [IsSuperUser]
     queryset = ProductCollection.objects.all()
     serializer_class = ProductCollectionSerializer
     @action(methods=['get'], detail=False, url_path='sync_collection', url_name='sync_collection')
@@ -61,6 +67,10 @@ class ProductCollectionViewSet(ComModelViewSet):
             return SuccessResponse(msg='同步成功')
         else:
             return ErrorResponse(msg='同步失败')
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = []
+        return super(ProductCollectionViewSet, self).get_permissions()
 
 
 class ProductTagViewSet(ComModelViewSet):
@@ -76,6 +86,7 @@ class ProductTagViewSet(ComModelViewSet):
     """
     queryset = ProductTag.objects.all()
     serializer_class = ProductTagSerializer
+    permission_classes = [IsSuperUser]
     @action(methods=['get'], detail=False, url_path='sync_tags', url_name='sync_tags')
     def sync_tags(self, request):
         shop_url = settings.SHOPIFY_SHOP_URL
@@ -88,3 +99,7 @@ class ProductTagViewSet(ComModelViewSet):
             return SuccessResponse(msg='同步成功')
         else:
             return ErrorResponse(msg='同步失败')
+    def get_permissions(self):
+        if self.action == 'list':
+            return []
+        return super(ProductTagViewSet, self).get_permissions()
