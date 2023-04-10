@@ -5,9 +5,8 @@ from apps.core.viewsets import ComModelViewSet
 from apps.rewards.models import CouponCode, PointRecord, GiftCard, LevelCode
 from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, \
     LevelCodeSerializer
-from rest_framework.permissions import IsAuthenticated
 from apps.core.permissions import IsSuperUser
-
+from apps.core.permissions import IsAuthenticated
 
 class CouponCodeViewSet(ComModelViewSet):
     """

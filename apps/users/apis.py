@@ -8,7 +8,6 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.validators import validate_email
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 
@@ -20,7 +19,7 @@ from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpd
     InviteLogSerializer, RebateRecordSerializer
 from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
 from apps.core.permissions import IsSuperUser
-
+from apps.core.permissions import IsAuthenticated
 
 class UserApi(ComModelViewSet):
     """

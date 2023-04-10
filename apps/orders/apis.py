@@ -2,9 +2,9 @@ import datetime
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from apps.core.permissions import IsSuperUser
-
+from apps.core.permissions import IsAuthenticated
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.orders.models import Orders

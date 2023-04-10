@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from pathlib import Path
 import os
 from apps.core.permissions import IsSuperUser
-
+from apps.core.permissions import IsAuthenticated
 from apps.core.json_response import SuccessResponse,ErrorResponse
 from apps.site_settings.services import save_site_settings,change_site_settings,get_site_setting
 

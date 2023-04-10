@@ -8,7 +8,7 @@ from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
 from apps.core.permissions import IsSuperUser
-
+from apps.core.permissions import IsAuthenticated
 class AclsApi(ComModelViewSet):
     """
     ACL

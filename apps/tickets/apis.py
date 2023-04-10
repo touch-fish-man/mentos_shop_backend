@@ -5,7 +5,7 @@ from apps.tickets.serializers import TicketsSerializer, FQASerializer
 from apps.authentication.services import check_chaptcha
 from apps.core.json_response import ErrorResponse
 from django.conf import settings
-
+from apps.core.permissions import IsAuthenticated
 
 class TicketsApi(ComModelViewSet):
     """

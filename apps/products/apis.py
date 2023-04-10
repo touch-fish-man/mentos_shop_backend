@@ -8,7 +8,7 @@ from apps.utils.shopify_handler import ShopifyClient,SyncClient
 from rest_framework.decorators import action
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from django.conf import settings
-
+from apps.core.permissions import IsAuthenticated
 
 class ProductViewSet(ComModelViewSet):
     """

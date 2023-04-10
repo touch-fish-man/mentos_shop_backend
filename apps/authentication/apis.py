@@ -8,7 +8,7 @@ from captcha.models import CaptchaStore
 from django.contrib import auth
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import serializers
-from rest_framework.permissions import IsAuthenticated
+from apps.core.permissions import IsAuthenticated
 
 # from apps.users.serializers import UserSerializer
 from apps.core.json_response import SuccessResponse, ErrorResponse
