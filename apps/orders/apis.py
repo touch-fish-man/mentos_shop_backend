@@ -39,10 +39,10 @@ class OrdersApi(ComModelViewSet):
     filterset_fields = ('order_id', 'username', 'uid', 'product_name', 'product_type')
     permission_classes = [IsAuthenticated]
 
-    def get_permissions(self):
-        if self.action == 'list':
-            self.permission_classes = [AllowAny]
-        return super().get_permissions()
+    # def get_permissions(self):
+    #     if self.action == 'list':
+    #         self.permission_classes = [AllowAny]
+    #     return super().get_permissions()
 
     # @swagger_auto_schema(operation_description="获取订单状态", responses={200: OrdersStatusSerializer},
     #                      query_serializer=OrdersStatusSerializer)
