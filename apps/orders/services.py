@@ -33,20 +33,12 @@ def shopify_order(data):
             "order_number": data["order_number"],
             "order_status_url": data["order_status_url"],
             "line_items": data["line_items"],
-        }
+            "discount_codes": data["discount_codes"],
+        },
+        "note": data["note"],
+        "note_attributes": data["note_attributes"],
+
     }
-    if data.get("billing_address"):
-        return_data["order"]["billing_address"] = {
-            "city": data["billing_address"]["city"],
-            "country": data["billing_address"]["country"],
-            "country_code": data["billing_address"]["country_code"],
-        }
-    if data.get("shipping_address"):
-        return_data["order"]["shipping_address"] = {
-            "city": data["shipping_address"]["city"],
-            "country": data["shipping_address"]["country"],
-            "country_code": data["shipping_address"]["country_code"],
-        }
 
     return return_data
 
@@ -60,7 +52,6 @@ def get_checkout_link(request):
     order_info_dict["uid"]=user.id
     order_info_dict["username"]=user.username
     order_info_dict["product_id"]=request.data.get("product_id")
-    order_info_dict["product_name"]=request.data.get("product_name")
     order_info_dict["product_price"]=request.data.get("product_price")
     order_info_dict["product_quantity"]=request.data.get("product_quantity")
     order_info_dict["product_total_price"]= float(request.data.get("product_price")) * int(request.data.get("product_quantity"))
@@ -75,10 +66,10 @@ def get_checkout_link(request):
     check_info={
         "cart_quantity_pairs": cart_quantity_pairs,
         "discount": code,
-        "email": request.data.get("email"),
+        "email": user.email,
         "note": "order_id_{}".format(order_id),
-        'attributes[order_id]=': order_id,
-        "ref": request.data.get("ref"),
+        'attributes': {"order_id": order_id,"renewal":request.data.get("renewal","0")},
+        "ref": "mentosproxy_web",
     }
     checkout_link = ShopifyClient.get_checkout_link(settings.SHOPIFY_SHOP_URL, check_info)
     return checkout_link,order_id

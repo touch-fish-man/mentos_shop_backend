@@ -3,10 +3,10 @@ from rest_framework.decorators import action
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.rewards.models import CouponCode, PointRecord, GiftCard, LevelCode
-from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, \
-    LevelCodeSerializer
+from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, LevelCodeSerializer
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
+
 
 class CouponCodeViewSet(ComModelViewSet):
     """
@@ -21,6 +21,11 @@ class CouponCodeViewSet(ComModelViewSet):
     serializer_class = CouponCodeSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = []
+        return super().get_permissions()
+
     def list(self, request, *args, **kwargs):
         # 获取当前用户优惠码
         user = request.user
@@ -32,54 +37,6 @@ class CouponCodeViewSet(ComModelViewSet):
             request.query_params["limit"] = 100  # 用户获取优惠码时，限制最多100条
             self.queryset = self.queryset.filter(holder_uid=user.id).order_by('-is_used')
             return super().list(request, *args, **kwargs)
-        else:
-            return ErrorResponse(msg="请先登录")
-
-    def create(self, request, *args, **kwargs):
-        # 创建优惠码
-        user = request.user
-        if user.is_authenticated:
-            if user.is_superuser:
-                # 管理员创建优惠码
-                return super().create(request, *args, **kwargs)
-            else:
-                return ErrorResponse(msg="没有权限")
-        else:
-            return ErrorResponse(msg="请先登录")
-
-    def update(self, request, *args, **kwargs):
-        # 更新优惠码
-        user = request.user
-        if user.is_authenticated:
-            if user.is_superuser:
-                # 管理员更新优惠码
-                return super().update(request, *args, **kwargs)
-            else:
-                return ErrorResponse(msg="没有权限")
-        else:
-            return ErrorResponse(msg="请先登录")
-
-    def destroy(self, request, *args, **kwargs):
-        # 删除优惠码
-        user = request.user
-        if user.is_authenticated:
-            if user.is_superuser:
-                # 管理员删除优惠码
-                return super().destroy(request, *args, **kwargs)
-            else:
-                return ErrorResponse(msg="没有权限")
-        else:
-            return ErrorResponse(msg="请先登录")
-
-    def retrieve(self, request, *args, **kwargs):
-        # 获取优惠码详情
-        user = request.user
-        if user.is_authenticated:
-            if user.is_superuser:
-                # 管理员获取优惠码详情
-                return super().retrieve(request, *args, **kwargs)
-            else:
-                return ErrorResponse(msg="没有权限")
         else:
             return ErrorResponse(msg="请先登录")
 
@@ -115,7 +72,7 @@ class GiftCardViewSet(ComModelViewSet):
     """
     queryset = GiftCard.objects.all()
     serializer_class = GiftCardSerializer
-    search_fields = ('code')
+    search_fields = ['code']
     permission_classes = [IsAuthenticated]
 
     @action(methods=['get'], detail=False, url_path='base-info', url_name='base-info')
@@ -161,6 +118,7 @@ class GiftCardViewSet(ComModelViewSet):
             return SuccessResponse(data=giftcard, msg="兑换成功")
         else:
             return ErrorResponse(msg="礼品卡已兑换完")
+
 
 class LevelCodeViewSet(ComModelViewSet):
     """

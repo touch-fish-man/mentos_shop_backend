@@ -226,13 +226,16 @@ class ShopifyClient:
             return None
     @staticmethod
     def get_checkout_link(shop_url, data):
-        base_url = shop_url + "/cart/clear?return_to=/cart/"
+        base_url = shop_url + "cart/"
 
         cart_quantity_pairs = data.get("cart_quantity_pairs")
-        email = data.get("email")
-        note = data.get("note")
+        email_str = "checkout[email]=" + data.get("email") if data.get("email") else ""
+        note_str = "&note=" + data.get("note") if data.get("note") else ""
         discount_str = "&discount=" + data.get("discount") if data.get("discount") else ""
         ref_str = "&ref=" + data.get("ref") if data.get("ref") else ""
+        attributes_str = ""
+        for attr_name,attr_value in data.get("attributes").items():
+            attributes_str+="&attributes[{}]={}".format(attr_name,attr_value)
 
         # 将cart_id和quantity分别存储在两个列表中
         cart_ids = []
@@ -245,7 +248,7 @@ class ShopifyClient:
         # 将多个cart_id和quantity拼接成字符串，用逗号隔开
         cart_quantity_str = ",".join([cart_ids[i] + ":" + quantities[i] for i in range(len(cart_ids))])
 
-        url = base_url + cart_quantity_str + "?checkout[email]=" + email + "&note=" + note + discount_str + ref_str
+        url = base_url + cart_quantity_str + "?"+email_str+note_str+attributes_str + discount_str + ref_str
         return url
 
     def get_customers(self):
@@ -416,3 +419,89 @@ if __name__ == '__main__':
     # print(syncclient.sync_product_tags())
     # print(syncclient.get_customers())
     print(syncclient.list_price_rules())
+    # {'id': 5342934696246, 'admin_graphql_api_id': 'gid://shopify/Order/5342934696246', 'app_id': 580111,
+    #  'browser_ip': '154.18.175.33', 'buyer_accepts_marketing': False, 'cancel_reason': None, 'cancelled_at': None,
+    #  'cart_token': '683f156ef5d67a81d873dc24d57930d3', 'checkout_id': 36667954954550,
+    #  'checkout_token': '4dfa6842f0cd2d903713e6e4fb0a3095',
+    #  'client_details': {'accept_language': 'zh-CN', 'browser_height': None, 'browser_ip': '154.18.175.33',
+    #                     'browser_width': None, 'session_hash': None,
+    #                     'user_agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'},
+    #  'closed_at': None, 'confirmed': True, 'contact_email': 'test@test.com', 'created_at': '2023-04-10T11:12:59-04:00',
+    #  'currency': 'USD', 'current_subtotal_price': '0.00',
+    #  'current_subtotal_price_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                                 'presentment_money': {'amount': '0.00', 'currency_code': 'USD'}},
+    #  'current_total_additional_fees_set': None, 'current_total_discounts': '2.10',
+    #  'current_total_discounts_set': {'shop_money': {'amount': '2.10', 'currency_code': 'USD'},
+    #                                  'presentment_money': {'amount': '2.10', 'currency_code': 'USD'}},
+    #  'current_total_duties_set': None, 'current_total_price': '0.00',
+    #  'current_total_price_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                              'presentment_money': {'amount': '0.00', 'currency_code': 'USD'}},
+    #  'current_total_tax': '0.00', 'current_total_tax_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                                                         'presentment_money': {'amount': '0.00',
+    #                                                                               'currency_code': 'USD'}},
+    #  'customer_locale': 'zh-CN', 'device_id': None,
+    #  'discount_codes': [{'code': 'VIP5_DISCOUNT', 'amount': '2.10', 'type': 'percentage'}], 'email': 'test@test.com',
+    #  'estimated_taxes': False, 'financial_status': 'paid', 'fulfillment_status': None,
+    #  'landing_site': '/checkouts/c/683f156ef5d67a81d873dc24d57930d3?attributes[order_id]=f62a19fa7ebd4944b341fe7204fb2d94&attributes[renewal]=0&discount=VIP5_DISCOUNT&note=order_id_f62a19fa7ebd4944b341fe7204fb2d94&ref=mentosproxy_web"',
+    #  'landing_site_ref': 'mentosproxy_web"', 'location_id': None, 'merchant_of_record_app_id': None, 'name': '#1011',
+    #  'note': 'order_id_f62a19fa7ebd4944b341fe7204fb2d94',
+    #  'note_attributes': [{'name': 'order_id', 'value': 'f62a19fa7ebd4944b341fe7204fb2d94'},
+    #                      {'name': 'renewal', 'value': '0'}], 'number': 11, 'order_number': 1011,
+    #  'order_status_url': 'https://mentosproxy.myshopify.com/68777738550/orders/d81fcb59746d75897d1a1a34a294724c/authenticate?key=9b4a1bac9df576fdeb1d4eff7c10e99d',
+    #  'original_total_additional_fees_set': None, 'original_total_duties_set': None, 'payment_gateway_names': [],
+    #  'phone': None, 'presentment_currency': 'USD', 'processed_at': '2023-04-10T11:12:58-04:00',
+    #  'reference': '500be2b90d0522b4985872ea9420705f', 'referring_site': '',
+    #  'source_identifier': '500be2b90d0522b4985872ea9420705f', 'source_name': 'web', 'source_url': None,
+    #  'subtotal_price': '0.00', 'subtotal_price_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                                                   'presentment_money': {'amount': '0.00', 'currency_code': 'USD'}},
+    #  'tags': '', 'tax_lines': [], 'taxes_included': False, 'test': False, 'token': 'd81fcb59746d75897d1a1a34a294724c',
+    #  'total_discounts': '2.10', 'total_discounts_set': {'shop_money': {'amount': '2.10', 'currency_code': 'USD'},
+    #                                                     'presentment_money': {'amount': '2.10',
+    #                                                                           'currency_code': 'USD'}},
+    #  'total_line_items_price': '2.10',
+    #  'total_line_items_price_set': {'shop_money': {'amount': '2.10', 'currency_code': 'USD'},
+    #                                 'presentment_money': {'amount': '2.10', 'currency_code': 'USD'}},
+    #  'total_outstanding': '0.00', 'total_price': '0.00',
+    #  'total_price_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                      'presentment_money': {'amount': '0.00', 'currency_code': 'USD'}},
+    #  'total_shipping_price_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                               'presentment_money': {'amount': '0.00', 'currency_code': 'USD'}}, 'total_tax': '0.00',
+    #  'total_tax_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                    'presentment_money': {'amount': '0.00', 'currency_code': 'USD'}}, 'total_tip_received': '0.00',
+    #  'total_weight': 0, 'updated_at': '2023-04-10T11:13:00-04:00', 'user_id': None,
+    #  'billing_address': {'first_name': None, 'address1': 'ssss', 'phone': None, 'city': 'beijing', 'zip': '100000',
+    #                      'province': 'Anhui', 'country': 'China', 'last_name': 'sada', 'address2': None,
+    #                      'company': None, 'latitude': None, 'longitude': None, 'name': 'sada', 'country_code': 'CN',
+    #                      'province_code': 'AH'},
+    #  'customer': {'id': 6994319474998, 'email': 'test@test.com', 'accepts_marketing': False,
+    #               'created_at': '2023-04-08T09:12:38-04:00', 'updated_at': '2023-04-10T11:13:00-04:00',
+    #               'first_name': None, 'last_name': 'a', 'state': 'disabled', 'note': None, 'verified_email': True,
+    #               'multipass_identifier': None, 'tax_exempt': False, 'phone': None,
+    #               'email_marketing_consent': {'state': 'not_subscribed', 'opt_in_level': 'single_opt_in',
+    #                                           'consent_updated_at': None}, 'sms_marketing_consent': None,
+    #               'tags': 'vip5', 'currency': 'USD', 'accepts_marketing_updated_at': '2023-04-08T09:12:38-04:00',
+    #               'marketing_opt_in_level': None, 'tax_exemptions': [],
+    #               'admin_graphql_api_id': 'gid://shopify/Customer/6994319474998',
+    #               'default_address': {'id': 9240064426294, 'customer_id': 6994319474998, 'first_name': None,
+    #                                   'last_name': 'sada', 'company': None, 'address1': 'ssss', 'address2': None,
+    #                                   'city': 'beijing', 'province': 'Anhui', 'country': 'China', 'zip': '100000',
+    #                                   'phone': None, 'name': 'sada', 'province_code': 'AH', 'country_code': 'CN',
+    #                                   'country_name': 'China', 'default': True}}, 'discount_applications': [
+    #     {'target_type': 'line_item', 'type': 'discount_code', 'value': '100.0', 'value_type': 'percentage',
+    #      'allocation_method': 'across', 'target_selection': 'entitled', 'code': 'VIP5_DISCOUNT'}], 'fulfillments': [],
+    #  'line_items': [{'id': 13971760972086, 'admin_graphql_api_id': 'gid://shopify/LineItem/13971760972086',
+    #                  'fulfillable_quantity': 1, 'fulfillment_service': 'manual', 'fulfillment_status': None,
+    #                  'gift_card': False, 'grams': 0, 'name': 'Captcha ISP养鸡ISP（3month） - Captcha+Nike / 一个月 / 1',
+    #                  'price': '2.10', 'price_set': {'shop_money': {'amount': '2.10', 'currency_code': 'USD'},
+    #                                                 'presentment_money': {'amount': '2.10', 'currency_code': 'USD'}},
+    #                  'product_exists': True, 'product_id': 8228966367542, 'properties': [], 'quantity': 1,
+    #                  'requires_shipping': False, 'sku': '', 'taxable': True, 'title': 'Captcha ISP养鸡ISP（3month）',
+    #                  'total_discount': '0.00',
+    #                  'total_discount_set': {'shop_money': {'amount': '0.00', 'currency_code': 'USD'},
+    #                                         'presentment_money': {'amount': '0.00', 'currency_code': 'USD'}},
+    #                  'variant_id': 44899224813878, 'variant_inventory_management': 'shopify',
+    #                  'variant_title': 'Captcha+Nike / 一个月 / 1', 'vendor': 'mentosproxy', 'tax_lines': [],
+    #                  'duties': [], 'discount_allocations': [{'amount': '2.10', 'amount_set': {
+    #          'shop_money': {'amount': '2.10', 'currency_code': 'USD'},
+    #          'presentment_money': {'amount': '2.10', 'currency_code': 'USD'}}, 'discount_application_index': 0}]}],
+    #  'payment_terms': None, 'refunds': [], 'shipping_address': None, 'shipping_lines': []}

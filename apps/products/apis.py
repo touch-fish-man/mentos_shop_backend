@@ -1,5 +1,4 @@
 
-from apps.core.permissions import IsSuperUser
 from .models import Product, Variant, ProductCollection, ProductTag
 from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer, \
     ProductCreateSerializer
@@ -8,8 +7,8 @@ from apps.utils.shopify_handler import ShopifyClient,SyncClient
 from rest_framework.decorators import action
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from django.conf import settings
-from apps.core.permissions import IsAuthenticated
-
+from apps.core.permissions import IsAuthenticated,IsSuperUser
+from rest_framework.permissions import AllowAny
 class ProductViewSet(ComModelViewSet):
     """
     商品列表
@@ -26,6 +25,10 @@ class ProductViewSet(ComModelViewSet):
     filter_fields = '__all__'
     filterset_fields = '__all__'
     permission_classes = [IsSuperUser]
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = [AllowAny]
+        return super(ProductViewSet, self).get_permissions()
 
     @action(methods=['get'], detail=False, url_path='get_product_from_shopify', url_name='get_product_from_shopify')
     def get_product_from_shopify(self, request):
@@ -36,10 +39,7 @@ class ProductViewSet(ComModelViewSet):
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
         product_dict = shopify_client.get_products(format=True)
         return SuccessResponse(data=product_dict)
-    def get_permissions(self):
-        if self.action == 'list':
-            self.permission_classes = []
-        return super(ProductViewSet, self).get_permissions()
+
 
 
 class ProductCollectionViewSet(ComModelViewSet):

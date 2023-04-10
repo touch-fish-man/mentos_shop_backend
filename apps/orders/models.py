@@ -53,9 +53,9 @@ class Orders(BaseModel):
     # # 支付链接
     # pay_url = models.CharField(max_length=255, verbose_name='支付链接')
     # 过期时间
-    expired_at = models.DateTimeField(verbose_name='过期时间')
+    expired_at = models.DateTimeField(verbose_name='过期时间', null=True, blank=True)
     # 代理数量
-    proxy_num = models.IntegerField(verbose_name='代理数量')
+    proxy_num = models.IntegerField(verbose_name='代理数量', default=0)
 
     class Meta:
         db_table = 'orders'
