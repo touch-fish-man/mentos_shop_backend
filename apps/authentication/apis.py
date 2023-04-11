@@ -8,6 +8,7 @@ from captcha.models import CaptchaStore
 from django.contrib import auth
 from django.contrib.auth import authenticate, login, logout
 from rest_framework import serializers
+from apps.core.permissions import IsAuthenticated
 
 # from apps.users.serializers import UserSerializer
 from apps.core.json_response import SuccessResponse, ErrorResponse
@@ -57,6 +58,7 @@ class LogoutApi(APIView):
     """
     用户登出
     """
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         logout(request)
         return SuccessResponse(msg="登出成功")

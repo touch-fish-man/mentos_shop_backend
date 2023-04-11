@@ -7,8 +7,8 @@ from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, 
 from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
-
-
+from apps.core.permissions import IsSuperUser
+from apps.core.permissions import IsAuthenticated
 class AclsApi(ComModelViewSet):
     """
     ACL
@@ -18,6 +18,7 @@ class AclsApi(ComModelViewSet):
     retrieve: ACL详情
     destroy: 删除ACL
     """
+    permission_classes = [IsSuperUser]
     queryset = Acls.objects.all()
     serializer_class = AclsSerializer
     ordering_fields = ('id', 'name', 'created_at')
@@ -40,6 +41,7 @@ class ProxyServerApi(ComModelViewSet):
     get_acl_info: 获取代理服务器ACL信息
     get_server_info: 获取代理服务器信息
     """
+    permission_classes = [IsSuperUser]
     queryset = Server.objects.all()
     serializer_class = ServerSerializer
     ordering_fields = ('id', 'name', 'created_at')
@@ -106,6 +108,7 @@ class AclGroupApi(ComModelViewSet):
     ordering_fields = ('id', 'name', 'created_at')
     search_fields = ('name', 'description')  # 搜索字段
     filterset_fields = ['id', 'name', 'description']  # 过滤字段
+    permission_classes = [IsSuperUser]
 
 class ServerGroupApi(ComModelViewSet):
     """
@@ -116,6 +119,7 @@ class ServerGroupApi(ComModelViewSet):
     retrieve: 服务器组详情
     destroy: 删除服务器组
     """
+    permission_classes = [IsSuperUser]
     queryset = ServerGroup.objects.all()
     serializer_class = ServerGroupSerializer
     create_serializer_class = ServerGroupSerializer

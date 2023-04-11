@@ -24,7 +24,7 @@ def main():
         for i in range(10):
             point = random.randint(1, 100)
             code = ''.join(random.sample(string.ascii_letters + string.digits, 8))
-            mount = "$"+str(random.randint(1, 100))
+            mount = random.randint(1, 100)
             is_exchanged = random.choice([True, False])
             GiftCard.objects.create(point=point, code=code, mount=mount, is_exchanged=is_exchanged)
         LevelCode.objects.all().delete()

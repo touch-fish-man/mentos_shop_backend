@@ -51,8 +51,8 @@ class OptionSerializer(serializers.ModelSerializer):
 
 
 class VariantSerializer(serializers.ModelSerializer):
-    # server_group = ServersGroupSerializer()
-    # acl_group = AclsGroupSerializer()
+    server_group = ServersGroupSerializer()
+    acl_group = AclsGroupSerializer()
     class Meta:
         model = Variant
         fields = (
@@ -97,7 +97,7 @@ class VariantCreateSerializer(serializers.ModelSerializer):
 class ProductTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductTag
-        fields = ('tag_name', 'tag_desc')
+        fields = ('id','tag_name', 'tag_desc')
 
     def create(self, validated_data):
         if ProductTag.objects.filter(tag_name=validated_data.get('tag_name')).exists():
@@ -131,7 +131,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ("id",
                   'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
                   'variants',
-                  'variant_options')
+                  'variant_options',"created_at")
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):

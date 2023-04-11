@@ -18,42 +18,8 @@ from apps.users.selectors import user_get_login_data
 from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer, \
     InviteLogSerializer, RebateRecordSerializer
 from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
-
-
-# class UserInfoApi(LoginRequiredMixin, APIView):
-#     """
-#     用户信息路由
-#     """
-#
-#     def get(self, request):
-#         user = request.user
-#         print(user)
-#         data = user_get_login_data(user=user)
-#         return SuccessResponse(data=data, msg="获取成功")
-#
-#     def post(self, request):
-#         user = request.user
-#         email = request.data.get('email')
-#         user.email = email
-#         user.save()
-#         return SuccessResponse(msg="修改成功")
-#
-#     def delete(self, request):
-#         user = request.user
-#         user.delete()
-#         return SuccessResponse(msg="删除成功")
-#
-#     def put(self, request):
-#         user = request.user
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-#         email = request.data.get('email')
-#         user.username = username
-#         user.password = make_password(password)
-#         user.email = email
-#         user.save()
-#         return SuccessResponse(msg="修改成功")
-
+from apps.core.permissions import IsSuperUser
+from apps.core.permissions import IsAuthenticated
 
 class UserApi(ComModelViewSet):
     """
@@ -76,6 +42,12 @@ class UserApi(ComModelViewSet):
     create_serializer_class = UserCreateSerializer
     update_serializer_class = UserUpdateSerializer
     baned_user_serializer_class = BanUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ['create']:
+            return []
+        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
 
@@ -132,7 +104,7 @@ class UserApi(ComModelViewSet):
     #     data = user_get_login_data(user=user)
     #     return SuccessResponse(msg="success", data=data)
 
-    @action(methods=['post'], detail=True, url_path='baned_user', url_name='baned_user')
+    @action(methods=['post'], detail=True, url_path='baned_user', url_name='baned_user',permission_classes=[IsSuperUser])
     def baned_user(self, request, *args, **kwargs):
         instance = User.objects.filter(id=kwargs.get("pk")).first()
         if instance:
