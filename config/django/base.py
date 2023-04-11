@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import datetime
+import djcelery
 
 from pathlib import Path
 import os
@@ -56,7 +57,8 @@ INSTALLED_APPS = [
     "captcha",
     "django_extensions",
     "apps.rewards",
-    "apps.products"
+    "apps.products",
+    "djcelery"
 ]
 
 MIDDLEWARE = [
@@ -107,7 +109,7 @@ DATABASES = {
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
-
+       
     }
 }
 
@@ -251,6 +253,19 @@ SIMPLE_JWT = {
 REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
 REDIS_HOST = '177.8.0.14'
 
+
+#celery
+djcelery.setup_loader()
+
+CELERY_BROKER_URL = 'redis://:{}@{}:6379/0'.format(REDIS_PASSWORD, REDIS_HOST)
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_ENABLE_UTC=True
+
+# RESULT_BACKEND 结果保存数据库
+CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 
 # 配置日志
 
