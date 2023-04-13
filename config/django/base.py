@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import datetime
-import djcelery
 
 from pathlib import Path
 import os
@@ -58,7 +57,6 @@ INSTALLED_APPS = [
     "django_extensions",
     "apps.rewards",
     "apps.products",
-    "djcelery"
 ]
 
 MIDDLEWARE = [
@@ -103,7 +101,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
