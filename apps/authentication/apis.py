@@ -58,7 +58,7 @@ class LogoutApi(APIView):
     """
     用户登出
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     def get(self, request):
         logout(request)
         return SuccessResponse(msg="登出成功")
