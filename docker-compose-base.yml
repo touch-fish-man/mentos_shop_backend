@@ -40,6 +40,20 @@ services:
       - POSTGRES_DB=mentos
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+  db_local:
+    container_name: mentos_db_dev
+    image: postgres:latest
+    restart: always
+    expose:
+      - 5432:5432
+    networks:
+      network:
+        ipv4_address: 177.8.0.21
+    environment:
+      - TZ=Asia/Shanghai
+      - POSTGRES_DB=mentos
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=N6jvHXYf4zn8sChw
   redis:
     container_name: redis.local
     image: 'redis:latest'
