@@ -44,7 +44,7 @@ services:
     container_name: mentos_db_dev
     image: postgres:latest
     restart: always
-    expose:
+    ports:
       - 5432:5432
     networks:
       network:
