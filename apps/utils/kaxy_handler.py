@@ -6,7 +6,7 @@ import os
 from pprint import pprint
 
 class KaxyClient:
-    def __init__(self, url, token):
+    def __init__(self, url, token='EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'):
         self.url = url
         self.token = token
 
@@ -180,5 +180,5 @@ if __name__ == "__main__":
     token = 'EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'
     client = KaxyClient("http://112.75.252.4:65533", token)
     # pprint(client.list_all_proxies().json())
-    pprint(client.list_users().json())
+    # pprint(client.list_users().json())
 
