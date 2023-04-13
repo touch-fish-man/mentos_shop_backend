@@ -1,15 +1,13 @@
 from __future__ import absolute_import
-from celery import shared_task,task
+from celery import shared_task
 from apps.orders.models import Orders
 from apps.proxy_server.models import Proxy
 from apps.users.services import send_via_sendgrid,send_email_via_mailgun
 from apps.users.models import User
 from django.conf import settings
 from django.core.mail import send_mail
-from apps.celery import app
 
 
-@app.task
 def email_notification(order_id):
     print(str(order_id),type(order_id),type(str(order_id)))
     uid = Orders.objects.get(id=order_id).uid
@@ -27,7 +25,6 @@ def email_notification(order_id):
         send_mail(subject, "", from_email, [email], html_message=html_message)
     
 
-@app.task
 def del_proxy(order_id):
     proxy = Proxy.objects.filter(order_id=order_id)
     proxy.delete()
