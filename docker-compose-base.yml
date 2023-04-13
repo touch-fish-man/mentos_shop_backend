@@ -23,11 +23,13 @@ services:
     networks:
       network:
         ipv4_address: 177.8.0.16
+    ports:
+      - 5433:5432
     environment:
       - TZ=Asia/Shanghai
       - POSTGRES_DB=mentos
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=N6jvHXYf4zn8sChw
   db_test:
     container_name: mentos_db_test
     image: postgres:latest
@@ -35,11 +37,13 @@ services:
     networks:
       network:
         ipv4_address: 177.8.0.17
+    ports:
+      - 5434:5432
     environment:
       - TZ=Asia/Shanghai
       - POSTGRES_DB=mentos
-      - POSTGRES_USER=t
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=N6jvHXYf4zn8sChw
   db_local:
     container_name: mentos_db_dev
     image: postgres:latest
