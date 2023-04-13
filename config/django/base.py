@@ -252,8 +252,7 @@ REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
 REDIS_HOST = '177.8.0.14'
 
 
-#celery
-djcelery.setup_loader()
+
 
 CELERY_BROKER_URL = 'redis://:{}@{}:6379/0'.format(REDIS_PASSWORD, REDIS_HOST)
 CELERY_ACCEPT_CONTENT = ['application/json']

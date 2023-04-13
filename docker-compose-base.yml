@@ -38,7 +38,7 @@ services:
     environment:
       - TZ=Asia/Shanghai
       - POSTGRES_DB=mentos
-      - POSTGRES_USER=postgres
+      - POSTGRES_USER=t
       - POSTGRES_PASSWORD=postgres
   db_local:
     container_name: mentos_db_dev
