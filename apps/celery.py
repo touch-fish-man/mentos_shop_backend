@@ -2,7 +2,6 @@ from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
 from django.conf import settings
-from sqlalchemy import create_engine
 
 # 设置默认的Django设置模块
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.django.base')

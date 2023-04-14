@@ -5,7 +5,7 @@ from django.db import models, transaction
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
 from apps.core.models import BaseModel
-
+from django.conf import settings
 
 def gen_uid():
     # 生成8位uuid
@@ -50,22 +50,30 @@ class User(AbstractUser, BaseModel):
         verbose_name = '用户'
         verbose_name_plural = verbose_name
 
+    def update_level(self):
+        """
+        更新用户等级
+        """
+        if self.level_points>=1000:
+            self.level=5
+        elif self.level_points>=500:
+            self.level=4
+        elif self.level_points>=200:
+            self.level=3
+        elif self.level_points>=50:
+            self.level=2
+        else:
+            self.level=1
+        self.save()
+    def level_points_decay(self):
+        """
+        等级积分衰减
+        """
+        
+        self.level_points-=settings.LEVEL_POINTS_DECAY*self.level_points
+        self.save()
+        self.update_level()
 
-# class InviteCode(BaseModel):
-#     """邀请码表"""
-#     id = models.AutoField(primary_key=True, verbose_name='id')
-#     invite_code = models.CharField(max_length=100, unique=True, verbose_name='邀请码')
-#     uid = models.IntegerField(default=0, verbose_name='用户uid')
-#     invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
-#     invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
-#
-#     class Meta:
-#         db_table = 'invite_code'
-#         verbose_name = '邀请码'
-#         verbose_name_plural = verbose_name
-#
-#     def __str__(self):
-#         return self.invite_code
 
 
 class InviteLog(BaseModel):

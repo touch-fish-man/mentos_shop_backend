@@ -10,7 +10,6 @@ from apps.core.viewsets import ComModelViewSet
 from apps.orders.models import Orders
 from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
-from apps.orders.task import email_notification,del_proxy
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
 from .services import verify_webhook, shopify_order, get_checkout_link
@@ -167,10 +166,6 @@ class ShopifyWebhookApi(APIView):
         logging.error(request.data)
         # shopify订单回调
         shopify_order(request.data)
-        expired_at = Orders.objects.get(id=request.data['id']).expired_at
-        start_time = expired_at+datetime.timedelta(days=-2)
-        email_notification.apply_async(args=[request.data['id']],eta=start_time)
-        del_proxy.apply_async(args=[request.data['id']],eta=expired_at)
         return SuccessResponse()
 
 
