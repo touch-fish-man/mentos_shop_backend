@@ -24,5 +24,4 @@ django_extensions
 celery
 django-celery-results
 django-celery-beat
-psycopg2
-django-mailgun
+psycopg2-binary
