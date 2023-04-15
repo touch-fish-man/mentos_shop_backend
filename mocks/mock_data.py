@@ -17,7 +17,7 @@ from sync_shopify import main as sync_shopify
 from product import main as mock_products
 # 使用线程池，提高速度
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
-executor = ThreadPoolExecutor(10)
+executor = ThreadPoolExecutor(15)
 def main():
     mock_users()
     threads = []

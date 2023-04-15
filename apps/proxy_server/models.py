@@ -11,7 +11,7 @@ class AclGroup(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL组名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     acls = models.ManyToManyField('Acls', verbose_name='ACL', through='AclGroupThrough')
-    acl_value = models.CharField(max_length=1024, null=True, verbose_name='ACL值')
+    acl_value = models.TextField(blank=True, null=True, verbose_name='ACL值')
     soft_delete = models.BooleanField(default=False, verbose_name='软删除')  # 避免外键关联删除
 
     class Meta:

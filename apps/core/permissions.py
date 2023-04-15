@@ -18,6 +18,5 @@ class IsAuthenticated(BasePermission):
 
     def has_permission(self, request, view):
         is_authenticated = request.user and request.user.is_authenticated
-        if not is_authenticated:
-            logout(request)
+
         return is_authenticated
