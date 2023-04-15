@@ -27,6 +27,7 @@ class ProductViewSet(ComModelViewSet):
     filter_fields = '__all__'
     filterset_fields = '__all__'
     permission_classes = [IsSuperUser]
+    unauthenticated_actions = ['list', 'get_recommend_product']
 
     def get_permissions(self):
         if self.action in ['list', "get_recommend_product"]:
@@ -75,6 +76,7 @@ class ProductCollectionViewSet(ComModelViewSet):
     permission_classes = [IsSuperUser]
     queryset = ProductCollection.objects.all()
     serializer_class = ProductCollectionSerializer
+    unauthenticated_actions = ['list']
 
     @action(methods=['get'], detail=False, url_path='sync_collection', url_name='sync_collection')
     def sync_collection(self, request):
@@ -109,6 +111,7 @@ class ProductTagViewSet(ComModelViewSet):
     queryset = ProductTag.objects.all()
     serializer_class = ProductTagSerializer
     permission_classes = [IsSuperUser]
+    unauthenticated_actions = ['list']
 
     @action(methods=['get'], detail=False, url_path='sync_tags', url_name='sync_tags')
     def sync_tags(self, request):
@@ -125,5 +128,5 @@ class ProductTagViewSet(ComModelViewSet):
 
     def get_permissions(self):
         if self.action == 'list':
-            return []
+            self.permission_classes = []
         return super(ProductTagViewSet, self).get_permissions()

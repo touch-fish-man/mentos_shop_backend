@@ -12,6 +12,7 @@ from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
 
 
+
 class AclsApi(ComModelViewSet):
     """
     ACL

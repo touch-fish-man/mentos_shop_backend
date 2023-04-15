@@ -20,8 +20,9 @@ class TicketsApi(ComModelViewSet):
     serializer_class = TicketsSerializer
     search_fields=('username', 'email', 'phone')
     permission_classes = [IsSuperUser]
+    unauthenticated_actions = ['list', 'create']
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action in ['list', 'create']:
             self.permission_classes = []
         return super().get_permissions()
 
@@ -57,6 +58,7 @@ class FQA(ComModelViewSet):
     search_fields=('question', 'answer')
     filterset_fields = ('question', 'answer')
     permission_classes = [IsSuperUser]
+    unauthenticated_actions = ['list']
 
     def get_permissions(self):
         if self.action == 'list':
