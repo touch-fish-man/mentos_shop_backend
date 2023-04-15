@@ -95,10 +95,6 @@ class ProxyServerApi(ComModelViewSet):
         acl_str_o = acl_value.split('\n')
         acl_str = "\n".join([username + " " + i for i in acl_str_o])
         create_resp = kaxy_client.create_user_acl_by_prefix(username, prefix, acl_str)
-        try:
-            create_resp = create_resp.json()
-        except:
-            create_resp = {}
         return SuccessResponse(data=create_resp)
 
     @action(methods=['post'], detail=True, url_path='delete_user', url_name='delete_user')

@@ -41,6 +41,7 @@ def main():
                 variant_data["acl_group"]= acl_group
                 variant_data["server_group"]= server_group
                 variant_data['product'] = product
+                variant_data['proxy_time'] = random.randint(1, 100)
                 VariantCreateSerializer().create(variant_data)
             # 创建product_collection
             for product_collection_data in product_collections_data:

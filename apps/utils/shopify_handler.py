@@ -112,11 +112,15 @@ class ShopifyClient:
                 values.append({
                     "option_value": v,
                 })
+            if o.get('name') == 'time':
+                option_type = 1
+            else:
+                option_type = 0
             options.append({
                 "option_name": o.get('name'),
                 "option_values": values,
                 "shopify_option_id": o.get('id'),
-                "option_type": ""
+                "option_type": option_type
 
             })
         product_info["variant_options"] = options
@@ -373,11 +377,13 @@ class SyncClient(ShopifyClient):
             else:
                 ProductTag.objects.create(tag_name=tag)
         return True
-    def sync_shopify(self):
+    def sync_shopify(self,customers=False,products=True):
         # 同步shopify
-        self.sync_customers()
-        self.sync_product_collections()
-        self.sync_product_tags()
+        if customers:
+            self.sync_customers()
+        if products:
+            self.sync_product_collections()
+            self.sync_product_tags()
 
 
     def sync_promotions(self):

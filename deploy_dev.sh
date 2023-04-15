@@ -7,7 +7,7 @@ fi
 cp -r .env.sample config/.env
 export DJANGO_ENV=dev
 /root/anaconda3/envs/py38/bin/pip install -r requirements.txt
-/root/anaconda3/envs/py38/bin/python manage.py reset_db --noinput
+/root/anaconda3/envs/py38/bin/python manage.py reset_db -c --noinput
 /root/anaconda3/envs/py38/bin/python del_migrations.py
 /root/anaconda3/envs/py38/bin/python manage.py makemigrations
 /root/anaconda3/envs/py38/bin/python manage.py migrate
