@@ -18,6 +18,7 @@ class ProductViewSet(ComModelViewSet):
     update:更新
     retrieve:详情
     destroy:删除
+    get_recommend_product:获取推荐商品
     """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
@@ -28,7 +29,7 @@ class ProductViewSet(ComModelViewSet):
     permission_classes = [IsSuperUser]
 
     def get_permissions(self):
-        if self.action == 'list':
+        if self.action in ['list', "get_recommend_product"]:
             self.permission_classes = [AllowAny]
         return super(ProductViewSet, self).get_permissions()
 
@@ -41,6 +42,24 @@ class ProductViewSet(ComModelViewSet):
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
         product_dict = shopify_client.get_products(format=True)
         return SuccessResponse(data=product_dict)
+
+    @action(methods=['get'], detail=False, url_path='get_recommend_product', url_name='get_recommend_product')
+    def get_recommend_product(self, request):
+        """
+        获取推荐商品
+        """
+        tags = request.query_params.get('tags')
+        if not tags:
+            return ErrorResponse(msg='tags不能为空')
+        tags = tags.split(',')
+        products = Product.objects.filter(product_tags__name__in=tags).distinct()
+        serializer = self.get_serializer(products, many=True)
+        # 获取分页数据
+        page = self.paginate_queryset(products)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        return SuccessResponse(data=serializer.data)
 
 
 class ProductCollectionViewSet(ComModelViewSet):
