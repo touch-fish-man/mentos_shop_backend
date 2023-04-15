@@ -82,7 +82,7 @@ class ShopifyClient:
         variant_info["variant_price"] = variant['price']
         variant_info["variant_stock"] = variant['inventory_quantity']
         variant_info["variant_option1"] = variant['option1'] if variant['option1'] else ""
-        variant_info["variant_option2"] =  variant['option2'] if variant['option2'] else ""
+        variant_info["variant_option2"] = variant['option2'] if variant['option2'] else ""
         variant_info["variant_option3"] = variant['option3'] if variant['option3'] else ""
         variant_info["variant_stock"] = 0
         variant_info["variant_desc"] = None
@@ -90,6 +90,7 @@ class ShopifyClient:
         variant_info["server_group"] = {"id": None, "name": None}
         variant_info["cart_step"] = 8
         variant_info["is_active"] = True
+        variant_info["proxy_time"] = 30
         return variant_info
 
     def format_product_info(self, product):

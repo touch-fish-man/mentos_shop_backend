@@ -58,6 +58,7 @@ class Variant(BaseModel):
     variant_option1 = models.CharField(max_length=255, verbose_name='选项1', blank=True, null=True)
     variant_option2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
     variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
+    proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
 
 
 class Product(BaseModel):

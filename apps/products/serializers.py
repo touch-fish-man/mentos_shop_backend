@@ -58,7 +58,7 @@ class VariantSerializer(serializers.ModelSerializer):
         fields = (
             "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price',
-            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3')
+            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
 
 class VariantCreateSerializer(serializers.ModelSerializer):
     cart_step = serializers.IntegerField(required=True)
@@ -70,7 +70,7 @@ class VariantCreateSerializer(serializers.ModelSerializer):
         fields = (
             "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price',
-            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3')
+            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
     def get_cidr(self,server_group):
         cidr_ids = []
         if server_group:
