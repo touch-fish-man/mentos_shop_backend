@@ -235,7 +235,7 @@ class InviteLogApi(ListAPIView):
         # 获取当前用户的邀请记录
         user = request.user
         if user.is_authenticated:
-            self.queryset = self.queryset.filter(invite_user=user)
+            self.queryset = self.queryset.filter(inviter_user=user)
             return self.list(request, *args, **kwargs)
         else:
             return ErrorResponse(msg="error")
