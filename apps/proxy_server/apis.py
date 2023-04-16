@@ -3,14 +3,14 @@ from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
     ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer, AclGroupSerializer, ServerGroupSerializer, \
-    AclGroupCreateSerializer, ServerGroupUpdateSerializer
+    AclGroupCreateSerializer, ServerGroupUpdateSerializer,ServerGroupCreateSerializer
 from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
-
+from django.conf import settings
 
 
 class AclsApi(ComModelViewSet):
@@ -61,7 +61,8 @@ class ProxyServerApi(ComModelViewSet):
         """
         proxy_server = self.get_object()
         ip = proxy_server.ip
-        url = "http://{}:65533".format(ip)
+        # url = "http://{}:65533".format(ip)
+        url = "http://112.75.252.4:65533"
         kaxy = KaxyClient(url)
         server_info = kaxy.get_server_info()
         user_list = kaxy.list_users()
@@ -80,7 +81,8 @@ class ProxyServerApi(ComModelViewSet):
         """
         通过前缀创建用户
         """
-
+        if settings.DEBUG:
+            return SuccessResponse(data={"code": 200, "message": "success"})
         proxy_server = self.get_object()
         ip = proxy_server.ip
         prefix = request.data.get('prefix')
@@ -103,6 +105,8 @@ class ProxyServerApi(ComModelViewSet):
         """
         删除用户
         """
+        if settings.DEBUG:
+            return SuccessResponse(data={"code": 200, "message": "success"})
         proxy_server = self.get_object()
         ip = proxy_server.ip
         username = request.data.get('username')
@@ -122,6 +126,8 @@ class ProxyServerApi(ComModelViewSet):
         """
         删除所有用户
         """
+        if settings.DEBUG:
+            return SuccessResponse(data={"code": 200, "message": "success"})
         proxy_server = self.get_object()
         ip = proxy_server.ip
         url = "http://{}:65533".format(ip)
@@ -165,7 +171,7 @@ class ServerGroupApi(ComModelViewSet):
     permission_classes = [IsSuperUser]
     queryset = ServerGroup.objects.all()
     serializer_class = ServerGroupSerializer
-    create_serializer_class = ServerGroupSerializer
+    create_serializer_class = ServerGroupCreateSerializer
     update_serializer_class = ServerGroupUpdateSerializer
     ordering_fields = ('id', 'name', 'created_at')
     search_fields = ('name', 'description')  # 搜索字段

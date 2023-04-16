@@ -31,7 +31,6 @@ class AclGroupSerializer(CommonSerializer):
         fields = '__all__'
     def to_representation(self, instance):
         # 过滤soft_delete的数据
-        instance = instance.filter(soft_delete=False)
         ret = super().to_representation(instance)
         return ret
 
@@ -93,9 +92,15 @@ class ServersGroupSerializer(CommonSerializer):
     class Meta:
         model = Server
         fields = ('id', 'name')
+class ServerGroupSerializer(CommonSerializer):
+    servers = ServersGroupSerializer(many=True)
+
+    class Meta:
+        model = ServerGroup
+        fields = ('id', 'name', 'description', 'servers')
 
 
-class ServerGroupSerializer(serializers.ModelSerializer):
+class ServerGroupCreateSerializer(serializers.ModelSerializer):
     servers = serializers.PrimaryKeyRelatedField(many=True, queryset=Server.objects.all(), required=False)
 
     class Meta:
