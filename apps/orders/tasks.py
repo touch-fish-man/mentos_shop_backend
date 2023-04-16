@@ -39,10 +39,9 @@ def check_order_expired():
     """
     定时检查db中订单状态，如果订单已过期，删除代理，每天检查一次，添加当天过期删除任务
     """
-    orders = Orders.objects.values('order_status','id')
+    orders = Orders.objects.filter(order_status=3).values('id')
     for order in orders:
-        if order['order_status']==3:
-            delete_proxy_expired(order['id'])
+        delete_proxy_expired(order['id'])
 
 def delete_proxy_expired(order_id):
     """
