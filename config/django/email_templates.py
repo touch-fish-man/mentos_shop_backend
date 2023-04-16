@@ -90,7 +90,7 @@ margin-bottom: 10px;
 <div class="container">
 <h1>Order Expiration Notification</h1>
 <p>Dear User,</p>
-<p>Your Order <strong id="order_id">{{order_id}}</strong> is about to expire in two days</p>
+<p>Your Order <strong id="order_id">{{order_id}}</strong> is about to expire in three days</p>
 <p>Please renew it as soon as possible.</p>
 <p style="text-align: right;">——From Mentos Proxy</p>
 </div>
