@@ -9,6 +9,10 @@ from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
+from apps.utils.kaxy_handler import KaxyClient
+
+
+
 class AclsApi(ComModelViewSet):
     """
     ACL
@@ -36,10 +40,10 @@ class ProxyServerApi(ComModelViewSet):
     update: 更新代理服务器
     destroy: 删除代理服务器
     retrieve: 获取代理服务器详情
-    change_domain_blacklist: 修改域名黑名单
-    list_users: 获取代理服务器用户列表
-    get_acl_info: 获取代理服务器ACL信息
     get_server_info: 获取代理服务器信息
+    create_user_by_prefix: 通过前缀创建用户
+    delete_user: 删除用户
+    delete_all_user: 删除所有用户
     """
     permission_classes = [IsSuperUser]
     queryset = Server.objects.all()
@@ -50,46 +54,84 @@ class ProxyServerApi(ComModelViewSet):
     create_serializer_class = ServerCreateSerializer
     update_serializer_class = ServerUpdateSerializer
 
-    @action(methods=['post'], detail=True, url_path='change-domain-blacklist', url_name='change-domain-blacklist')
-    def change_domain_blacklist(self, request, *args, **kwargs):
-        """
-        修改域名黑名单
-        """
-        proxy_server = self.get_object()
-        domain_blacklist = request.data.get('domain_blacklist', '')
-        if domain_blacklist:
-            proxy_server.domain_blacklist = domain_blacklist
-            proxy_server.save()
-            return SuccessResponse()
-        else:
-            return ErrorResponse('参数错误')
-
-    @action(methods=['get'], detail=True, url_path='list-users', url_name='list-users')
-    def list_users(self, request, *args, **kwargs):
-        """
-        获取代理服务器用户列表
-        """
-        proxy_server = self.get_object()
-        users = proxy_server.users.all()
-        return SuccessResponse(data=users)
-
-    @action(methods=['get'], detail=True, url_path='get-acl-info', url_name='get-acl-info')
-    def get_acl_info(self, request, *args, **kwargs):
-        """
-        获取代理服务器ACL信息
-        """
-        proxy_server = self.get_object()
-        proxy_server_info = Acls.objects.filter(proxy_server=proxy_server)
-        return SuccessResponse(data=proxy_server_info)
-
-    @action(methods=['get'], detail=True, url_path='get-server-info', url_name='get-server-info')
+    @action(methods=['get'], detail=True, url_path='get_server_info', url_name='get_server_info')
     def get_server_info(self, request, *args, **kwargs):
         """
         获取代理服务器信息
         """
         proxy_server = self.get_object()
-        proxy_server_info = Proxy.objects.filter(proxy_server=proxy_server)
-        return SuccessResponse(data=proxy_server_info)
+        ip = proxy_server.ip
+        url = "http://{}:65533".format(ip)
+        kaxy = KaxyClient(url)
+        server_info = kaxy.get_server_info()
+        user_list = kaxy.list_users()
+        try:
+            server_info = server_info.json()
+        except:
+            server_info = {}
+        try:
+            user_list = user_list.json()
+        except:
+            user_list = {}
+        return SuccessResponse(data={"server_info": server_info, "user_list": user_list})
+
+    @action(methods=['post'], detail=True, url_path='create_user_by_prefix', url_name='create_user_by_prefix')
+    def create_user_by_prefix(self, request, *args, **kwargs):
+        """
+        通过前缀创建用户
+        """
+
+        proxy_server = self.get_object()
+        ip = proxy_server.ip
+        prefix = request.data.get('prefix')
+        username = request.data.get('username')
+        acl_group = request.data.get('acl_group')
+        if not prefix:
+            return ErrorResponse('参数错误')
+        if not acl_group:
+            return ErrorResponse('参数错误')
+        acl_value = AclGroup.objects.get(id=acl_group).acl_value
+        url = "http://{}:65533".format(ip)
+        kaxy_client = KaxyClient(url)
+        acl_str_o = acl_value.split('\n')
+        acl_str = "\n".join([username + " " + i for i in acl_str_o])
+        create_resp = kaxy_client.create_user_acl_by_prefix(username, prefix, acl_str)
+        return SuccessResponse(data=create_resp)
+
+    @action(methods=['post'], detail=True, url_path='delete_user', url_name='delete_user')
+    def delete_user(self, request, *args, **kwargs):
+        """
+        删除用户
+        """
+        proxy_server = self.get_object()
+        ip = proxy_server.ip
+        username = request.data.get('username')
+        if not username:
+            return ErrorResponse('参数错误')
+        url = "http://{}:65533".format(ip)
+        kaxy_client = KaxyClient(url)
+        del_resp = kaxy_client.del_user(username)
+        try:
+            del_resp = del_resp.json()
+        except:
+            del_resp = {}
+        return SuccessResponse(data=del_resp)
+
+    @action(methods=['post'], detail=True, url_path='delete_all_user', url_name='delete_all_user')
+    def delete_all_user(self, request, *args, **kwargs):
+        """
+        删除所有用户
+        """
+        proxy_server = self.get_object()
+        ip = proxy_server.ip
+        url = "http://{}:65533".format(ip)
+        kaxy_client = KaxyClient(url)
+        del_resp = kaxy_client.del_all_user()
+        try:
+            del_resp = del_resp.json()
+        except:
+            del_resp = {}
+        return SuccessResponse(data=del_resp)
 
 
 class AclGroupApi(ComModelViewSet):
@@ -109,6 +151,7 @@ class AclGroupApi(ComModelViewSet):
     search_fields = ('name', 'description')  # 搜索字段
     filterset_fields = ['id', 'name', 'description']  # 过滤字段
     permission_classes = [IsSuperUser]
+
 
 class ServerGroupApi(ComModelViewSet):
     """

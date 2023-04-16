@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.core.serializers import CommonSerializer
-from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr, cidr_ip_count
+from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr, cidr_ip_count, fix_network_by_ip
 from apps.core.validators import CustomUniqueValidator
 
 
@@ -29,6 +29,13 @@ class AclGroupSerializer(CommonSerializer):
     class Meta:
         model = AclGroup
         fields = '__all__'
+    def to_representation(self, instance):
+        # 过滤soft_delete的数据
+        instance = instance.filter(soft_delete=False)
+        ret = super().to_representation(instance)
+        return ret
+
+
 
 
 class AclGroupCreateSerializer(CommonSerializer):
@@ -130,6 +137,7 @@ class ServerCreateSerializer(CommonSerializer):
         server = Server.objects.create(**validated_data)
         cidrs_list = []
         for cidr in cidrs:
+            cidr['cidr']=fix_network_by_ip(cidr['cidr'].strip())
             cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
             cidr_obj = Cidr.objects.get_or_create(**cidr)
             cidrs_list.append(cidr_obj[0].id)

@@ -8,7 +8,7 @@ is_run=${1:-0}
 port=${2:-4000}
 cp -r .env.sample config/.env
 pip install -r requirements.txt
-python manage.py reset_db --noinput
+python manage.py reset_db -c --noinput
 python del_migrations.py
 python manage.py makemigrations
 python manage.py migrate

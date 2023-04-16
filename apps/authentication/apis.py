@@ -105,8 +105,11 @@ class DiscordOauth2RedirectApi(APIView):
             # 登录
             user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
-            # 重定向到用户页面
-            return redirect("/#/dashboard/")
+
+            # 携带sessionid重定向到用户页面
+            response = redirect("/#/dashboard/")
+            response.set_cookie('sessionid', request.session.session_key, httponly=True)
+            return response
 
 
 class DiscordBindRedirectApi(APIView):

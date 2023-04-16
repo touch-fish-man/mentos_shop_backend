@@ -3,9 +3,10 @@ from .json_response import SuccessResponse, LimitOffsetResponse, ErrorResponse
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.db import transaction
+from apps.core.mix import CustomLoginRequiredMixin
 
 
-class ComModelViewSet(ModelViewSet):
+class ComModelViewSet(ModelViewSet,CustomLoginRequiredMixin):
     values_queryset = None
     ordering_fields = '__all__'
     create_serializer_class = None
@@ -17,6 +18,7 @@ class ComModelViewSet(ModelViewSet):
     permission_classes = []
     import_field_dict = {}
     export_field_label = {}
+    unauthenticated_actions = []
 
 
     def get_serializer(self, *args, **kwargs):
@@ -74,3 +76,4 @@ class ComModelViewSet(ModelViewSet):
     @swagger_auto_schema(auto_schema=None)
     def partial_update(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
+

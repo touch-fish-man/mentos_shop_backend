@@ -1,9 +1,12 @@
+import ipaddress
 import logging
 
 import requests
 import json
 import os
 from pprint import pprint
+
+
 
 class KaxyClient:
     def __init__(self, url, token='EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'):
@@ -112,10 +115,10 @@ class KaxyClient:
 
     def del_user(self, user):
         # 删除用户
-        resp = self.__send_request("post", "/api/delete-user", json={"username": user})
+        resp = self.__send_request("post", "/api/delete-user", json={"user": user})
         return resp
 
-    def del_all_users(self):
+    def del_all_user(self):
         # 删除所有用户
         resp = self.__send_request("post", "/api/delete-all-users")
         return resp
@@ -149,6 +152,36 @@ class KaxyClient:
         resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": acl_str})
         return resp
 
+    def add_user_acl(self, acl_str):
+        # 添加用户acl
+        ori_acl = self.list_user_acl().text
+        acl_str = ori_acl + "\n" + acl_str
+        acl_str_list = acl_str.split("\n")
+        acl_str="\n".join(list(sorted(set(acl_str_list), key=acl_str_list.index)))
+        if ori_acl == acl_str:
+            # acl未改变
+            return True
+        resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": acl_str})
+        if resp.get("status") == 200:
+            return True
+        return False
+    def create_user_acl_by_prefix(self, user, prefix,acl_str):
+        # 创建用户acl，指定ip前缀
+        proxy_info = {"proxy": [], "num_of_ips": []}
+        resp=self.create_user_by_prefix(user, prefix)
+        self.add_user_acl(acl_str)
+        try:
+            resp=resp.json()
+            proxy_info["num_of_ips"]=resp["data"]["num_of_ips"]
+            for proxy_i in resp["data"]["proxy_str"]:
+                # 判断ip是否在指定网段内
+                if ipaddress.IPv4Address(proxy_i.split(":")[0]) in ipaddress.IPv4Network(prefix):
+                    proxy_info["proxy"].append(proxy_i)
+        except:
+            pass
+
+        return proxy_info
+
     def add_subnet_acl(self, acl_str):
         # 添加子网acl
         resp = self.__send_request("post", "/api/write-subnet-acl", json={"acl_str": acl_str})
@@ -181,4 +214,11 @@ if __name__ == "__main__":
     client = KaxyClient("http://112.75.252.4:65533", token)
     # pprint(client.list_all_proxies().json())
     # pprint(client.list_users().json())
-
+    acl_str = "test1222234 asasas.com"
+    # pprint(client.add_acl(acl_str).json())
+    # client.create_user("test123456", 8)
+    # pprint(client.add_user_acl(acl_str).json())
+    # pprint(client.list_user_acl().text)
+    pprint(client.get_server_info().json())
+    pprint(client.create_user_acl_by_prefix("test123456","113.203.223.8/29",acl_str))
+    client.del_user("test123456")

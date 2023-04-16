@@ -82,7 +82,7 @@ class ShopifyClient:
         variant_info["variant_price"] = variant['price']
         variant_info["variant_stock"] = variant['inventory_quantity']
         variant_info["variant_option1"] = variant['option1'] if variant['option1'] else ""
-        variant_info["variant_option2"] =  variant['option2'] if variant['option2'] else ""
+        variant_info["variant_option2"] = variant['option2'] if variant['option2'] else ""
         variant_info["variant_option3"] = variant['option3'] if variant['option3'] else ""
         variant_info["variant_stock"] = 0
         variant_info["variant_desc"] = None
@@ -90,6 +90,7 @@ class ShopifyClient:
         variant_info["server_group"] = {"id": None, "name": None}
         variant_info["cart_step"] = 8
         variant_info["is_active"] = True
+        variant_info["proxy_time"] = 30
         return variant_info
 
     def format_product_info(self, product):
@@ -111,11 +112,15 @@ class ShopifyClient:
                 values.append({
                     "option_value": v,
                 })
+            if o.get('name') == 'time':
+                option_type = 1
+            else:
+                option_type = 0
             options.append({
                 "option_name": o.get('name'),
                 "option_values": values,
                 "shopify_option_id": o.get('id'),
-                "option_type": ""
+                "option_type": option_type
 
             })
         product_info["variant_options"] = options
@@ -372,11 +377,13 @@ class SyncClient(ShopifyClient):
             else:
                 ProductTag.objects.create(tag_name=tag)
         return True
-    def sync_shopify(self):
+    def sync_shopify(self,customers=False,products=True):
         # 同步shopify
-        self.sync_customers()
-        self.sync_product_collections()
-        self.sync_product_tags()
+        if customers:
+            self.sync_customers()
+        if products:
+            self.sync_product_collections()
+            self.sync_product_tags()
 
 
     def sync_promotions(self):

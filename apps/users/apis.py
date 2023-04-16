@@ -3,9 +3,7 @@ import datetime
 import random
 import uuid
 
-from captcha.views import CaptchaStore, captcha_image
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.validators import validate_email
 from rest_framework.decorators import action
 from rest_framework.views import APIView
@@ -20,6 +18,7 @@ from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpd
 from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
+
 
 class UserApi(ComModelViewSet):
     """
@@ -43,10 +42,11 @@ class UserApi(ComModelViewSet):
     update_serializer_class = UserUpdateSerializer
     baned_user_serializer_class = BanUserSerializer
     permission_classes = [IsAuthenticated]
+    unauthenticated_actions = ['create']
 
     def get_permissions(self):
         if self.action in ['create']:
-            return []
+            self.permission_classes = []
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
@@ -104,7 +104,8 @@ class UserApi(ComModelViewSet):
     #     data = user_get_login_data(user=user)
     #     return SuccessResponse(msg="success", data=data)
 
-    @action(methods=['post'], detail=True, url_path='baned_user', url_name='baned_user',permission_classes=[IsSuperUser])
+    @action(methods=['post'], detail=True, url_path='baned_user', url_name='baned_user',
+            permission_classes=[IsSuperUser])
     def baned_user(self, request, *args, **kwargs):
         instance = User.objects.filter(id=kwargs.get("pk")).first()
         if instance:
@@ -231,11 +232,12 @@ class InviteLogApi(ListAPIView):
     serializer_class = InviteLogSerializer
 
     queryset = InviteLog.objects.all()
+
     def get(self, request, *args, **kwargs):
         # 获取当前用户的邀请记录
         user = request.user
         if user.is_authenticated:
-            self.queryset = self.queryset.filter(invite_user=user)
+            self.queryset = self.queryset.filter(inviter_user=user)
             return self.list(request, *args, **kwargs)
         else:
             return ErrorResponse(msg="error")
@@ -257,6 +259,7 @@ class RebateRecordApi(ListAPIView):
             return self.list(request, *args, **kwargs)
         else:
             return ErrorResponse(msg="error")
+
 
 # class UserLevelRecordApi(ComModelViewSet):
 #     """

@@ -6,8 +6,9 @@ from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from apps.core.json_response import SuccessResponse,ErrorResponse
 from apps.site_settings.services import save_site_settings,change_site_settings,get_site_setting
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class SiteSettingsApi(APIView):
+class SiteSettingsApi(APIView,LoginRequiredMixin):
     """
     站点设置
     """

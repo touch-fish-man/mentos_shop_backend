@@ -17,10 +17,9 @@ from sync_shopify import main as sync_shopify
 from product import main as mock_products
 # 使用线程池，提高速度
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
-executor = ThreadPoolExecutor(10)
+executor = ThreadPoolExecutor(15)
 def main():
     mock_users()
-    mock_orders()
     threads = []
     threads.append(executor.submit(mock_tickets))
     threads.append(executor.submit(mock_acls))
@@ -31,12 +30,13 @@ def main():
     threads.append(executor.submit(mock_giftcard))
     threads.append(executor.submit(mock_coupon_code))
     threads.append(executor.submit(mock_point_record))
-    threads.append(executor.submit(mock_proxy))
     threads.append(executor.submit(mock_faq))
     threads.append(executor.submit(sync_shopify))
 
     wait(threads, return_when=ALL_COMPLETED)
     mock_products()
+    mock_orders()
+    mock_proxy()
     print("mock data done")
 
 

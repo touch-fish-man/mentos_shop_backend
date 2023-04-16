@@ -18,17 +18,18 @@ def main():
     with console.status("[bold green]Generating proxy servers...") as status:
         ServerGroup.objects.all().delete()
         Server.objects.all().delete()
+        Cidr.objects.all().delete()
         print("Generating proxy servers...")
         for i in range(50):
             name = 'test proxy server {}'.format(i)
             description = fake.sentence()
             ip = fake.ipv4()
-            cidr = fake.ipv4(network=True)
-            ip_count = cidr_ip_count(cidr)
-            cidr = Cidr.objects.create(cidr=cidr, ip_count=ip_count)
             server = Server.objects.create(name=name, description=description, ip=ip)
-            server.cidrs.add(cidr)
             cidr = fake.ipv4(network=True)
+            while int(cidr.split('/')[1])>29:
+                cidr = fake.ipv4(network=True)
+            if int(cidr.split('/')[1])<25:
+                cidr = cidr.split('/')[0]+'/'+str(random.randint(25, 29))
             ip_count = cidr_ip_count(cidr)
             cidr = Cidr.objects.create(cidr=cidr, ip_count=ip_count)
             server.cidrs.add(cidr)
@@ -37,7 +38,7 @@ def main():
             name = 'test proxy server group {}'.format(i)
             description = fake.sentence()
             server_group = ServerGroup.objects.create(name=name, description=description)
-            random_servers = Server.objects.order_by('?')[:random.randint(1, 10)]
+            random_servers = Server.objects.order_by('?')[:random.randint(1, 3)]
             for server in random_servers:
                 server_group.servers.add(server)
 
