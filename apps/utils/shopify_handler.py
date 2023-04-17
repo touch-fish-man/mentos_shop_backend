@@ -78,7 +78,7 @@ class ShopifyClient:
     def format_variant_info(self, variant):
         variant_info = {}
         variant_info["shopify_variant_id"] = variant['id']
-        variant_info["variant_name"] = variant['title']
+        variant_info["variant_name"] = 'Default' if variant['title'] == 'Default Title' else variant['title']
         variant_info["variant_price"] = variant['price']
         variant_info["variant_stock"] = variant['inventory_quantity']
         variant_info["variant_option1"] = variant['option1'] if variant['option1'] else ""
@@ -110,14 +110,14 @@ class ShopifyClient:
             values = []
             for v in o.get('values'):
                 values.append({
-                    "option_value": v,
+                    "option_value": 'Default' if v == 'Default Title' else v,
                 })
-            if o.get('name') == 'time':
+            if 'time' in o.get('name',""):
                 option_type = 1
             else:
                 option_type = 0
             options.append({
-                "option_name": o.get('name'),
+                "option_name": "Default Option" if o.get('name')=="Title" else o.get('name'),
                 "option_values": values,
                 "shopify_option_id": o.get('id'),
                 "option_type": option_type

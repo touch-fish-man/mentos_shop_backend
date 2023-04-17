@@ -37,7 +37,7 @@ def main():
                 option_data['product'] = product
                 OptionSerializer().create(option_data)  # 创建variant
             for variant_data in variants_data:
-                variant_data["variant_desc"]=fake.sentence(nb_words=6, variable_nb_words=True, ext_word_list=None)
+                variant_data["variant_desc"]="VA"
                 variant_data["acl_group"]= acl_group
                 variant_data["server_group"]= server_group
                 variant_data['product'] = product
