@@ -35,7 +35,7 @@ class CouponCodeViewSet(ComModelViewSet):
                 return super().list(request, *args, **kwargs)
             queryset = self.queryset.filter(holder_uid=user.id).order_by('-is_used')
             serializer = self.get_serializer(queryset, many=True)
-            return SuccessResponse(data=serializer.data, msg="获取成功")
+            return SuccessResponse(data={"data":serializer.data}, msg="获取成功")
         else:
             return ErrorResponse(msg="请先登录")
 
