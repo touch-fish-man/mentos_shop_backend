@@ -88,16 +88,16 @@ class DiscordOauth2RedirectApi(APIView):
     discord 登录回调
     """
     def get(self, request):
-        # code = request.GET.get('code')
-        # if code is None:
-        #     return ErrorResponse(msg="code错误", status=400)
-        # user = exchange_code(code, settings.DISCORD_REDIRECT_URI)
-        # if user is None:
-        #     return ErrorResponse(msg="oauth错误", status=400)
-        # discord_id = user.get('id')
+        code = request.GET.get('code')
+        if code is None:
+            return ErrorResponse(msg="code错误", status=400)
+        user = exchange_code(code, settings.DISCORD_REDIRECT_URI)
+        if user is None:
+            return ErrorResponse(msg="oauth错误", status=400)
+        discord_id = user.get('id')
         # 查询用户是否存在
-        # user = User.objects.filter(discord_id=discord_id).first()
-        user = User.objects.first()
+        user = User.objects.filter(discord_id=discord_id).first()
+        # user = User.objects.first()
 
         if user is None:
             # 返回标志，前端跳转到注册页面，注册附带discord_id
