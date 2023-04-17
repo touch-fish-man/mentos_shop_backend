@@ -59,31 +59,45 @@ def get_checkout_link(request):
     order_info_dict["uid"] = user.id
     order_info_dict["username"] = user.username
     order_info_dict["product_id"] = request.data.get("product_id")
-    order_info_dict["product_price"] = request.data.get("product_price")
-    order_info_dict["product_quantity"] = request.data.get("product_quantity")
-    order_info_dict["product_total_price"] = float(request.data.get("product_price")) * int(
-        request.data.get("product_quantity"))
-    order_info_dict["variant_id"] = request.data.get("variant_id")
-    order_info_dict["product_type"] = request.data.get("product_type")
-    expired_at = Variant.objects.filter(id=request.data.get("variant_id")).first().proxy_time + datetime.datetime.now(
-        timezone.utc)
-    order_info_dict["expired_at"] = expired_at
-    order_id = Orders.objects.create(**order_info_dict).order_id
-    if level_code_obj:
-        code = level_code_obj.code
+    order_info_dict["product_quantity"] = request.data.get("quantity")
+    option_selected=request.data.get("option_selected")
+    variant_obj = Variant.objects.filter(product=order_info_dict["product_id"], variant_option1=option_selected[0])
+    if len(option_selected) == 2:
+        variant_obj = variant_obj.filter(variant_option2=option_selected[1])
+    # 查询产品信息
+    variant_obj = variant_obj.first()
+    if variant_obj:
+        order_info_dict["variant_id"] = variant_obj.shopify_variant_id
+        order_info_dict["product_total_price"] = float(variant_obj.price) * int(
+            order_info_dict["product_quantity"])
+        order_info_dict["product_type"] = variant_obj.product.product_type
+        order_info_dict["product_price"] = variant_obj.price
+        proxy_time = variant_obj.proxy_time
+        order_info_dict["product_total_price"] = float(request.data.get("product_price")) * int(
+            request.data.get("product_quantity"))
+        order_info_dict["variant_id"] = request.data.get("variant_id")
+        order_info_dict["product_type"] = request.data.get("product_type")
+        expired_at = datetime.datetime.now(timezone.utc)+datetime.timedelta(days=proxy_time)
+        order_info_dict["expired_at"] = expired_at
+        order_id = Orders.objects.create(**order_info_dict).order_id
+        if level_code_obj:
+            code = level_code_obj.code
+        else:
+            code = None
+        cart_quantity_pairs = ["{}:{}".format(request.data.get("variant_id"), request.data.get("product_quantity"))]
+        check_info = {
+            "cart_quantity_pairs": cart_quantity_pairs,
+            "discount": code,
+            "email": user.email,
+            "note": "order_id_{}".format(order_id),
+            'attributes': {"order_id": order_id, "renewal": request.data.get("renewal", "0")},
+            "ref": "mentosproxy_web",
+        }
+        checkout_link = ShopifyClient.get_checkout_link(settings.SHOPIFY_SHOP_URL, check_info)
+        return checkout_link, order_id
     else:
-        code = None
-    cart_quantity_pairs = ["{}:{}".format(request.data.get("variant_id"), request.data.get("product_quantity"))]
-    check_info = {
-        "cart_quantity_pairs": cart_quantity_pairs,
-        "discount": code,
-        "email": user.email,
-        "note": "order_id_{}".format(order_id),
-        'attributes': {"order_id": order_id, "renewal": request.data.get("renewal", "0")},
-        "ref": "mentosproxy_web",
-    }
-    checkout_link = ShopifyClient.get_checkout_link(settings.SHOPIFY_SHOP_URL, check_info)
-    return checkout_link, order_id
+        return None, None
+
 
 
 def create_proxy_by_order(order_id):
