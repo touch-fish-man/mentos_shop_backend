@@ -1,6 +1,6 @@
 from apps import celery_app
 from apps.proxy_server.models import Cidr, CidrGeo
-import pycountry
+# import pycountry
 import ipaddress
 import requests
 from django.conf import settings
