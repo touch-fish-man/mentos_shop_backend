@@ -18,7 +18,7 @@ from apps.users.models import Code, InviteLog, User
 from apps.core.validators import CustomValidationError
 
 
-def generate_code(size=6, chars=string.digits + string.ascii_letters):
+def generate_code(size=6, chars=string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
 

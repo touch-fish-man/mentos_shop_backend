@@ -88,27 +88,27 @@ class DiscordOauth2RedirectApi(APIView):
     discord 登录回调
     """
     def get(self, request):
-        code = request.GET.get('code')
-        if code is None:
-            return ErrorResponse(msg="code错误", status=400)
-        user = exchange_code(code, settings.DISCORD_REDIRECT_URI)
-        if user is None:
-            return ErrorResponse(msg="oauth错误", status=400)
-        discord_id = user.get('id')
+        # code = request.GET.get('code')
+        # if code is None:
+        #     return ErrorResponse(msg="code错误", status=400)
+        # user = exchange_code(code, settings.DISCORD_REDIRECT_URI)
+        # if user is None:
+        #     return ErrorResponse(msg="oauth错误", status=400)
+        # discord_id = user.get('id')
         # 查询用户是否存在
-        user = User.objects.filter(discord_id=discord_id).first()
+        # user = User.objects.filter(discord_id=discord_id).first()
+        user = User.objects.first()
 
         if user is None:
             # 返回标志，前端跳转到注册页面，注册附带discord_id
             return redirect(f'/#/createAccount?discord_id={discord_id}')
         else:
             # 登录
-            user.backend = 'django.contrib.auth.backends.ModelBackend'
             login(request, user)
 
             # 携带sessionid重定向到用户页面
-            response = redirect("/#/dashboard/")
-            response.set_cookie('sessionid', request.session.session_key, httponly=True)
+            response = redirect("/api/users/u/user_info")
+            # response.set_cookie('sessionid', request.session.session_key, httponly=True)
             return response
 
 
