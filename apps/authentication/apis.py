@@ -107,7 +107,7 @@ class DiscordOauth2RedirectApi(APIView):
             login(request, user)
 
             # 携带sessionid重定向到用户页面
-            response = redirect("/api/users/u/user_info")
+            response = redirect("/#/dashboard/")
             # response.set_cookie('sessionid', request.session.session_key, httponly=True)
             return response
 
