@@ -18,6 +18,7 @@ from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpd
 from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
+from django.conf import settings
 
 
 class UserApi(ComModelViewSet):
