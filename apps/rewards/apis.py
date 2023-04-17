@@ -33,10 +33,9 @@ class CouponCodeViewSet(ComModelViewSet):
             if user.is_superuser:
                 # 管理员获取所有优惠码
                 return super().list(request, *args, **kwargs)
-            # 普通用户获取自己的优惠码
-            request.query_params["limit"] = 100  # 用户获取优惠码时，限制最多100条
-            self.queryset = self.queryset.filter(holder_uid=user.id).order_by('-is_used')
-            return super().list(request, *args, **kwargs)
+            queryset = self.queryset.filter(holder_uid=user.id).order_by('-is_used')
+            serializer = self.get_serializer(queryset, many=True)
+            return SuccessResponse(data=serializer.data, msg="获取成功")
         else:
             return ErrorResponse(msg="请先登录")
 
