@@ -33,7 +33,7 @@ class CouponCodeViewSet(ComModelViewSet):
             if user.is_superuser:
                 # 管理员获取所有优惠码
                 return super().list(request, *args, **kwargs)
-            queryset = self.queryset.filter(holder_uid=user.id).order_by('-is_used')
+            queryset = self.queryset.filter(holder_uid=user.id).order_by('is_used')
             serializer = self.get_serializer(queryset, many=True)
             return SuccessResponse(data={"data":serializer.data}, msg="获取成功")
         else:
