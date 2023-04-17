@@ -68,15 +68,10 @@ def get_checkout_link(request):
     variant_obj = variant_obj.first()
     if variant_obj:
         order_info_dict["variant_id"] = variant_obj.shopify_variant_id
-        order_info_dict["product_total_price"] = float(variant_obj.price) * int(
-            order_info_dict["product_quantity"])
-        order_info_dict["product_type"] = variant_obj.product.product_type
-        order_info_dict["product_price"] = variant_obj.price
+        order_info_dict["product_price"] = variant_obj.variant_price
         proxy_time = variant_obj.proxy_time
-        order_info_dict["product_total_price"] = float(request.data.get("product_price")) * int(
-            request.data.get("product_quantity"))
-        order_info_dict["variant_id"] = request.data.get("variant_id")
-        order_info_dict["product_type"] = request.data.get("product_type")
+        order_info_dict["product_total_price"] = order_info_dict["product_price"] * int(order_info_dict["product_price"])
+        order_info_dict["product_type"] = Product.objects.filter(id=order_info_dict["product_id"]).first().product_collections.first().id
         expired_at = datetime.datetime.now(timezone.utc)+datetime.timedelta(days=proxy_time)
         order_info_dict["expired_at"] = expired_at
         order_id = Orders.objects.create(**order_info_dict).order_id
@@ -84,7 +79,7 @@ def get_checkout_link(request):
             code = level_code_obj.code
         else:
             code = None
-        cart_quantity_pairs = ["{}:{}".format(request.data.get("variant_id"), request.data.get("product_quantity"))]
+        cart_quantity_pairs = ["{}:{}".format(order_info_dict["variant_id"], order_info_dict["product_quantity"])]
         check_info = {
             "cart_quantity_pairs": cart_quantity_pairs,
             "discount": code,
