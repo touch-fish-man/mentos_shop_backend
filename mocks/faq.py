@@ -17,7 +17,7 @@ def main():
     with console.status("[bold green]Generating faq...") as status:
         Question.objects.all().delete()
         print("Generating faq...")
-        for i in range(50):
+        for i in range(10):
             question = "问题"+str(i)+"?"
             answer = fake.text()
             Question.objects.create(question=question, answer=answer)

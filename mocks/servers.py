@@ -20,10 +20,10 @@ def main():
         Server.objects.all().delete()
         Cidr.objects.all().delete()
         print("Generating proxy servers...")
-        for i in range(50):
+        for i in range(10):
             name = 'test proxy server {}'.format(i)
             description = fake.sentence()
-            ip = fake.ipv4()
+            ip = '112.75.252.4'
             server = Server.objects.create(name=name, description=description, ip=ip)
             cidr = fake.ipv4(network=True)
             while int(cidr.split('/')[1])>29:
