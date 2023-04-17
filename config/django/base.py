@@ -310,6 +310,7 @@ LEVEL_DISCOUNT_RATE = float(env('LEVEL_DISCOUNT_RATE'))  # 等级折扣比例 1 
 # 邀请返利配置
 INVITE_REBATE_RATE = float(env('INVITE_REBATE_RATE'))  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
 # ---------需要动态配置的配置项----------------
+FRONTEND_URL = env('FRONTEND_URL')
 # 导入邮件模板配置
 from .email_templates import *
 from .celery import *

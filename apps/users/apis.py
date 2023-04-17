@@ -281,7 +281,7 @@ class InviteCodeAPIView(APIView):
         user = request.user
         if user.is_authenticated:
             invite_code = user.invite_code
-            data = {"invite_url": "https://www.mentosproxy.com/#/createAccount?invite_code=" + invite_code,
+            data = {"invite_url": "{}/#/createAccount?invite_code={}".format(settings.FRONTEND_URL, invite_code),
                     "invite_code": invite_code}
             return SuccessResponse(data=data)
         else:
