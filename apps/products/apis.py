@@ -53,7 +53,7 @@ class ProductViewSet(ComModelViewSet):
         if not tags:
             return ErrorResponse(msg='tags不能为空')
         tags = tags.split(',')
-        products = Product.objects.filter(product_tags__name__in=tags).distinct()
+        products = Product.objects.filter(product_tags__in=tags).distinct()
         serializer = self.get_serializer(products, many=True)
         # 获取分页数据
         page = self.paginate_queryset(products)

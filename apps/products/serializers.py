@@ -127,13 +127,16 @@ class ProductSerializer(serializers.ModelSerializer):
     product_tags = ProductTagSerializer(many=True)
     variants = VariantSerializer(many=True)
     variant_options = OptionSerializer(many=True)
+    lower_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = ("id",
                   'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
                   'variants',
-                  'variant_options',"created_at")
+                  'variant_options',"created_at","lower_price")
+    def get_lower_price(self, obj):
+        return "$"+str(obj.variants.order_by('variant_price').first().variant_price)+"+"
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):

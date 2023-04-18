@@ -128,3 +128,7 @@ class LevelCodeViewSet(ComModelViewSet):
     permission_classes = [IsSuperUser]
     queryset = LevelCode.objects.all()
     serializer_class = LevelCodeSerializer
+    def get_permissions(self):
+        if self.action == 'list':
+            self.permission_classes = []
+        return super().get_permissions()
