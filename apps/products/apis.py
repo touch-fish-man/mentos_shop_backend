@@ -31,7 +31,7 @@ class ProductViewSet(ComModelViewSet):
 
     def get_permissions(self):
         if self.action in ['list', "get_recommend_product"]:
-            self.permission_classes = [AllowAny]
+            return []
         return super(ProductViewSet, self).get_permissions()
 
     @action(methods=['get'], detail=False, url_path='get_product_from_shopify', url_name='get_product_from_shopify')
