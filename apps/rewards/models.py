@@ -1,6 +1,7 @@
 from django.db import models
 from apps.core.models import BaseModel
 from apps.core.validators import CustomUniqueValidator
+import datetime
 
 
 class CouponCode(BaseModel):
@@ -32,6 +33,16 @@ class CouponCode(BaseModel):
 
     def __str__(self):
         return self.code
+
+    def used_code(self):
+        """
+        使用优惠券码
+        :return:
+        """
+        self.is_used = True
+        self.used_at = datetime.datetime.now()
+        self.save()
+        
 
 
 class PointRecord(BaseModel):

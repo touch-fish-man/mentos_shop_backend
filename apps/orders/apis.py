@@ -16,6 +16,8 @@ from .services import verify_webhook, shopify_order, get_checkout_link
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from apps.orders.services import create_proxy_by_order
+from apps.rewards.models import CouponCode
 
 
 class OrdersApi(ComModelViewSet):
@@ -158,14 +160,29 @@ class ShopifyWebhookApi(APIView):
 
     def post(self, request):
         # todo 订单回调
-        # 通过pix脚本回调
+        # webhook回调
         # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
         # 验证签名
         if not verify_webhook(request):
             return ErrorResponse(data={}, msg="签名验证失败")
         logging.error(request.data)
+        # fixme 发货
+        # fixme 生成代理
+        # fixme 更新订单状态
+        # fixme 发送邮件
+        # fixme 修改返利记录
+        # fixme 修改用户积分，等级
         # shopify订单回调
-        shopify_order(request.data)
+        order_info=shopify_order(request.data)
+        # fixme 修改优惠券状态
+        order_id=request.query_params.get('order_id')
+        create_proxy_by_order(order_id)
+        discount_code=request.query_params.get('discount_code')
+        if discount_code:
+            coupon=CouponCode.objects.filter(code=discount_code).first()
+            if coupon:
+                coupon.used_code()
+
         return SuccessResponse()
 
 
