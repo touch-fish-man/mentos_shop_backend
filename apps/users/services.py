@@ -56,6 +56,14 @@ def check_verify_id(email, verify_id):
 
 
 def send_email_code(email, email_template):
+    # 查询已存在的验证码，如果存在且未过期，则直接返回
+    code_item = Code.objects.filter(email=email)
+    if code_item.exists():
+        db_code = code_item.first()
+        if db_code.created_at + datetime.timedelta(minutes=settings.EMAIL_CODE_EXPIRE) < datetime.datetime.now():
+            db_code.delete()
+        else:
+            return db_code.id
     code = generate_code(4)
     email_template=settings.EMAIL_TEMPLATES.get(email_template)
     subject = email_template.get('subject')
