@@ -251,17 +251,3 @@ class Proxy(BaseModel):
             pass
         # 删除代理
         super(Proxy, self).delete(using, keep_parents)
-    
-class CidrGeo(BaseModel):
-    cidr = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR')
-    country_code = models.CharField(max_length=255, blank=True, null=True, verbose_name='国家代码')
-    region_code = models.CharField(max_length=255, blank=True, null=True, verbose_name='区域代码')
-    country = models.CharField(max_length=255, blank=True, null=True, verbose_name='国家')
-    region = models.CharField(max_length=255, blank=True, null=True, verbose_name='省份')
-    city = models.CharField(max_length=255, blank=True, null=True, verbose_name='城市')
-    post_code = models.CharField(max_length=255, blank=True, null=True, verbose_name='邮编')
-
-    class Meta:
-        db_table = 'cidr_geo'
-        verbose_name = 'CIDR地理位置'
-        verbose_name_plural = 'CIDR地理位置'
