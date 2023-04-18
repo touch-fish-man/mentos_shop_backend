@@ -25,11 +25,6 @@ def sync_user_to_shopify():
     private_app_password = settings.SHOPIFY_APP_KEY
     shopify_sync_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
     shopify_sync_client.sync_customers()
-def delete_caphcha():
-    """
-    定时任务，删除过期验证码，每天凌晨1点执行
-    """
-    CaptchaStore.objects.filter(expiration__lt=timezone.now()).delete()
     
 celery_app.conf.beat_schedule = {
     'update_user_level': {
@@ -39,9 +34,5 @@ celery_app.conf.beat_schedule = {
     'sync_user_to_shopify': {
         'task': 'sync_user_to_shopify',
         'schedule': crontab(hour=1, minute=0),
-    },
-    'delete_caphcha': {
-        'task': 'delete_caphcha',
-        'schedule': crontab(hour=1, minute=0),
-    },
+    }
 }

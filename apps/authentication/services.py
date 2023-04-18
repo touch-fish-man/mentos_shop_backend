@@ -48,22 +48,18 @@ def check_chaptcha(captcha_id, captcha_code):
         raise ValidationError(message="Captcha code error, please refresh the page.")
     if captcha_code is None:
         raise ValidationError(message="Captcha code error, please refresh the page.")
-    code_obj=CaptchaStore.objects.filter(id=captcha_id)
-    if code_obj.exists():
-        expiration = code_obj.first().expiration
+    code_obj=CaptchaStore.objects.filter(id=captcha_id).first()
+    if code_obj:
+        expiration = code_obj.expiration
         expiration = expiration.astimezone(pytz.timezone("Asia/Shanghai"))
-        response = CaptchaStore.objects.filter(id=captcha_id).first().response
-        image_code = CaptchaStore.objects.filter(id=captcha_id).first()
+        response = code_obj.response
+        code_obj.delete()
         five_minute_ago = datetime.now() - timedelta(hours=0, minutes=5, seconds=0)
         five_minute_ago = five_minute_ago.replace(tzinfo=pytz.timezone("Asia/Shanghai"))
-        if image_code and five_minute_ago > expiration:
-            image_code.delete()
+        if five_minute_ago > expiration:
             raise ValidationError(message="Captcha code error, please refresh the page.")
         else:
-            if image_code and response.lower() == captcha_code.lower():
-                image_code.delete()
-            else:
-                image_code.delete()
+            if response.lower() != captcha_code.lower():
                 raise ValidationError(message="Captcha code error, please refresh the page.")
     else:
         raise ValidationError(message="Captcha code error, please refresh the page.")
