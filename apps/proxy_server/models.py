@@ -230,7 +230,7 @@ class Proxy(BaseModel):
     username = models.CharField(max_length=255, blank=True, null=True, verbose_name='用户名')
     password = models.CharField(max_length=255, blank=True, null=True, verbose_name='密码')
     port = models.IntegerField(blank=True, null=True, verbose_name='端口')
-    proxy_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='类型')
+    proxy_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='类型',default='http')
     server_ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器IP')
     order = models.ForeignKey('orders.Orders', on_delete=models.CASCADE, blank=True, null=True, verbose_name='订单')
     expired_at = models.DateTimeField(blank=True, null=True, verbose_name='过期时间')

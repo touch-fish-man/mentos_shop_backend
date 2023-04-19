@@ -18,6 +18,7 @@ django.setup()
 from apps.orders.models import Orders
 from apps.proxy_server.models import ProxyStock, ServerGroup, Proxy
 from apps.products.models import Variant
+from apps.users.models import User
 
 
 def create_proxy_by_order(order_id):
@@ -26,11 +27,11 @@ def create_proxy_by_order(order_id):
     """
     order_obj = Orders.objects.filter(id=order_id,pay_status=1).first()
     if order_obj:
-        print(order_obj.variant_id)
+        order_user_obj = User.objects.filter(id=order_obj.uid).first()
         order_user = order_obj.username
         order_id = order_obj.order_id
         proxy_username = order_user + order_id[:6]  # 生成代理用户名
-        variant_obj = Variant.objects.filter(id=order_obj.variant_id).first()  # 获取订单对应的套餐
+        variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
         if variant_obj:
             if variant_obj.variant_stock < order_obj.product_quantity:
                 # 库存不足
@@ -45,7 +46,6 @@ def create_proxy_by_order(order_id):
             proxy_list = []
             server_list = []
             if server_group_obj:
-                print('server_group_obj', server_group_obj)
                 servers = server_group_obj.servers.all()
                 for server in servers:
                     cidr_info = server.get_cidr_info()
@@ -61,13 +61,13 @@ def create_proxy_by_order(order_id):
                                     server_api_url = "http://{}:65533".format(server.ip)
                                     kaxy_client = KaxyClient(server_api_url)
                                     prefix = Stock.current_subnet
-                                    print(prefix, proxy_username, server_api_url, acl_value)
                                     proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,acl_value)
                                     if proxy_info["proxy"]:
                                         proxy_list.extend(proxy_info["proxy"])
-                                        server_list.append([server.ip] * len(proxy_info["proxy"]))
+                                        server_list.extend([server.ip] * len(proxy_info["proxy"]))
                                         Stock.current_subnet = Stock.get_next_subnet()
                                         Stock.cart_stock -= 1
+                                        Stock.ip_stock -= len(proxy_info["proxy"])
                                     Stock.save()
                         if len(proxy_list) >= order_obj.product_quantity:
                             # 代理数量已经够了
@@ -77,12 +77,16 @@ def create_proxy_by_order(order_id):
                     ip, port, user, password = proxy.split(":")
                     server_ip = server_list[idx]
                     Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
-                                        order=order_obj, expired_at=proxy_expired_at, user=order_user)
+                                        order=order_obj, expired_at=proxy_expired_at, user=order_user_obj)
                 # 更新订单状态
                 order_obj.order_status = 4
                 order_obj.save()
+                # 更新套餐库存
+                variant_obj.variant_stock -= order_obj.product_quantity
+                variant_obj.save()      
                 return True
     return False
 
 if __name__ == '__main__':
-    print(create_proxy_by_order(1))
+    for i in range(10):
+        print(create_proxy_by_order(1))

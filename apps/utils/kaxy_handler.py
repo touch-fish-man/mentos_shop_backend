@@ -22,8 +22,8 @@ class KaxyClient:
         resp = {}
         try:
             resp = requests.request(method, url, headers=headers, **kwargs)
-        except requests.exceptions.ConnectionError:
-            logging.error("连接服务器失败")
+        except requests.exceptions.ConnectionError as e:
+            logging.exception(e)
         if resp.status_code != 200:
             logging.error("请求失败: %s", resp.text)
         return resp
@@ -152,24 +152,49 @@ class KaxyClient:
         resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": acl_str})
         return resp
 
-    def add_user_acl(self, acl_str):
-        # 添加用户acl
-        ori_acl = self.list_user_acl().text
-        acl_str = ori_acl + "\n" + acl_str
-        acl_str_list = acl_str.split("\n")
-        acl_str="\n".join(list(sorted(set(acl_str_list), key=acl_str_list.index)))
-        if ori_acl == acl_str:
-            # acl未改变
-            return True
-        resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": acl_str})
-        if resp.get("status") == 200:
+    def add_user_acl(self, user, acl_str):
+        new_acl_dict = self.build_acl(user, acl_str)
+        origin_acl_dict = self.paser_api_acl()
+        if user in origin_acl_dict:
+            acl_str_list = acl_str.split("\n")
+            new_acl_str = list(sorted(set(acl_str_list), key=acl_str_list.index))
+            origin_acl_str_list = origin_acl_dict[user].split("\n")
+            origin_acl_str = list(sorted(set(origin_acl_str_list), key=origin_acl_str_list.index))
+            if new_acl_str == origin_acl_str:
+                # acl未改变
+                return True
+        # acl改变，生成新的acl
+        new_acl_str = "\n".join(origin_acl_dict.values()) + "\n" + new_acl_dict[user]
+        resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": new_acl_str})
+        if resp.json().get("status") == 200:
             return True
         return False
+
+    def paser_api_acl(self):
+        # 解析acl
+        origin_acl_dict = {}
+        ori_acl = self.list_user_acl().text
+        for acl in ori_acl.split("\n"):
+            if acl:
+                if acl.split(" ")[0] in origin_acl_dict:
+                    origin_acl_dict[acl.split(" ")[0]] += "\n" + acl
+                else:
+                    origin_acl_dict[acl.split(" ")[0]] = acl
+        return origin_acl_dict
+
+    def build_acl(self, user, acl_str):
+        # 生成 user acl
+        user_acl_dict = {}
+        acl_str_list = acl_str.split("\n")
+        acl_str = list(sorted(set(acl_str_list), key=acl_str_list.index))
+        acl_user_str = "\n".join([user + " " + x for x in acl_str])
+        user_acl_dict[user] = acl_user_str
+        return user_acl_dict
     def create_user_acl_by_prefix(self, user, prefix,acl_str):
         # 创建用户acl，指定ip前缀
         proxy_info = {"proxy": [], "num_of_ips": []}
         resp=self.create_user_by_prefix(user, prefix)
-        self.add_user_acl(acl_str)
+        self.add_user_acl(user,acl_str)
         try:
             resp=resp.json()
             proxy_info["num_of_ips"]=resp["data"]["num_of_ips"]
@@ -214,11 +239,13 @@ if __name__ == "__main__":
     client = KaxyClient("http://112.75.252.4:65533", token)
     # pprint(client.list_all_proxies().json())
     # pprint(client.list_users().json())
-    acl_str = "test1222234 asasas.com"
-    # pprint(client.add_acl(acl_str).json())
+    acl_str = "asasas.com"
+    user="test123456"
+    user_acl_str=user+" "+acl_str+"\n"
+    # pprint(client.add_acl(user_acl_str).json())
     # client.create_user("test123456", 8)
-    # pprint(client.add_user_acl(acl_str).json())
-    # pprint(client.list_user_acl().text)
-    pprint(client.get_server_info().json())
-    pprint(client.create_user_acl_by_prefix("test123456","113.203.223.8/29",acl_str))
-    client.del_user("test123456")
+    add_user="test1234568888"
+    add_acl_str="asasas11111.com"
+    pprint(client.add_user_acl(add_user,add_acl_str))
+    pprint(client.list_user_acl().text)
+    # pprint(client.get_server_info().json())
