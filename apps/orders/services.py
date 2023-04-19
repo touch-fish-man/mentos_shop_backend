@@ -69,6 +69,7 @@ def get_checkout_link(request):
     if variant_obj:
         order_info_dict["variant_id"] = variant_obj.shopify_variant_id
         order_info_dict["product_price"] = variant_obj.variant_price
+        order_info_dict["local_variant_id"] = variant_obj.id
         proxy_time = variant_obj.proxy_time
         order_info_dict["product_total_price"] = order_info_dict["product_price"] * int(order_info_dict["product_price"])
         order_info_dict["product_type"] = Product.objects.filter(id=order_info_dict["product_id"]).first().product_collections.first().id

@@ -23,9 +23,10 @@ class Orders(BaseModel):
     # 产品id
     product_id = models.IntegerField(verbose_name='产品id')
     # 产品名称
-    product_name = models.CharField(max_length=255, verbose_name='产品名称')
+    product_name = models.CharField(max_length=255, verbose_name='产品名称') 
     # 变体id
-    variant_id = models.CharField(max_length=255,verbose_name='变体id')
+    variant_id = models.CharField(max_length=255,verbose_name='变体id') # shopify的变体id
+    local_variant_id = models.IntegerField(verbose_name='本地变体id') # 本地的变体id
     # 产品价格
     product_price = models.FloatField(verbose_name='产品价格')
     # 产品数量
