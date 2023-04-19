@@ -35,8 +35,8 @@ def main():
 
     wait(threads, return_when=ALL_COMPLETED)
     mock_products()
-    mock_orders()
-    mock_proxy()
+    # mock_orders()
+    # mock_proxy()
     print("mock data done")
 
 

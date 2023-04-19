@@ -9,6 +9,10 @@ def gen_order_id():
 
 
 class Orders(BaseModel):
+    PAY_STATUS = {0: "未支付", 1: "支付成功", 2: "支付失败"}
+    ORDER_STATUS = {0: "未支付", 1: "已支付", 2: "已取消", 3: "已过期", 4: "已发货"}
+    PAY_STATUS_REVERSE = {v: int(k) for k, v in PAY_STATUS.items()}
+    ORDER_STATUS_REVERSE = {v: int(k) for k, v in ORDER_STATUS.items()}
     # 用户
     uid = models.CharField(max_length=255, verbose_name='用户id')
     username = models.CharField(max_length=255, verbose_name='用户名')
@@ -33,9 +37,9 @@ class Orders(BaseModel):
     # 产品类型名称
     # product_type_name = models.CharField(max_length=255, verbose_name='产品类型名称')
     # 订单状态
-    order_status = models.IntegerField(verbose_name='订单状态', default=0)  # 0: 未支付 1: 已支付 2: 已取消 3: 已过期, 4: 已发货
+    order_status = models.IntegerField(verbose_name='订单状态', default=0, choices=ORDER_STATUS.items())
     # 支付状态 -1: 支付失败 0: 未支付 1: 支付成功
-    pay_status = models.IntegerField(verbose_name='支付状态', default=0)  # 0: 未支付 1: 支付成功 2: 支付失败
+    pay_status = models.IntegerField(verbose_name='支付状态', default=0, choices=PAY_STATUS.items())
     # 支付时间
     pay_time = models.DateTimeField(verbose_name='支付时间', null=True, blank=True)
     # 支付金额
