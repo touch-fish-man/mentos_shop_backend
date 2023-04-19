@@ -1,5 +1,6 @@
 import datetime
 import pytz
+from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
@@ -12,12 +13,13 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link
+from .services import verify_webhook, shopify_order, get_checkout_link, change_order_proxy
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from apps.orders.services import create_proxy_by_order
-from apps.rewards.models import CouponCode
+from apps.rewards.models import CouponCode, PointRecord
+from ..users.models import User, InviteLog
 
 
 class OrdersApi(ComModelViewSet):
@@ -66,7 +68,8 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(instance)
         return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
 
-    @action(methods=['post'], detail=True, url_path='reset_proxy_password', url_name='reset_proxy_password', permission_classes=[IsSuperUser])
+    @action(methods=['post'], detail=True, url_path='reset_proxy_password', url_name='reset_proxy_password',
+            permission_classes=[IsSuperUser])
     def reset_proxy_password(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
         new_password = request.data.get('new_password', None)
@@ -80,7 +83,8 @@ class OrdersApi(ComModelViewSet):
                 # todo 重置代理密码
         return SuccessResponse(data={}, msg="代理密码重置成功")
 
-    @action(methods=['post'], detail=True, url_path='update_proxy_expired_at', url_name='update_proxy_expired_at', permission_classes=[IsSuperUser])
+    @action(methods=['post'], detail=True, url_path='update_proxy_expired_at', url_name='update_proxy_expired_at',
+            permission_classes=[IsSuperUser])
     def update_proxy_expired_at(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
         expired_at = request.data.get('expired_at', None)
@@ -144,11 +148,8 @@ class OrderCallbackApi(APIView):
     """
 
     def get(self, request):
-        # todo 订单回调
         # 通过pix脚本回调
-        # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
-        # 验证签名
-        logging.error(request.query_params)
+        # 功能有限，暂不使用
         return SuccessResponse(data={}, msg="回调成功")
 
 
@@ -165,23 +166,66 @@ class ShopifyWebhookApi(APIView):
         # 验证签名
         if not verify_webhook(request):
             return ErrorResponse(data={}, msg="签名验证失败")
-        logging.error(request.data)
-        # fixme 发货
-        # fixme 生成代理
-        # fixme 更新订单状态
-        # fixme 发送邮件
-        # fixme 修改返利记录
-        # fixme 修改用户积分，等级
         # shopify订单回调
-        order_info=shopify_order(request.data)
-        # fixme 修改优惠券状态
-        order_id=request.query_params.get('order_id')
-        create_proxy_by_order(order_id)
-        discount_code=request.query_params.get('discount_code')
-        if discount_code:
-            coupon=CouponCode.objects.filter(code=discount_code).first()
-            if coupon:
-                coupon.used_code()
+        order_info = shopify_order(request.data)
+        shopify_order_info = order_info.get("order")
+        financial_status = shopify_order_info.get('financial_status')
+        if financial_status != 'paid':
+            shpify_order_id = order_info.get('order_id')
+            shopify_order_number = shopify_order_info.get('order_number')
+            pay_amount = shopify_order_info.get('total_price')
+            discount_codes = order_info.get(order_info)
+            renewal_status=order_info.get("renewal","0")
+            order_id = order_info.get('order_id')
+            # 更新订单
+            order = Orders.objects.filter(order_id=order_id).first()
+            if order:
+                if renewal_status =="1":
+                    order.pay_amount = order.pay_amount+pay_amount
+                order.pay_amount = pay_amount  # 支付金额
+                order.status = 1  # 已支付
+                order.shopify_order_id = shpify_order_id  # shopify订单id
+                order.shopify_order_number = shopify_order_number  # shopify订单号
+                order.save()
+            # 生成代理，修改订单状态
+            if renewal_status=="1":
+                # 续费
+                order_process_ret=change_order_proxy(order_id)
+            else:
+                # 新订
+                order_process_ret=create_proxy_by_order(order_id)
+            if order_process_ret:
+                # 修改优惠券状态
+                for discount_code in discount_codes:
+                    coupon = CouponCode.objects.filter(code=discount_code).first()
+                    if coupon:
+                        coupon.used_code()
+                # 增加邀请人奖励积分
+                order_user = User.objects.filter(id=order.uid).first()
+                if order_user:
+                    invite_log=InviteLog.objects.filter(uid=order.uid).first()
+                    if invite_log:
+                        inviter_user = User.objects.filter(id=invite_log.inviter_uid).first()
+                        if inviter_user:
+                            inviter_user.reward_points += int(order.pay_amount*settings.INVITE_REBATE_RATE)  # 奖励积分
+                            inviter_user.save()
+                            # 创建积分变动记录
+                            PointRecord.objects.create(uid=inviter_user.id, point=int(order.pay_amount*settings.INVITE_REBATE_RATE),
+                                                       reason=PointRecord.REASON_DICT["invite_buy"])
+                # 增加用户等级积分
+                order_user.level_points += int(order.pay_amount*settings.BILLING_RATE)  # 等级积分
+                order_user.save()
+                # 更新用户等级
+                order_user.update_level()
+                # fixme 发送邮件
+                # send_order_email(order_id)
+
+            else:
+                # fixme 发送邮件
+                # send_order_email(order_id)
+                pass
+        else:
+            logging.error("订单未支付", order_info)
 
         return SuccessResponse()
 

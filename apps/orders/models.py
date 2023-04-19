@@ -18,12 +18,14 @@ class Orders(BaseModel):
     username = models.CharField(max_length=255, verbose_name='用户名')
     # 订单号
     order_id = models.CharField(max_length=255, verbose_name='订单号', default=gen_order_id)
+    # shopify订单id
+    shopify_order_id = models.CharField(max_length=255, verbose_name='shopify订单id', null=True, blank=True)
     # shopify订单号
-    shopify_order_id = models.CharField(max_length=255, verbose_name='shopify订单号', null=True, blank=True)
+    shopify_order_number = models.CharField(max_length=255, verbose_name='shopify订单号', null=True, blank=True)
     # 产品id
     product_id = models.IntegerField(verbose_name='产品id')
     # 产品名称
-    product_name = models.CharField(max_length=255, verbose_name='产品名称') 
+    product_name = models.CharField(max_length=255, verbose_name='产品名称')
     # 变体id
     variant_id = models.CharField(max_length=255,verbose_name='变体id') # shopify的变体id
     local_variant_id = models.IntegerField(verbose_name='本地变体id') # 本地的变体id
@@ -44,7 +46,7 @@ class Orders(BaseModel):
     # 支付时间
     pay_time = models.DateTimeField(verbose_name='支付时间', null=True, blank=True)
     # 支付金额
-    pay_amount = models.FloatField(verbose_name='支付金额', null=True, blank=True)
+    pay_amount = models.FloatField(verbose_name='支付金额', null=True, blank=True,default=0.0)
     # # 支付方式 后期扩展
     # pay_type = models.IntegerField(verbose_name='支付方式',default=1)
     # # 支付流水号 后期扩展
