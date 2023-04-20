@@ -11,7 +11,8 @@ from apps.rewards.models import LevelCode
 from .models import Orders
 from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock
 from apps.products.models import Product, Variant
-from ..utils.kaxy_handler import KaxyClient
+from apps.utils.kaxy_handler import KaxyClient
+from apps.users.models import User
 
 
 def verify_webhook(request):

@@ -35,6 +35,7 @@ class OrdersApi(ComModelViewSet):
     reset_proxy_password:重置代理密码
     update_proxy_expired_at:更新代理过期时间
     order_renew_checkout:订单续费结账
+    reset_proxy:重置代理
     """
     queryset = Orders.objects.all()
     serializer_class = OrdersSerializer
@@ -116,6 +117,21 @@ class OrdersApi(ComModelViewSet):
         else:
             return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理过期时间更新成功")
+    @action(methods=['post'], detail=True, url_path='reset_proxy', url_name='reset_proxy')
+    def reset_proxy(self, request, *args, **kwargs):
+        order_pk = kwargs.get('pk')
+        order = Orders.objects.filter(id=order_pk)
+        
+        if order.exists():
+            order = order.first()
+            order_id = order.order_id
+            # 删除代理
+            Proxy.objects.filter(order_id=order_pk).all().delete()
+            # 重新创建代理
+            create_proxy_by_order(order_id)
+        else:
+            return ErrorResponse(data={}, msg="订单不存在")
+        return SuccessResponse(data={}, msg="代理重置成功")
 
     @action(methods=['get'], detail=True, url_path='get_proxy_detail', url_name='get_proxy_detail')
     def get_proxy_detail(self, request, *args, **kwargs):
@@ -142,6 +158,7 @@ class OrdersApi(ComModelViewSet):
             return ErrorResponse(data={}, msg="The order has expired, please place a new order.") # 订单已过期，请下新订单
         checkout_url,order_id=get_renew_checkout_link(order_id=order_id)
         return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="订单生成成功")
+    
 
 
 
