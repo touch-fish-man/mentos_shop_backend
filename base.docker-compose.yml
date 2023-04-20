@@ -69,6 +69,7 @@ services:
       - TZ=Asia/Shanghai
     volumes: # 配置数据卷
     - /opt/mentos_shop_backend/config/redis/redis/data:/data
+    - /opt/mentos_shop_backend/config/redis/redis.conf:/etc/redis/redis.conf
     command: /bin/sh -c "echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf && redis-server /etc/redis/redis.conf --requirepass xB8U0Q6gyrMpRYA7 --appendonly yes"
     privileged: true
     networks:
