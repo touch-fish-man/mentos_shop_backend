@@ -100,8 +100,14 @@ class KaxyClient:
         data = {
             "user": user,
         }
+        resp_ret=[]
         resp = self.__send_request("post", "/api/update-user", json=data)
-        return resp
+        if resp.status_code == 200:
+            resp_json = resp.json()
+            if resp_json["status"] == 200:
+                return resp_json['data']["proxy_str"]
+            return resp_ret
+        return resp_ret
 
     def list_users(self):
         # 获取所有用户

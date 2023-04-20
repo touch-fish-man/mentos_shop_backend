@@ -72,15 +72,20 @@ class OrdersApi(ComModelViewSet):
             permission_classes=[IsSuperUser])
     def reset_proxy_password(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
-        new_password = request.data.get('new_password', None)
-        if not new_password:
-            return SuccessResponse(data={}, msg="新密码不能为空")
-        proxy = Proxy.objects.filter(order_id=order_id)
-        if proxy.exists():
-            for p in proxy.all():
-                p.password = new_password
-                p.save()
-                # todo 重置代理密码
+        server_ip = Proxy.objects.filter(order_id=order_id).all().distinct('server_ip')
+        username = Proxy.objects.filter(order_id=order_id).all().distinct('username')
+        if server_ip.exists() and username.exists():
+            for s_ip in server_ip:
+                for u in username:
+                    client = KaxyClient("http://{}:65533".format(s_ip))
+                    proxy_list=client.update_user(u)
+                    for p in proxy_list:
+                        proxy_ip,port,username,password=p.split(':')
+                        proxy = Proxy.objects.filter(ip=proxy_ip,username=username).first()
+                        if proxy:
+                            proxy.password=password
+                            proxy.save()
+
         return SuccessResponse(data={}, msg="代理密码重置成功")
 
     @action(methods=['post'], detail=True, url_path='update_proxy_expired_at', url_name='update_proxy_expired_at',
@@ -105,7 +110,6 @@ class OrdersApi(ComModelViewSet):
                         return ErrorResponse(data={}, msg="代理过期时间不能小于当前时间")
                     p.expired_at = expired_at
                     p.save()
-                    # todo 重置代理密码
             order.expired_at = expired_at
             order.save()
         else:
