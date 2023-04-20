@@ -1,11 +1,6 @@
 from .base import *
 DEBUG = True
-CELERY_BROKER_BACKEND = "memory"
-CELERY_TASK_ALWAYS_EAGER = True
-CELERY_TASK_EAGER_PROPAGATES = True
-
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-    }
-}
+REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
+REDIS_HOST = '177.8.0.14'
+REDIS_HOST = '177.8.0.14'
+CELERY_BROKER_URL = 'redis://:{}@{}/2'.format(REDIS_PASSWORD, REDIS_HOST)

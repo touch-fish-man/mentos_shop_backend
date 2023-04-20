@@ -54,4 +54,5 @@ app.conf.beat_schedule = {
         'task': 'check_server_status',
         
         'schedule': 600.0, # 每十分钟执行一次
+    },
 }
