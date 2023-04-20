@@ -65,8 +65,6 @@ services:
     container_name: redis.local
     image: 'redis:latest'
     restart: always
-    volumes: # 配置数据卷
-    - /opt/mentos_shop_backend/config/redis/redis.conf:/etc/redis/redis.conf
     command: redis-server /etc/redis/redis.conf --port 6379 --requirepass xB8U0Q6gyrMpRYA7 --appendonly yes
     privileged: true
     networks:
