@@ -63,14 +63,11 @@ services:
       - POSTGRES_PASSWORD=N6jvHXYf4zn8sChw
   redis:
     container_name: redis.local
-    image: 'redis:7.0'
+    image: 'redis:latest'
     restart: always
-    environment:
-      - TZ=Asia/Shanghai
     volumes: # 配置数据卷
-    - /opt/mentos_shop_backend/config/redis/redis/data:/data
     - /opt/mentos_shop_backend/config/redis/redis.conf:/etc/redis/redis.conf
-    command: /bin/sh -c "echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf && redis-server /etc/redis/redis.conf --requirepass xB8U0Q6gyrMpRYA7 --appendonly yes"
+    command: redis-server /etc/redis/redis.conf --port 6379 --requirepass xB8U0Q6gyrMpRYA7 --appendonly yes
     privileged: true
     networks:
       network:
