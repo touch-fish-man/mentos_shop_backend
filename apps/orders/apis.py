@@ -19,7 +19,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from apps.orders.services import create_proxy_by_order
 from apps.rewards.models import CouponCode, PointRecord
-from ..users.models import User, InviteLog
+from apps.users.models import User, InviteLog
+from apps.utils.kaxy_handler import KaxyClient
 
 
 class OrdersApi(ComModelViewSet):
