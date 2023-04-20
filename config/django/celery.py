@@ -1,6 +1,6 @@
 # celery 配置
 REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
-REDIS_HOST = '177.8.0.14'
+REDIS_HOST = '13.231.170.92'
 # celery beat配置
 # CELERY_ENABLE_UTC = False
 CELERY_TIMEZONE = "UTC"
