@@ -13,7 +13,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link, change_order_proxy
+from .services import verify_webhook, shopify_order, get_checkout_link, renew_proxy_by_order
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -189,8 +189,10 @@ class ShopifyWebhookApi(APIView):
                 order.save()
             # 生成代理，修改订单状态
             if renewal_status=="1":
+                order.renew_status=1
+                order.save()
                 # 续费
-                order_process_ret=change_order_proxy(order_id)
+                order_process_ret=renew_proxy_by_order(order_id)
             else:
                 # 新订
                 order_process_ret=create_proxy_by_order(order_id)

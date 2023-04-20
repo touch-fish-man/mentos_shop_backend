@@ -47,6 +47,7 @@ class Orders(BaseModel):
     pay_time = models.DateTimeField(verbose_name='支付时间', null=True, blank=True)
     # 支付金额
     pay_amount = models.FloatField(verbose_name='支付金额', null=True, blank=True,default=0.0)
+    renew_status = models.IntegerField(verbose_name='续费状态', default=0)
     # # 支付方式 后期扩展
     # pay_type = models.IntegerField(verbose_name='支付方式',default=1)
     # # 支付流水号 后期扩展
@@ -63,6 +64,8 @@ class Orders(BaseModel):
     expired_at = models.DateTimeField(verbose_name='过期时间', null=True, blank=True)
     # 代理数量
     proxy_num = models.IntegerField(verbose_name='代理数量', default=0)
+    # 代理时间
+    proxy_time = models.IntegerField(default=30,verbose_name='代理时间')
 
     class Meta:
         db_table = 'orders'
