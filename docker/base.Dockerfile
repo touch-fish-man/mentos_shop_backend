@@ -1,11 +1,9 @@
-# define an alias for the specfic python version used in this file.
 FROM python:3.10
-ENV DJANGO_ENV=prod
 RUN mkdir /opt/mentos_shop_backend
 COPY . /opt/mentos_shop_backend
 WORKDIR /opt/mentos_shop_backend
 RUN awk 'BEGIN { cmd="cp -r /opt/mentos_shop_backend/.env.sample /opt/mentos_shop_backend/config/.env"; print "n" |cmd; }'
-ENV TZ="Asia/Shanghai"
+ENV TZ="UTC"
 RUN pip install -r requirements.txt
 RUN python manage.py reset_db -c --noinput
 RUN python manage.py makemigrations

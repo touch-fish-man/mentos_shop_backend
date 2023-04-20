@@ -20,7 +20,6 @@ if os.environ.get('DJANGO_ENV') != 'prod' or os.environ.get('DJANGO_ENV') != 'te
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 from config.env import env
-import os
 
 env.read_env(os.path.join(BASE_DIR, "config/.env"))
 
@@ -46,7 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_celery_results',
+
     'rest_framework',
     'drf_yasg',
     "apps.users",
@@ -58,6 +57,9 @@ INSTALLED_APPS = [
     "django_extensions",
     "apps.rewards",
     "apps.products",
+    "django_celery_beat",
+    'django_celery_results',
+    "apps.tasks",
 ]
 
 MIDDLEWARE = [
@@ -253,18 +255,6 @@ SIMPLE_JWT = {
 REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
 REDIS_HOST = '177.8.0.14'
 
-
-
-
-CELERY_BROKER_URL = 'redis://:{}@{}:6379/0'.format(REDIS_PASSWORD, REDIS_HOST)
-CELERY_ACCEPT_CONTENT = ['application/json']
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-CELERY_ENABLE_UTC=True
-
-# RESULT_BACKEND 结果保存数据库
-CELERY_RESULT_BACKEND = 'djcelery.backends.database:DatabaseBackend'
 
 # 配置日志
 

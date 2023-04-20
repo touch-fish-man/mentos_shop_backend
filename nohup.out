@@ -1,0 +1,324 @@
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/apps/products/migrations/0002_initial.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 03:53:05
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+[20/Apr/2023 05:49:09] code 400, message Bad request syntax ("\x16\x03\x01\x00Ê\x01\x00\x00Æ\x03\x03\x02ìXfñß\x91ÜpQ\x98ýJ'©lò\x8eWõ÷\x97¯f^\x9bI")
+[20/Apr/2023 05:49:09] You're accessing the development server over HTTPS, but it only supports HTTP.
+/root/mentos_shop_backend/apps/celery.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+
+You have 87 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, admin_interface, auth, captcha, contenttypes, django_celery_beat, django_celery_results, orders, products, proxy_server, rewards, sessions, tickets, users.
+Run 'python manage.py migrate' to apply them.
+April 20, 2023 - 03:59:03
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/commands/runserver.py", line 125, in inner_run
+    autoreload.raise_last_exception()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/__init__.py", line 398, in execute
+    autoreload.check_errors(django.setup)()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 961, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 975, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 671, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 843, in exec_module
+  File "<frozen importlib._bootstrap>", line 219, in _call_with_frames_removed
+  File "/root/mentos_shop_backend/apps/__init__.py", line 1, in <module>
+    from .celery import app as celery_app
+  File "/root/mentos_shop_backend/apps/celery.py", line 21, in <module>
+    p
+NameError: name 'p' is not defined
+/root/mentos_shop_backend/apps/celery.py changed, reloading.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/apps/celery.py changed, reloading.
+1
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 06:31:04
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/apps/celery.py changed, reloading.
+12121
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 06:31:08
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/apps/__init__.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 06:31:16
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:05:39
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/commands/runserver.py", line 125, in inner_run
+    autoreload.raise_last_exception()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/__init__.py", line 398, in execute
+    autoreload.check_errors(django.setup)()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 973, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'django_celery_beatdrf_yasg'
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:09:33
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:09:36
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/commands/runserver.py", line 125, in inner_run
+    autoreload.raise_last_exception()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/__init__.py", line 398, in execute
+    autoreload.check_errors(django.setup)()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1011, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 950, in _sanity_check
+ValueError: Empty module name
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/commands/runserver.py", line 125, in inner_run
+    autoreload.raise_last_exception()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/__init__.py", line 398, in execute
+    autoreload.check_errors(django.setup)()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 973, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'a'
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Watching for file changes with StatReloader
+Exception in thread django-main-thread:
+Traceback (most recent call last):
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 932, in _bootstrap_inner
+    self.run()
+  File "/root/anaconda3/envs/py38/lib/python3.8/threading.py", line 870, in run
+    self._target(*self._args, **self._kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/commands/runserver.py", line 125, in inner_run
+    autoreload.raise_last_exception()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 87, in raise_last_exception
+    raise _exception[1]
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/core/management/__init__.py", line 398, in execute
+    autoreload.check_errors(django.setup)()
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/utils/autoreload.py", line 64, in wrapper
+    fn(*args, **kwargs)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/__init__.py", line 24, in setup
+    apps.populate(settings.INSTALLED_APPS)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/registry.py", line 91, in populate
+    app_config = AppConfig.create(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/site-packages/django/apps/config.py", line 193, in create
+    import_module(entry)
+  File "/root/anaconda3/envs/py38/lib/python3.8/importlib/__init__.py", line 127, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1014, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 991, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 973, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'apps.ta'
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:09:50
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:33:54
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:33:59
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:34:06
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/apps/proxy_server/migrations/0002_initial.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:34:10
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 07:43:48
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader
+/root/mentos_shop_backend/config/django/base.py changed, reloading.
+Performing system checks...
+
+/root/mentos_shop_backend/apps
+System check identified no issues (0 silenced).
+April 20, 2023 - 08:23:04
+Django version 4.1.7, using settings 'config.django.dev'
+Starting development server at http://0.0.0.0:4000/
+Quit the server with CONTROL-C.
+Watching for file changes with StatReloader

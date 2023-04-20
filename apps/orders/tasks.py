@@ -2,15 +2,16 @@ from __future__ import absolute_import
 import datetime
 import pytz
 from celery.schedules import crontab
-from apps import celery_app
 from apps.orders.models import Orders
 from apps.proxy_server.models import Proxy
 from apps.users.models import User
 from apps.users.services import send_via_sendgrid,send_email_via_mailgun
 from django.conf import settings
 from django.core.mail import send_mail
+from apps.utils.kaxy_handler import KaxyClient
+from celery import shared_task
 
-@celery_app.task(name='precheck_order_expired')
+@shared_task(name='precheck_order_expired')
 def precheck_order_expired(ceheck_days=3,send_email=True):
     """
     定时检查db中订单状态，如果订单即将过期，发送续费邮件，每天检查一次
@@ -34,7 +35,7 @@ def precheck_order_expired(ceheck_days=3,send_email=True):
                 send_mail(subject, "", from_email, [email], html_message=html_message)
 
 
-@celery_app.task(name='check_order_expired')
+@shared_task(name='check_order_expired')
 def check_order_expired():
     """
     定时检查db中订单状态，如果订单已过期，删除代理，每天检查一次，添加当天过期删除任务
@@ -43,19 +44,21 @@ def check_order_expired():
     for order in orders:
         delete_proxy_expired(order['id'])
 
-def delete_proxy_expired(order_id):
+@shared_task(name='delete_proxy_expired')
+def delete_proxy_expired():
     """
     删除过期代理
     """
-    Proxy.objects.filter(order_id=order_id).delete()
-
-celery_app.conf.beat_schedule = {
-    'precheck_order_expired': {
-        'task': 'precheck_order_expired',
-        'schedule': crontab(hour=6, minute=0),
-    },
-    'check_order_expired':{
-        'task': 'check_order_expired',
-        'schedule': crontab(hour=1, minute=0),
-    }
-}
+    del_user_dict = {}
+    all_proxy=Proxy.objects.filter().all()
+    for proxy in all_proxy:
+        if proxy.expired_at < datetime.datetime.now():
+            if proxy.server_ip not in del_user_dict:
+                del_user_dict[proxy.server_ip] = set()
+            del_user_dict[proxy.server_ip].add(proxy.username)
+            proxy.delete()
+    for s_ip,users in del_user_dict.items():
+        for user in users:
+            url="http://{}:65533/".format(s_ip)
+            client=KaxyClient(url)
+            client.del_user(user)
