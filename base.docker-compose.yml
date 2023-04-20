@@ -63,7 +63,7 @@ services:
       - POSTGRES_PASSWORD=N6jvHXYf4zn8sChw
   redis:
     container_name: redis.local
-    image: 'redis:latest'
+    image: 'redis:7.0'
     restart: always
     environment:
       - TZ=Asia/Shanghai
