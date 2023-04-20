@@ -79,7 +79,7 @@ class OrdersApi(ComModelViewSet):
         if server_ip.exists() and username.exists():
             for s_ip in server_ip:
                 for u in username:
-                    client = KaxyClient("http://{}:65533".format(s_ip))
+                    client = KaxyClient(s_ip)
                     proxy_list=client.update_user(u)
                     for p in proxy_list:
                         proxy_ip,port,username,password=p.split(':')

@@ -58,8 +58,7 @@ def create_proxy_by_order(order_id):
                                     # 代理数量已经够了
                                     break
                                 for i in range(order_obj.product_quantity // cart_step):
-                                    server_api_url = "http://{}:65533".format(server.ip)
-                                    kaxy_client = KaxyClient(server_api_url)
+                                    kaxy_client = KaxyClient(server.ip)
                                     prefix = Stock.current_subnet
                                     proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,acl_value)
                                     if proxy_info["proxy"]:

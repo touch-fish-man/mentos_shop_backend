@@ -13,7 +13,7 @@ def update_user_level():
     users=User.objects.all()
     for user in users:
         user.level_points_decay()
-    print('update_user_level')
+    return 'update user level success'
 @shared_task(name='sync_user_to_shopify')
 def sync_user_to_shopify():
     """

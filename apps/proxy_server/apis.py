@@ -62,8 +62,7 @@ class ProxyServerApi(ComModelViewSet):
         proxy_server = self.get_object()
         ip = proxy_server.ip
         # url = "http://{}:65533".format(ip)
-        url = "http://112.75.252.4:65533"
-        kaxy = KaxyClient(url)
+        kaxy = KaxyClient(ip)
         server_info = kaxy.get_server_info()
         user_list = kaxy.list_users()
         try:
@@ -93,8 +92,7 @@ class ProxyServerApi(ComModelViewSet):
         if not acl_group:
             return ErrorResponse('参数错误')
         acl_value = AclGroup.objects.get(id=acl_group).acl_value
-        url = "http://{}:65533".format(ip)
-        kaxy_client = KaxyClient(url)
+        kaxy_client = KaxyClient(ip)
         acl_str_o = acl_value.split('\n')
         acl_str = "\n".join([username + " " + i for i in acl_str_o])
         create_resp = kaxy_client.create_user_acl_by_prefix(username, prefix, acl_str)
@@ -112,8 +110,7 @@ class ProxyServerApi(ComModelViewSet):
         username = request.data.get('username')
         if not username:
             return ErrorResponse('参数错误')
-        url = "http://{}:65533".format(ip)
-        kaxy_client = KaxyClient(url)
+        kaxy_client = KaxyClient(ip)
         del_resp = kaxy_client.del_user(username)
         try:
             del_resp = del_resp.json()
@@ -130,8 +127,7 @@ class ProxyServerApi(ComModelViewSet):
             return SuccessResponse(data={"code": 200, "message": "success"})
         proxy_server = self.get_object()
         ip = proxy_server.ip
-        url = "http://{}:65533".format(ip)
-        kaxy_client = KaxyClient(url)
+        kaxy_client = KaxyClient(ip)
         del_resp = kaxy_client.del_all_user()
         try:
             del_resp = del_resp.json()

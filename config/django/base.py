@@ -252,7 +252,7 @@ SIMPLE_JWT = {
     # token刷新后的有效时间
     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1), }
 
-REDIS_PASSWORD = 'do'
+REDIS_PASSWORD = 'xB8U0Q6gyrMpRYA7'
 REDIS_HOST = '13.231.170.92'
 
 

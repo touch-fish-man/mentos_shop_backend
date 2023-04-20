@@ -59,6 +59,5 @@ def delete_proxy_expired():
             proxy.delete()
     for s_ip,users in del_user_dict.items():
         for user in users:
-            url="http://{}:65533/".format(s_ip)
-            client=KaxyClient(url)
+            client=KaxyClient(s_ip)
             client.del_user(user)

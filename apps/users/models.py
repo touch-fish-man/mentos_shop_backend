@@ -70,7 +70,7 @@ class User(AbstractUser, BaseModel):
         等级积分衰减
         """
         
-        self.level_points-=settings.LEVEL_POINTS_DECAY*self.level_points
+        self.level_points-=settings.LEVEL_POINTS_DECAY_RATE*self.level_points
         self.save()
         self.update_level()
 

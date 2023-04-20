@@ -76,6 +76,8 @@ class Server(BaseModel):
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
     cidrs = models.ManyToManyField('Cidr', verbose_name='CIDR', through='ServerCidrThrough')
+    server_status= models.IntegerField(blank=True, null=True, verbose_name='服务器状态')
+    faild_count = models.IntegerField(blank=True, null=True, verbose_name='失败次数')
 
     class Meta:
         db_table = 'server'

@@ -28,18 +28,30 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.beat_schedule = {
     'update_user_level': {
         'task': 'update_user_level',
-        'schedule': 30,
+        'schedule': crontab(hour=1, minute=0, day_of_month=1), # 每月1号凌晨1点执行
     },
     'sync_user_to_shopify': {
         'task': 'sync_user_to_shopify',
-        'schedule': crontab(hour=1, minute=0),
+        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
     'check_order_expired': {
         'task': 'check_order_expired',
-        'schedule': crontab(hour=1, minute=0),
+        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
     'delete_proxy_expired': {
         'task': 'delete_proxy_expired',
-        'schedule': crontab(hour=1, minute=0),
+        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
+    'precheck_order_expired': {
+        'task': 'precheck_order_expired',
+        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+    },
+    'check_coupon_code_expired': {
+        'task': 'check_coupon_code_expired',
+        'schedule': crontab(hour=1, minute=0, day_of_week=1), # 每周1凌晨1点执行
+    },
+    'check_server_status': {
+        'task': 'check_server_status',
+        
+        'schedule': 600.0, # 每十分钟执行一次
 }
