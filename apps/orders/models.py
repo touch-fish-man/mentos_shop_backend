@@ -58,8 +58,8 @@ class Orders(BaseModel):
     # pay_callback_time = models.DateTimeField(verbose_name='支付回调时间')
     # # 支付回调状态
     # pay_callback_status = models.IntegerField(verbose_name='支付回调状态')
-    # # 支付链接
-    # pay_url = models.CharField(max_length=255, verbose_name='支付链接')
+    # 支付链接 用于支付和续费
+    checkout_url = models.TextField(verbose_name='支付链接', null=True, blank=True)
     # 过期时间
     expired_at = models.DateTimeField(verbose_name='过期时间', null=True, blank=True)
     # 代理数量

@@ -13,7 +13,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link, renew_proxy_by_order
+from .services import verify_webhook, shopify_order, get_checkout_link, renew_proxy_by_order,get_renew_checkout_link
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -127,19 +127,17 @@ class OrdersApi(ComModelViewSet):
 
     @action(methods=['post'], detail=True, url_path='order-renew-checkout', url_name='order-renew-checkout')
     def order_renew_checkout(self, request, *args, **kwargs):
-        order_id = kwargs.get('pk')
-        order = Orders.objects.filter(id=order_id)
+        order_pk = kwargs.get('pk')
+        order = Orders.objects.filter(id=order_pk) 
         if not order.exists():
-            return ErrorResponse(data={}, msg="订单不存在")
+            return ErrorResponse(data={}, msg="Order does not exist.") # 订单不存在
         order = order.first()
-        if order.status != 1:
-            return ErrorResponse(data={}, msg="订单状态不正确")
-        if order.product_type == 1:
-            return ErrorResponse(data={}, msg="订单类型不正确")
-        if order.expired_at > datetime.datetime.now().replace(tzinfo=datetime.timezone.utc):
-            return ErrorResponse(data={}, msg="订单未过期")
-        # todo 订单续费
-        return SuccessResponse(data={}, msg="订单续费成功")
+        order_id=order.order_id
+        if order.expired_at < datetime.datetime.now(tz=datetime.timezone.utc):
+            return ErrorResponse(data={}, msg="The order has expired, please place a new order.") # 订单已过期，请下新订单
+        checkout_url,order_id=get_renew_checkout_link(order_id=order_id)
+        return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="订单生成成功")
+
 
 
 class OrderCallbackApi(APIView):

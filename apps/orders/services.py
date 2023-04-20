@@ -3,6 +3,7 @@ import hmac
 import hashlib
 import base64
 from datetime import timezone
+import re
 
 from apps.utils.shopify_handler import ShopifyClient
 from django.conf import settings
@@ -81,7 +82,8 @@ def get_checkout_link(request):
         expired_at = datetime.datetime.now(timezone.utc)+datetime.timedelta(days=proxy_time)
         order_info_dict["expired_at"] = expired_at
         order_info_dict["proxy_time"]=proxy_time
-        order_id = Orders.objects.create(**order_info_dict).order_id
+        new_order = Orders.objects.create(**order_info_dict)
+        order_id=new_order.order_id
         if level_code_obj:
             code = level_code_obj.code
         else:
@@ -96,11 +98,20 @@ def get_checkout_link(request):
             "ref": "mentosproxy_web",
         }
         checkout_link = ShopifyClient.get_checkout_link(settings.SHOPIFY_SHOP_URL, check_info)
+        new_order.checkout_link = checkout_link
+        new_order.save()
         return checkout_link, order_id
     else:
         return None, None
 
-
+def get_renew_checkout_link(order_id):
+    order_obj = Orders.objects.filter(order_id=order_id).first()
+    if order_obj:
+        checkout_link=order_obj.checkout_link
+        renew_checkot_url=re.sub(r'attributes\[renewal\]=\d', 'attributes[renewal]=1', checkout_link)
+        return renew_checkot_url,order_id
+    else:
+        return None, None
 
 def create_proxy_by_order(order_id):
     """
