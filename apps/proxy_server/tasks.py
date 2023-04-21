@@ -24,5 +24,5 @@ def check_server_status():
             server.faild_count += 1
         server.save()
         if server.faild_count >= 5:
-            # 服务器连续5次检查失败，给管理员发邮件
+            # 服务器连续5次检查失败
             pass
