@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.rewards.models import CouponCode, PointRecord, GiftCard, LevelCode
-from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, LevelCodeSerializer
+from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, LevelCodeSerializer,CouponCodeCreateSerializer
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 
@@ -19,6 +19,7 @@ class CouponCodeViewSet(ComModelViewSet):
     """
     queryset = CouponCode.objects.all()
     serializer_class = CouponCodeSerializer
+    create_serializer_class = CouponCodeCreateSerializer
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):

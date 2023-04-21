@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from apps.rewards.models import CouponCode, PointRecord, GiftCard,LevelCode
+from apps.users.models import User
 
 
 class CouponCodeSerializer(serializers.ModelSerializer):
@@ -9,7 +10,20 @@ class CouponCodeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CouponCode
         fields = '__all__'
+class CouponCodeCreateSerializer(serializers.ModelSerializer):
+    """
+    创建优惠码
+    """
 
+    class Meta:
+        model = CouponCode
+        fields = ('code', 'discount', 'code_type', 'holder_username')
+
+    def save(self, **kwargs):
+        holder_username = kwargs.get("holder_username")
+        holder_uid = User.objects.filter(user__username=holder_username).get("id")
+        kwargs["holder_uid"] = holder_uid
+        return super().save(**kwargs)
 
 class PointRecordSerializer(serializers.ModelSerializer):
     """
