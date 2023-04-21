@@ -7,8 +7,7 @@ from celery.schedules import crontab
 
 # 设置默认的Django设置模块
 if os.environ.get('DJANGO_ENV'):
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    print(base_dir)
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     if os.path.exists(os.path.join(base_dir, 'config', 'django', os.environ.get('DJANGO_ENV') + '.py')):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django." + os.environ.get('DJANGO_ENV'))
     else:
