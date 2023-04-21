@@ -11,7 +11,7 @@ from pprint import pprint
 class KaxyClient:
     def __init__(self, host, token='EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'):
         self.host=host
-        self.url = "http://{}:65533".format(url)
+        self.url = "http://{}:65533".format(host)
         self.token = token
 
     def __send_request(self, method, path, **kwargs):
