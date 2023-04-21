@@ -1,0 +1,1 @@
+python /opt/mentos_shop_backend/mocks/mock_data.py
