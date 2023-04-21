@@ -4,7 +4,7 @@ REDIS_HOST = '13.231.170.92'
 # celery beat配置
 # CELERY_ENABLE_UTC = False
 CELERY_TIMEZONE = "UTC"
-DJANGO_CELERY_BEAT_TZ_AWARE = False
+DJANGO_CELERY_BEAT_TZ_AWARE = True
 CELERY_BEAT_SCHEDULER = 'django-celery-beat.schedulers.DatabaseScheduler'
 # celery 的启动工作数量设置
 CELERY_WORKER_CONCURRENCY = 10
