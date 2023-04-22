@@ -1,13 +1,11 @@
-
 from rest_framework.views import APIView
-from pathlib import Path
 import os
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from apps.core.json_response import SuccessResponse,ErrorResponse
 from apps.site_settings.services import save_site_settings,change_site_settings,get_site_setting
 from django.contrib.auth.mixins import LoginRequiredMixin
-
+from django.conf import settings
 class SiteSettingsApi(APIView, LoginRequiredMixin):
     """
     站点设置
@@ -17,6 +15,7 @@ class SiteSettingsApi(APIView, LoginRequiredMixin):
     def post(self, request):
         BASE_DIR = settings.BASE_DIR
         if request.data.get("geo_feed"):
+            os.makedirs("/opt/geofeed", exist_ok=True)
             with open("/opt/geofeed/geofeed.csv", "w") as f:
                 f.write(request.data.get("geofeed"))
         save_site_settings(data=request.data, file=os.path.join(BASE_DIR, "config", ".env"))

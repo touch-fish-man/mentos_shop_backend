@@ -43,7 +43,7 @@ class LoginApi(APIView):
             data = user_get_login_data(user=user)
             return SuccessResponse(data=data, msg="登录成功")
         else:
-            return ErrorResponse(msg="用户名或密码错误", status=400)
+            return ErrorResponse(msg="用户名或密码错误")
 
     def get(self, request):
         if request.user.is_authenticated:
@@ -51,7 +51,7 @@ class LoginApi(APIView):
             data = user_get_login_data(user=user)
             return SuccessResponse(data=data, msg="获取成功")
         else:
-            return ErrorResponse(msg="未登录", status=400)
+            return ErrorResponse(msg="未登录")
 
 
 class LogoutApi(APIView):
