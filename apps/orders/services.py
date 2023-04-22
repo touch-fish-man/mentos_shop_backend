@@ -108,7 +108,7 @@ def get_checkout_link(request):
 def get_renew_checkout_link(order_id):
     order_obj = Orders.objects.filter(order_id=order_id).first()
     if order_obj:
-        checkout_link=order_obj.checkout_link
+        checkout_link=order_obj.checkout_url
         renew_checkot_url=re.sub(r'attributes\[renewal\]=\d', 'attributes[renewal]=1', checkout_link)
         return renew_checkot_url,order_id
     else:

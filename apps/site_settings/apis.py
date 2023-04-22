@@ -14,7 +14,7 @@ class SiteSettingsApi(APIView, LoginRequiredMixin):
 
     def post(self, request):
         BASE_DIR = settings.BASE_DIR
-        if request.data.get("geo_feed"):
+        if request.data.get("geofeed"):
             os.makedirs("/opt/geofeed", exist_ok=True)
             with open("/opt/geofeed/geofeed.csv", "w") as f:
                 f.write(request.data.get("geofeed"))
