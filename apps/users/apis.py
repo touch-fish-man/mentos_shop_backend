@@ -57,6 +57,7 @@ class UserApi(ComModelViewSet):
         email = request.data.get('email')
         invite_code = request.data.get('invite_code')
         check_email_code(email, email_code_id, email_code, delete=True)
+
         resp = super().create(request, *args, **kwargs)
         if invite_code:
             # 插入邀请记录
