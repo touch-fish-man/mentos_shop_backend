@@ -19,7 +19,7 @@ from django.shortcuts import redirect
 from django.conf import settings
 from apps.users.models import User
 import urllib
-
+from django.core.cache import cache
 
 class LoginApi(APIView):
     """
@@ -125,6 +125,8 @@ class DiscordBindRedirectApi(APIView):
             return ErrorResponse(msg="oauth错误")
         discord_id = user.get('id')
         discord_username = user.get('username')
+        # 存入redis
+        cache.set(discord_id, discord_username, timeout=60 * 30)
         # 绑定用户
         user = request.user
         user.discord_id = discord_id

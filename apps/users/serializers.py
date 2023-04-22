@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from apps.core.validators import CustomUniqueValidator
 from apps.users.models import User, InviteLog, RebateRecord
-
+from django.core.cache import cache
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,6 +41,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(str(exc))
         value = make_password(value)
         return value
+    def validate(self, attrs):
+        if attrs.get("discord_id"):
+            discord_id = attrs.get("discord_id", "")
+            if len(discord_id) != 18:
+                discord_id = None
+            try:
+                discord_id = int(discord_id)
+
+                discord_name=cache.get(discord_id)
+                if discord_name:
+                    attrs["discord_name"]=discord_name
+            except:
+                discord_id = None
+        return attrs
 
     class Meta:
         model = User
