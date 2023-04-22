@@ -16,9 +16,9 @@ def precheck_order_expired(ceheck_days=3,send_email=True):
     """
     定时检查db中订单状态，如果订单即将过期，发送续费邮件，每天检查一次
     """
-    utc_now = datetime.datetime.now(tz=pytz.utc)
+    utc_now = datetime.datetime.now().astimezone(pytz.utc)
     utc_today = utc_now.date()
-    orders = Orders.objects.filter(order_status=4).values('expired_at','order_id','uid')
+    orders = Orders.objects.filter(order_status=4).values('expired_at','order_id','uid','id')
     for order in orders:
         precheck_day = (order['expired_at']-datetime.timedelta(days=ceheck_days)).date()
         if utc_today == precheck_day:
@@ -40,7 +40,7 @@ def check_order_expired():
     """
     定时检查db中订单状态，如果订单已过期，删除代理，每天检查一次，添加当天过期删除任务
     """
-    utc_now = datetime.datetime.now(tz=pytz.utc)
+    utc_now = datetime.datetime.now().astimezone(pytz.utc)
     utc_today = utc_now.date()
     orders = Orders.objects.all().values('id','expired_at')
     for order in orders:
@@ -54,6 +54,8 @@ def check_order_expired():
 def change_order(order_id):
     Orders.objects.filter(id=order_id).update(order_status=3)
     proxys = Proxy.objects.filter(order_id=order_id)
+    if not proxys:
+        return 
     server_ip = proxys.first().server_ip
     client = KaxyClient(server_ip)
     for proxy in proxys:
@@ -71,7 +73,7 @@ def delete_proxy_expired():
     del_user_dict = {}
     all_proxy=Proxy.objects.filter().all()
     for proxy in all_proxy:
-        if proxy.expired_at < datetime.datetime.now(tz=pytz.utc):
+        if proxy.expired_at < datetime.datetime.now().astimezone(pytz.utc):
             if proxy.server_ip not in del_user_dict:
                 del_user_dict[proxy.server_ip] = set()
             del_user_dict[proxy.server_ip].add(proxy.username)
