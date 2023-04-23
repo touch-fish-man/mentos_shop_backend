@@ -16,7 +16,7 @@ services:
     privileged: true
     environment:
       - DJANGO_ENV=prod
-    command: sh -c config/docker-entrypoint.sh
+    command: sh config/docker-entrypoint.sh
   mentos_test:
     restart: always
     container_name: mentos_test
@@ -33,7 +33,7 @@ services:
     privileged: true
     environment:
       - DJANGO_ENV=test
-    command: sh -c config/docker-entrypoint.sh
+    command: sh config/docker-entrypoint.sh
     
 
 networks:
