@@ -28,8 +28,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True,
                                    validators=[
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
-    discord_id = serializers.CharField(required=False, validators=[
-        CustomUniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
+    discord_id = serializers.CharField(required=False)
 
     # email_code_id = serializers.IntegerField(required=True)
     # email_code = serializers.CharField(required=False)
@@ -55,6 +54,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
             except:
                 discord_id = None
         return attrs
+    def validate_discord_id(self, value):
+        if value:
+            if User.objects.filter(discord_id=value).exists():
+                raise serializers.ValidationError("discord_id已存在")
+        return value
 
     class Meta:
         model = User
