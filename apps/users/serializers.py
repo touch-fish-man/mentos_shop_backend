@@ -28,7 +28,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True,
                                    validators=[
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
-    discord_id = serializers.CharField(required=False)
+    discord_id = serializers.CharField(required=False,allow_blank=True)
 
     # email_code_id = serializers.IntegerField(required=True)
     # email_code = serializers.CharField(required=False)
@@ -64,8 +64,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username', 'email',"password", 'is_active', 'discord_id','id')
         extra_kwargs = {"is_active": {"read_only": True}, "id": {"read_only": True}, "discord_id": {"required": False},
-                        "password": {"required": True, "min_length": 6,"write_only": True},
-
+                     "password": {"required": True, "min_length": 6,"write_only": True},
 
                         }
 
