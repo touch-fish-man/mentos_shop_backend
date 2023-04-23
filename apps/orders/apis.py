@@ -74,13 +74,15 @@ class OrdersApi(ComModelViewSet):
             permission_classes=[IsSuperUser])
     def reset_proxy_password(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
-        server_ip = Proxy.objects.filter(order_id=order_id).all().distinct('server_ip')
-        username = Proxy.objects.filter(order_id=order_id).all().distinct('username')
+        server_ip = Proxy.objects.filter(order_id=order_id).distinct('server_ip').all()
+        username = Proxy.objects.filter(order_id=order_id).distinct('username').all()
         if server_ip.exists() and username.exists():
             for s_ip in server_ip:
                 for u in username:
-                    client = KaxyClient(s_ip)
-                    proxy_list=client.update_user(u)
+                    ip_ = s_ip.server_ip
+                    username_ = u.username
+                    client = KaxyClient(ip_)
+                    proxy_list=client.update_user(username_)
                     for p in proxy_list:
                         proxy_ip,port,username,password=p.split(':')
                         proxy = Proxy.objects.filter(ip=proxy_ip,username=username).first()
