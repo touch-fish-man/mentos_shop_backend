@@ -69,8 +69,8 @@ def make_user():
     user_dict['level_points'] = level_points
     user_dict['reward_points'] = reward_points
     user_dict['invite_count'] = invite_count
-    user_dict['discord_id'] = discord_id
-    user_dict['discord_name'] = discord_name
+    # user_dict['discord_id'] = discord_id
+    # user_dict['discord_name'] = discord_name
     return user_dict
 
 
@@ -78,12 +78,12 @@ def create_users():
     for i in range(30):
         while True:
             user_dict = make_user()
-            if User.objects.filter(username=user_dict['username']).exists():
-                continue
+            # if User.objects.filter(username=user_dict['username']).exists():
+            #     continue
             if User.objects.filter(email=user_dict['email']).exists():
                 continue
-            if User.objects.filter(discord_id=user_dict['discord_id']).exists():
-                continue
+            # if User.objects.filter(discord_id=user_dict['discord_id']).exists():
+            #     continue
             User.objects.create(**user_dict)
             break
 

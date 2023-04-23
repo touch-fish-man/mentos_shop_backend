@@ -19,24 +19,25 @@ from product import main as mock_products
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
 executor = ThreadPoolExecutor(15)
 def main():
-    # mock_users()
-    # threads = []
-    # threads.append(executor.submit(mock_tickets))
-    # threads.append(executor.submit(mock_acls))
-    # threads.append(executor.submit(mock_servers))
-    # threads.append(executor.submit(mock_invite_log))
-    # threads.append(executor.submit(mock_rebate_record))
-    # # threads.append(executor.submit(mock_orders))
-    # threads.append(executor.submit(mock_giftcard))
-    # threads.append(executor.submit(mock_coupon_code))
-    # threads.append(executor.submit(mock_point_record))
-    # threads.append(executor.submit(mock_faq))
-    # threads.append(executor.submit(sync_shopify))
-    #
-    # wait(threads, return_when=ALL_COMPLETED)
-    # mock_products()
-    # mock_orders()
-    # mock_proxy()
+    mock_users()
+    threads = []
+    threads.append(executor.submit(mock_tickets))
+    threads.append(executor.submit(mock_acls))
+    threads.append(executor.submit(mock_servers))
+    threads.append(executor.submit(mock_invite_log))
+    threads.append(executor.submit(mock_rebate_record))
+    # threads.append(executor.submit(mock_orders))
+    threads.append(executor.submit(mock_giftcard))
+    threads.append(executor.submit(mock_coupon_code))
+    threads.append(executor.submit(mock_point_record))
+    threads.append(executor.submit(mock_faq))
+    threads.append(executor.submit(sync_shopify))
+    
+    wait(threads, return_when=ALL_COMPLETED)
+    mock_products()
+    if not os.environ.get('DJANGO_ENV') == 'prod': # 生产环境不mock订单
+        mock_orders()
+        mock_proxy()
     
     print("mock data done")
 
