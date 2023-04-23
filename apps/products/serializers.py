@@ -136,7 +136,10 @@ class ProductSerializer(serializers.ModelSerializer):
                   'variants',
                   'variant_options',"created_at","lower_price")
     def get_lower_price(self, obj):
-        return "$"+str(obj.variants.order_by('variant_price').first().variant_price)+"+"
+        if obj.variants.exists():
+            return "$"+str(obj.variants.order_by('variant_price').first().variant_price)+"+"
+        else:
+            return "$0.0+"
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
