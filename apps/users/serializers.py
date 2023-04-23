@@ -28,7 +28,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True,
                                    validators=[
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
-    discord_id = serializers.CharField(required=False,allow_blank=True)
+    discord_id = serializers.CharField(required=False,allow_blank=True,allow_null=True)
 
     # email_code_id = serializers.IntegerField(required=True)
     # email_code = serializers.CharField(required=False)
