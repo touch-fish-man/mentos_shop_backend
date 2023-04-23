@@ -31,7 +31,7 @@ class User(AbstractUser, BaseModel):
     email = models.EmailField(max_length=100, unique=True, verbose_name='邮箱')
     password = models.CharField(max_length=100, verbose_name='密码')
     is_active = models.BooleanField(default=True, verbose_name='是否激活')
-    discord_id = models.CharField(max_length=100, unique=True, null=True, verbose_name='discord_id')
+    discord_id = models.CharField(max_length=100, null=True, verbose_name='discord_id',blank=True)
     discord_name = models.CharField(max_length=100, null=True, verbose_name='discord_name')
     is_superuser = models.BooleanField(default=False, verbose_name='是否超级管理员')
     level = models.IntegerField(default=1, verbose_name='等级', choices=LEVEL_CHOICES)
