@@ -71,3 +71,4 @@ class Orders(BaseModel):
         db_table = 'orders'
         verbose_name = '订单'
         verbose_name_plural = verbose_name
+        ordering = ['-id']

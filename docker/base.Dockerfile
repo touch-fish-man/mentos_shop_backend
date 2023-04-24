@@ -4,6 +4,7 @@ COPY . /opt/mentos_shop_backend
 WORKDIR /opt/mentos_shop_backend
 RUN awk 'BEGIN { cmd="cp -r /opt/mentos_shop_backend/.env.sample /opt/mentos_shop_backend/config/.env"; print "n" |cmd; }'
 ENV TZ="UTC"
+ENV DJANDO_ENV="pord"
 RUN pip install -r requirements.txt
 RUN python manage.py reset_db -c --noinput
 RUN python manage.py makemigrations

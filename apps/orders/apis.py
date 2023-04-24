@@ -13,7 +13,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link, renew_proxy_by_order,get_renew_checkout_link
+from .services import verify_webhook, shopify_order, get_checkout_link, renew_proxy_by_order, get_renew_checkout_link
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -82,12 +82,12 @@ class OrdersApi(ComModelViewSet):
                     ip_ = s_ip.server_ip
                     username_ = u.username
                     client = KaxyClient(ip_)
-                    proxy_list=client.update_user(username_)
+                    proxy_list = client.update_user(username_)
                     for p in proxy_list:
-                        proxy_ip,port,username,password=p.split(':')
-                        proxy = Proxy.objects.filter(ip=proxy_ip,username=username).first()
+                        proxy_ip, port, username, password = p.split(':')
+                        proxy = Proxy.objects.filter(ip=proxy_ip, username=username).first()
                         if proxy:
-                            proxy.password=password
+                            proxy.password = password
                             proxy.save()
 
         return SuccessResponse(data={}, msg="代理密码重置成功")
@@ -119,11 +119,12 @@ class OrdersApi(ComModelViewSet):
         else:
             return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理过期时间更新成功")
+
     @action(methods=['post'], detail=True, url_path='reset_proxy', url_name='reset_proxy')
     def reset_proxy(self, request, *args, **kwargs):
         order_pk = kwargs.get('pk')
         order = Orders.objects.filter(id=order_pk)
-        
+
         if order.exists():
             order = order.first()
             order_id = order.order_id
@@ -151,17 +152,15 @@ class OrdersApi(ComModelViewSet):
     @action(methods=['post'], detail=True, url_path='order-renew-checkout', url_name='order-renew-checkout')
     def order_renew_checkout(self, request, *args, **kwargs):
         order_pk = kwargs.get('pk')
-        order = Orders.objects.filter(id=order_pk) 
+        order = Orders.objects.filter(id=order_pk)
         if not order.exists():
-            return ErrorResponse(data={}, msg="Order does not exist.") # 订单不存在
+            return ErrorResponse(data={}, msg="Order does not exist.")  # 订单不存在
         order = order.first()
-        order_id=order.order_id
+        order_id = order.order_id
         if order.expired_at < datetime.datetime.now(tz=datetime.timezone.utc):
-            return ErrorResponse(data={}, msg="The order has expired, please place a new order.") # 订单已过期，请下新订单
-        checkout_url,order_id=get_renew_checkout_link(order_id=order_id)
+            return ErrorResponse(data={}, msg="The order has expired, please place a new order.")  # 订单已过期，请下新订单
+        checkout_url, order_id = get_renew_checkout_link(order_id=order_id)
         return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="订单生成成功")
-    
-
 
 
 class OrderCallbackApi(APIView):
@@ -192,34 +191,34 @@ class ShopifyWebhookApi(APIView):
         order_info = shopify_order(request.data)
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
-        logging.error(order_info)
-        print(order_info)
-        if financial_status != 'paid':
+        if financial_status == 'paid':
             shpify_order_id = order_info.get('order_id')
             shopify_order_number = shopify_order_info.get('order_number')
             pay_amount = shopify_order_info.get('total_price')
-            discount_codes = order_info.get(order_info)
-            renewal_status=order_info.get("renewal","0")
+            discount_codes = order_info.get('discount_codes')
+            renewal_status = order_info.get("renewal", "0")
             order_id = order_info.get('order_id')
             # 更新订单
             order = Orders.objects.filter(order_id=order_id).first()
             if order:
-                if renewal_status =="1":
-                    order.pay_amount = order.pay_amount+pay_amount
+                if renewal_status == "1":
+                    order.pay_amount = order.pay_amount + pay_amount
                 order.pay_amount = pay_amount  # 支付金额
-                order.status = 1  # 已支付
+                order.pay_status = 1  # 已支付
                 order.shopify_order_id = shpify_order_id  # shopify订单id
                 order.shopify_order_number = shopify_order_number  # shopify订单号
                 order.save()
+                logging.error("aaaaaa")
             # 生成代理，修改订单状态
-            if renewal_status=="1":
-                order.renew_status=1
+            if renewal_status == "1":
+                order.renew_status = 1
                 order.save()
                 # 续费
-                order_process_ret=renew_proxy_by_order(order_id)
+                order_process_ret = renew_proxy_by_order(order_id)
             else:
                 # 新订
-                order_process_ret=create_proxy_by_order(order_id)
+                order_process_ret = create_proxy_by_order(order_id)
+                logging.error(order_process_ret)
             if order_process_ret:
                 # 修改优惠券状态
                 for discount_code in discount_codes:
@@ -229,17 +228,19 @@ class ShopifyWebhookApi(APIView):
                 # 增加邀请人奖励积分
                 order_user = User.objects.filter(id=order.uid).first()
                 if order_user:
-                    invite_log=InviteLog.objects.filter(uid=order.uid).first()
+                    invite_log = InviteLog.objects.filter(uid=order.uid).first()
                     if invite_log:
                         inviter_user = User.objects.filter(id=invite_log.inviter_uid).first()
                         if inviter_user:
-                            inviter_user.reward_points += int(order.pay_amount*settings.INVITE_REBATE_RATE)  # 奖励积分
+                            inviter_user.reward_points += int(
+                                float(order.pay_amount) * float(settings.INVITE_REBATE_RATE))  # 奖励积分
                             inviter_user.save()
                             # 创建积分变动记录
-                            PointRecord.objects.create(uid=inviter_user.id, point=int(order.pay_amount*settings.INVITE_REBATE_RATE),
+                            PointRecord.objects.create(uid=inviter_user.id, point=int(
+                                float(order.pay_amount) * float(settings.INVITE_REBATE_RATE)),
                                                        reason=PointRecord.REASON_DICT["invite_buy"])
                 # 增加用户等级积分
-                order_user.level_points += int(order.pay_amount*settings.BILLING_RATE)  # 等级积分
+                order_user.level_points += int(float(order.pay_amount) * float(settings.BILLING_RATE))  # 等级积分
                 order_user.save()
                 # 更新用户等级
                 order_user.update_level()
