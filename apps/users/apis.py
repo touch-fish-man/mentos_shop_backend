@@ -62,7 +62,7 @@ class UserApi(ComModelViewSet):
         if invite_code:
             # 插入邀请记录
             if resp.data.get("data", {}).get('id'):
-                insert_invite_log(resp.data.get("data", {}).get('id'), invite_code)
+                insert_invite_log(resp.data.get("data", {}).get('id'),resp.data.get("data",{}).get('username'), invite_code)
         return resp
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
