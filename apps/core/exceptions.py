@@ -4,7 +4,7 @@ import traceback
 from django.conf import settings
 from django.db.models import ProtectedError
 from django.http import Http404
-from rest_framework.exceptions import APIException as DRFAPIException, AuthenticationFailed
+from rest_framework.exceptions import APIException as DRFAPIException, AuthenticationFailed,NotAuthenticated
 from rest_framework.views import set_rollback
 
 from .json_response import ErrorResponse
@@ -32,8 +32,12 @@ def CustomExceptionHandler(ex, context):
         elif isinstance(ex,Http404):
             code = 400
             msg = "接口地址不正确"
+        elif isinstance(ex,NotAuthenticated):
+            code = 4001
+            msg = "未登录"
         elif isinstance(ex, DRFAPIException):
             set_rollback()
+            print(ex.detail)
             msg = ex.detail
             if isinstance(msg,dict):
                 for k, v in msg.items():
@@ -47,6 +51,7 @@ def CustomExceptionHandler(ex, context):
         #     msg = "接口服务器异常,请联系管理员"
         elif isinstance(ex, Exception):
             logger.error(traceback.format_exc())
+
             msg = str(traceback.format_exc())
     else:
         logger.error(traceback.format_exc())
