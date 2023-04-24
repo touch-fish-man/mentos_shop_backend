@@ -137,7 +137,7 @@ def insert_invite_log(uid, invite_code):
     user_obj = User.objects.filter(invite_code=invite_code).first()
     if user_obj:
         # 记录邀请日志
-        InviteLog.objects.create(uid=uid, invite_code=invite_code, inviter_uid=user_obj.id)
+        InviteLog.objects.create(uid=uid, invite_code=invite_code, inviter_uid=user_obj.id,inviter_user=user_obj)
         # 更新邀请计数
         user_obj.invite_count=user_obj.invite_count + 1
         # 更新邀请人等级积分
