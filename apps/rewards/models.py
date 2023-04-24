@@ -98,7 +98,7 @@ class LevelCode(BaseModel):
         db_table = 'level_code'
         verbose_name = '等级码'
         verbose_name_plural = verbose_name
-        ordering = ('-created_at',)
+        ordering = ('-level',)
 
     def __str__(self):
         return self.code
