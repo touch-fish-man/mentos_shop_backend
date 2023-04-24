@@ -105,8 +105,7 @@ class DiscordOauth2RedirectApi(APIView):
         else:
             # 登录
             login(request, user)
-            response = redirect("/#/dashboard?refresh=1")
-            return response
+            return redirect("/#/dashboard?refresh=1")
 
 
 class DiscordBindRedirectApi(APIView):
