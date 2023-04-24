@@ -192,7 +192,8 @@ class ShopifyWebhookApi(APIView):
         order_info = shopify_order(request.data)
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
-        logging.info(order_info)
+        logging.error(order_info)
+        print(order_info)
         if financial_status != 'paid':
             shpify_order_id = order_info.get('order_id')
             shopify_order_number = shopify_order_info.get('order_number')
