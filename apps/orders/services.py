@@ -47,7 +47,7 @@ def shopify_order(data):
             "line_items": data["line_items"],
         },
         "note": data["note"],
-        discount_codes: discount_codes,
+        "discount_codes": discount_codes,
         "note_attributes": data["note_attributes"],
 
     }
