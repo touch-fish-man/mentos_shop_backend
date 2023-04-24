@@ -67,6 +67,9 @@ def get_checkout_link(request):
     order_info_dict["username"] = user.username
     order_info_dict["product_id"] = request.data.get("product_id")
     order_info_dict["product_quantity"] = request.data.get("quantity")
+    product_obj=Product.objects.filter(id=order_info_dict["product_id"]).first()
+    if product_obj:
+        order_info_dict["product_name"] = product_obj.product_name
     option_selected=request.data.get("option_selected")
     variant_obj = Variant.objects.filter(product=order_info_dict["product_id"], variant_option1=option_selected[0])
     if len(option_selected) == 2:
@@ -82,6 +85,7 @@ def get_checkout_link(request):
         order_info_dict["product_type"] = Product.objects.filter(id=order_info_dict["product_id"]).first().product_collections.first().id
         expired_at = datetime.datetime.now(timezone.utc)+datetime.timedelta(days=proxy_time)
         order_info_dict["expired_at"] = expired_at
+        order_info_dict["proxy_num"] = order_info_dict["product_quantity"]
         order_info_dict["proxy_time"]=proxy_time
         new_order = Orders.objects.create(**order_info_dict)
         order_id=new_order.order_id
@@ -99,7 +103,7 @@ def get_checkout_link(request):
             "ref": "mentosproxy_web",
         }
         checkout_link = ShopifyClient.get_checkout_link(settings.SHOPIFY_SHOP_URL, check_info)
-        new_order.checkout_link = checkout_link
+        new_order.checkout_url = checkout_link
         new_order.save()
         return checkout_link, order_id
     else:
