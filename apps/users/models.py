@@ -6,6 +6,7 @@ from django.db import models, transaction
 from django.contrib.auth.models import AbstractUser
 from apps.core.models import BaseModel
 from django.conf import settings
+from apps.rewards.models import LevelCode
 
 def gen_uid():
     # 生成8位uuid
@@ -54,13 +55,17 @@ class User(AbstractUser, BaseModel):
         """
         更新用户等级
         """
-        if self.level_points>=1000:
+        level_code = LevelCode.objects.all()
+        dict = {}
+        for item in level_code:
+            dict[item.id] = item.point
+        if self.level_points>=dict[5]:
             self.level=5
-        elif self.level_points>=500:
+        elif self.level_points>=dict[4]:
             self.level=4
-        elif self.level_points>=200:
+        elif self.level_points>=dict[3]:
             self.level=3
-        elif self.level_points>=50:
+        elif self.level_points>=dict[2]:
             self.level=2
         else:
             self.level=1
