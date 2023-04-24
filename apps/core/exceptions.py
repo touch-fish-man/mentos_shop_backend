@@ -54,7 +54,11 @@ def CustomExceptionHandler(ex, context):
 
             msg = str(traceback.format_exc())
     else:
-        logger.error(traceback.format_exc())
-        msg = str(ex.detail)
+        if isinstance(ex, NotAuthenticated):
+            code = 4001
+            msg = str(ex.detail)
+        else:
+            logger.error(traceback.format_exc())
+            msg = str(ex.detail)
 
     return ErrorResponse(msg=msg, code=code)
