@@ -40,6 +40,8 @@ class LoginApi(APIView):
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
+            if not user.is_active:
+                return ErrorResponse(msg="用户被禁用")
             data = user_get_login_data(user=user)
             return SuccessResponse(data=data, msg="登录成功")
         else:
@@ -106,6 +108,8 @@ class DiscordOauth2RedirectApi(APIView):
         else:
             # 登录
             login(request, user)
+            if not user.is_active:
+                return redirect("/")
             user.discord_name=discord_name
             user.save()
             return redirect("/#/dashboard?refresh=1")
