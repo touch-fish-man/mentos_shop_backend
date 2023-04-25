@@ -62,7 +62,7 @@ def send_email_code(email, email_template):
     if code_item.exists():
         db_code = code_item.first()
         code_created_at= db_code.created_at.replace(tzinfo=pytz.timezone('UTC'))
-        if code_created_at + datetime.timedelta(minutes=settings.EMAIL_CODE_EXPIRE) < datetime.datetime.utcnow().replace(tzinfo=pytz.timezone('UTC')):
+        if code_created_at + datetime.timedelta(minutes=settings.EMAIL_CODE_EXPIRE//60) < datetime.datetime.utcnow().replace(tzinfo=pytz.timezone('UTC')):
             db_code.delete()
         else:
             return db_code.id
