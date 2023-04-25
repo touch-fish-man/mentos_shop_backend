@@ -27,7 +27,7 @@ def main():
     # threads.append(executor.submit(mock_invite_log))
     # threads.append(executor.submit(mock_rebate_record))
     # threads.append(executor.submit(mock_orders))
-    # threads.append(executor.submit(mock_giftcard))
+    threads.append(executor.submit(mock_giftcard))
     # threads.append(executor.submit(mock_coupon_code))
     # threads.append(executor.submit(mock_point_record))
     # threads.append(executor.submit(mock_faq))
