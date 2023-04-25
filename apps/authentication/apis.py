@@ -91,10 +91,11 @@ class DiscordOauth2RedirectApi(APIView):
         code = request.GET.get('code')
         if code is None:
             return ErrorResponse(msg="code错误", status=400)
-        user = exchange_code(code, settings.DISCORD_REDIRECT_URI)
-        if user is None:
+        discord_user = exchange_code(code, settings.DISCORD_REDIRECT_URI)
+        if discord_user is None:
             return ErrorResponse(msg="oauth错误", status=400)
-        discord_id = user.get('id')
+        discord_id = discord_user.get('id')
+        discord_name=discord_user.get('username')
         # 查询用户是否存在
         user = User.objects.filter(discord_id=discord_id).first()
         # user = User.objects.first()
@@ -105,6 +106,8 @@ class DiscordOauth2RedirectApi(APIView):
         else:
             # 登录
             login(request, user)
+            user.discord_name=discord_name
+            user.save()
             return redirect("/#/dashboard?refresh=1")
 
 
