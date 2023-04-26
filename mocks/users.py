@@ -23,9 +23,9 @@ def create_default_user():
     password = make_password("Admin@123456")
     is_superuser = True
     is_active = True
-    level_points = 1000
+    level_points = 10000
     level = 5
-    reward_points = 1000
+    reward_points = 110000
     invite_count = 100
     discord_id = 758212164619075614
     discord_name = fake.user_name()
@@ -36,9 +36,9 @@ def create_default_user():
     password = make_password("Admin@123456")
     is_superuser = False
     is_active = True
-    level_points = 1000
+    level_points = 10000
     level = 5
-    reward_points = 1000
+    reward_points = 110000
     invite_count = 100
     User.objects.create(username=username, email=email, password=password, is_active=is_active,
                         is_superuser=is_superuser, level_points=level_points, level=level, reward_points=reward_points,invite_count=invite_count,discord_id=discord_id,discord_name=discord_name)
