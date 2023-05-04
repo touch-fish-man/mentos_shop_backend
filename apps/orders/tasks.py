@@ -38,37 +38,24 @@ def precheck_order_expired(ceheck_days=3,send_email=True):
 @shared_task(name='check_order_expired')
 def check_order_expired():
     """
-    定时检查db中订单状态，如果订单已过期，删除代理，每天检查一次，添加当天过期删除任务
+    定时检查db中订单状态，如果订单过期，删除对应的proxy，每小时检查一次
     """
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
-    utc_today = utc_now.date()
-    orders = Orders.objects.all().values('id','expired_at')
-    for order in orders:
-        expired_day = order['expired_at'].date()
-        if utc_today == expired_day and utc_now<order['expired_at']:
-            change_order.apply_async(args=[order['id']], eta=order['expired_at'])
-        elif utc_today == expired_day and utc_now>order['expired_at']:
-            change_order.apply_async(args=[order['id']], eta=utc_now+datetime.timedelta(minutes=5))
-
-@shared_task(name='change_order')
-def change_order(order_id):
-    Orders.objects.filter(id=order_id).update(order_status=3)
-    proxys = Proxy.objects.filter(order_id=order_id)
-    if not proxys:
-        return 
-    server_ip = proxys.first().server_ip
-    client = KaxyClient(server_ip)
-    for proxy in proxys:
-        if proxy.server_ip != server_ip:
-            server_ip = proxy.server_ip
-            client.del_user(proxy.username)
-            client = KaxyClient(server_ip)
-    proxys.delete()
+    orders = Orders.objects.filter(pay_status=1,order_status=4).all() # 已支付，已发货
+    for order_obj_item in orders:
+        if order_obj_item.expired_at <= utc_now:
+            proxy = Proxy.objects.filter(order_id=order_obj_item.id).first()
+            if proxy:
+                client=KaxyClient(proxy.server_ip)
+                client.del_user(proxy.username)
+                proxy.delete()
+                order_obj_item.order_status = 3
+                order_obj_item.save()
 
 @shared_task(name='delete_proxy_expired')
 def delete_proxy_expired():
     """
-    删除过期代理
+    删除过期代理,每天检查一次
     """
     del_user_dict = {}
     all_proxy=Proxy.objects.filter().all()

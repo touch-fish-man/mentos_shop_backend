@@ -35,7 +35,7 @@ app.conf.beat_schedule = {
     },
     'check_order_expired': {
         'task': 'check_order_expired',
-        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+        'schedule': 6000.0, # 每小时执行一次
     },
     'delete_proxy_expired': {
         'task': 'delete_proxy_expired',
