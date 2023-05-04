@@ -132,11 +132,13 @@ class DiscordBindRedirectApi(APIView):
         cache.set(discord_id, discord_username, timeout=60 * 30)
         # 绑定用户
         user = request.user
+        if User.objects.filter(discord_id=discord_id).first():
+            return redirect("/#/dashboard?refresh=1")
         user.discord_id = discord_id
         user.discord_name = discord_username
         user.save()
         # 重定向到用户页面
-        return redirect("/#/dashboard/")
+        return redirect("/#/dashboard?refresh=1")
 
 
 class CaptchaApi(APIView):
