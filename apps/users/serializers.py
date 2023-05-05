@@ -80,12 +80,10 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=False,
                                    validators=[
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
-    discord_id = serializers.CharField(required=False, validators=[
-        CustomUniqueValidator(queryset=User.objects.all(), message="discord_id已存在")])
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'discord_id', 'is_active', "uid", "level", "level_points", "reward_points","is_superuser")
+        fields = ('username', 'email',  'is_active', "uid", "level", "level_points", "reward_points","is_superuser")
         extra_kwargs = {
             "uid": {"read_only": True},
             "level": {"read_only": True},
