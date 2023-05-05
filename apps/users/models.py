@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from django.db import models, transaction
-
+import logging
 # Create your models here.
 from django.contrib.auth.models import AbstractUser
 from apps.core.models import BaseModel
@@ -53,6 +53,7 @@ class User(AbstractUser, BaseModel):
     def save(self, *args, **kwargs):
         if self._state.adding==False:
             self.level = self.get_level()
+            logging.error("level_points:"+str(self.level_points))
         super().save(*args, **kwargs)
 
     def update_level(self):
