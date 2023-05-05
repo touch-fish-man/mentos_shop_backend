@@ -52,7 +52,20 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = verbose_name
     def save(self, *args, **kwargs):
         if self._state.adding==False:
-            self.update_level()
+            level_code = LevelCode.objects.all()
+            dict = {}
+            for item in level_code:
+                dict[item.level] = item.point
+            if self.level_points>=dict[5]:
+                self.level=5
+            elif self.level_points>=dict[4]:
+                self.level=4
+            elif self.level_points>=dict[3]:
+                self.level=3
+            elif self.level_points>=dict[2]:
+                self.level=2
+            else:
+                self.level=1
         super(User, self).save(*args, **kwargs)
     def update_level(self):
         """
