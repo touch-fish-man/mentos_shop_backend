@@ -29,11 +29,6 @@ class AclGroupSerializer(CommonSerializer):
     class Meta:
         model = AclGroup
         fields = '__all__'
-    def to_representation(self, instance):
-        # 过滤soft_delete的数据
-        ret = super().to_representation(instance)
-        return ret
-
 
 
 
