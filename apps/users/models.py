@@ -50,7 +50,10 @@ class User(AbstractUser, BaseModel):
         db_table = 'user'
         verbose_name = '用户'
         verbose_name_plural = verbose_name
-
+    def save(self, *args, **kwargs):
+        if self._state.adding==False:
+            self.update_level()
+        super(User, self).save(*args, **kwargs)
     def update_level(self):
         """
         更新用户等级
