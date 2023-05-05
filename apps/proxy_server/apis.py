@@ -145,7 +145,7 @@ class AclGroupApi(ComModelViewSet):
     retrieve: ACL组详情
     destroy: 删除ACL组
     """
-    queryset = AclGroup.objects.filter(is_delete=False).all()
+    queryset = AclGroup.objects.filter(soft_delete=False).all()
     serializer_class = AclGroupSerializer
     create_serializer_class = AclGroupCreateSerializer
     update_serializer_class = AclGroupCreateSerializer
