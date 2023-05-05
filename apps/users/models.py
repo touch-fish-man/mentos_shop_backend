@@ -72,6 +72,7 @@ class User(AbstractUser, BaseModel):
         for item in level_code:
             dict_level[item.level] = item.point
         logging.error(dict_level)
+        logging.error(self.level_points)
         if self.level_points>=dict_level[5]:
             level=5
         elif self.level_points>=dict_level[4]:
