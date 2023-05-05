@@ -53,7 +53,7 @@ class User(AbstractUser, BaseModel):
     def save(self, *args, **kwargs):
         if self._state.adding==False:
             self.level = self.get_level()
-            logging.error("level_points:"+str(self.level_points))
+            logging.error("level:"+str(self.level))
         super().save(*args, **kwargs)
 
     def update_level(self):
