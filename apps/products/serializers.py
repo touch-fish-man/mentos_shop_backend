@@ -59,6 +59,12 @@ class VariantSerializer(serializers.ModelSerializer):
             "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
+    
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if not ret["variant_desc"]:
+            ret["variant_desc"] = ''
+        return ret
 
 class VariantCreateSerializer(serializers.ModelSerializer):
     cart_step = serializers.IntegerField(required=True)
