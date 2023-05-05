@@ -4,6 +4,7 @@ import math
 
 from apps.core.models import BaseModel
 from django.db import models
+from apps.utils.kaxy_handler import KaxyClient
 
 
 # Create your models here.
@@ -248,8 +249,8 @@ class Proxy(BaseModel):
         """
         # 如果数据库中username剩下最后一个，删除用户
         if Proxy.objects.filter(username=self.username).count() == 1:
-            # 从kaxy中删除用户
-            # todo
-            pass
-        # 删除代理
+            # 创建删除任务，去除重复
+            kax_client=KaxyClient(self.server_ip)
+            kax_client.del_user(self.username)
+        # 删除代理 
         super(Proxy, self).delete(using, keep_parents)
