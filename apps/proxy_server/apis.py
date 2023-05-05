@@ -44,6 +44,7 @@ class ProxyServerApi(ComModelViewSet):
     create_user_by_prefix: 通过前缀创建用户
     delete_user: 删除用户
     delete_all_user: 删除所有用户
+    reset_proxy: 重置所有用户
     """
     permission_classes = [IsSuperUser]
     queryset = Server.objects.all()
@@ -134,6 +135,17 @@ class ProxyServerApi(ComModelViewSet):
         except:
             del_resp = {}
         return SuccessResponse(data=del_resp)
+    @action(methods=['post'], detail=True, url_path='reset_proxy', url_name='reset_proxy')
+    def reset_proxy(self, request, *args, **kwargs):
+        """
+        重置所有用户 todo 未完成存在逻辑问题
+        """
+        if settings.DEBUG:
+            return SuccessResponse(data={"code": 200, "message": "success"})
+        proxy_server = self.get_object()
+        ip = proxy_server.ip
+
+        return SuccessResponse(data=reset_resp)
 
 
 class AclGroupApi(ComModelViewSet):
