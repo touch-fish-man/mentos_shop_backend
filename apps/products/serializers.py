@@ -160,6 +160,10 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
             'variants',
             'variant_options')
+    def validate_product_collections(self, product_collections):
+        if not product_collections:
+            raise serializers.ValidationError("product_collections不能为空,请在shopify中添加后重新同步")
+        return product_collections
 
     def create(self, validated_data):
         # 先创建variant,再创建product,再add
