@@ -151,8 +151,8 @@ class ProductSerializer(serializers.ModelSerializer):
 class ProductCreateSerializer(serializers.ModelSerializer):
     product_collections = ProductCollectionSerializer(many=True, required=True)
     product_tags = ProductTagSerializer(many=True)
-    variants = VariantCreateSerializer(many=True)
-    variant_options = OptionSerializer(many=True)
+    variants = VariantCreateSerializer(many=True, required=True)
+    variant_options = OptionSerializer(many=True, required=True)
 
     class Meta:
         model = Product
@@ -162,7 +162,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'variant_options')
     def validate_product_collections(self, product_collections):
         if not product_collections:
-            raise serializers.ValidationError("product_collections不能为空,请在shopify中添加后重新同步")
+            raise serializers.ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
         return product_collections
 
     def create(self, validated_data):
