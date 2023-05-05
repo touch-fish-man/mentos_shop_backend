@@ -70,11 +70,15 @@ class Product(BaseModel):
     shopify_product_id = models.CharField(max_length=255, verbose_name='shopify产品id')
     product_tags = models.ManyToManyField(ProductTag,verbose_name='标签')
     product_collections = models.ManyToManyField(ProductCollection,verbose_name='系列')
+    soft_delete = models.BooleanField(default=False, verbose_name='软删除', blank=True, null=True)
     # variants = models.ManyToManyField(Variant)
     # variant_options = models.ManyToManyField(Option)
 
     def variants(self):
         return Variant.objects.filter(product_id=self.id)
+    def delete(self, using=None, keep_parents=False):
+        self.soft_delete = True
+        self.save()
 
     def variant_options(self):
         return Option.objects.filter(product_id=self.id)

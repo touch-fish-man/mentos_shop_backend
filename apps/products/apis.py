@@ -20,7 +20,7 @@ class ProductViewSet(ComModelViewSet):
     destroy:删除
     get_recommend_product:获取推荐商品
     """
-    queryset = Product.objects.all()
+    queryset = Product.objects.filter(soft_delete=False).all()
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
     search_fields = '__all__'
@@ -53,7 +53,7 @@ class ProductViewSet(ComModelViewSet):
         if not tags:
             return ErrorResponse(msg='tags不能为空')
         tags = tags.split(',')
-        products = Product.objects.filter(product_tags__in=tags).distinct()
+        products = Product.objects.filter(product_tags__in=tags,soft_delete=False).distinct()
         serializer = self.get_serializer(products, many=True)
         # 获取分页数据
         page = self.paginate_queryset(products)
