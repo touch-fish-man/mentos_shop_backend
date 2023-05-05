@@ -52,40 +52,35 @@ class User(AbstractUser, BaseModel):
         verbose_name_plural = verbose_name
     def save(self, *args, **kwargs):
         if self._state.adding==False:
-            level_code = LevelCode.objects.all()
-            dict = {}
-            for item in level_code:
-                dict[item.level] = item.point
-            if self.level_points>=dict[5]:
-                self.level=5
-            elif self.level_points>=dict[4]:
-                self.level=4
-            elif self.level_points>=dict[3]:
-                self.level=3
-            elif self.level_points>=dict[2]:
-                self.level=2
-            else:
-                self.level=1
-        return super(User, self).save(*args, **kwargs)
+            self.level = self.get_level()
+        super().save(*args, **kwargs)
+
     def update_level(self):
         """
         更新用户等级
         """
+        self.level = self.get_level()
+        self.save()
+    def get_level(self):
+        """
+        获取用户等级
+        """
         level_code = LevelCode.objects.all()
+        level=1
         dict = {}
         for item in level_code:
             dict[item.level] = item.point
         if self.level_points>=dict[5]:
-            self.level=5
+            level=5
         elif self.level_points>=dict[4]:
-            self.level=4
+            level=4
         elif self.level_points>=dict[3]:
-            self.level=3
+            level=3
         elif self.level_points>=dict[2]:
-            self.level=2
+            level=2
         else:
-            self.level=1
-        self.save()
+            level=1
+        return level
     def level_points_decay(self):
         """
         等级积分衰减
