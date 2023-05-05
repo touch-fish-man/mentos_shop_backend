@@ -68,16 +68,17 @@ class User(AbstractUser, BaseModel):
         """
         level_code = LevelCode.objects.all()
         level=1
-        dict = {}
+        dict_level = {}
         for item in level_code:
-            dict[item.level] = item.point
-        if self.level_points>=dict[5]:
+            dict_level[item.level] = item.point
+        logging.error(dict_level)
+        if self.level_points>=dict_level[5]:
             level=5
-        elif self.level_points>=dict[4]:
+        elif self.level_points>=dict_level[4]:
             level=4
-        elif self.level_points>=dict[3]:
+        elif self.level_points>=dict_level[3]:
             level=3
-        elif self.level_points>=dict[2]:
+        elif self.level_points>=dict_level[2]:
             level=2
         else:
             level=1
