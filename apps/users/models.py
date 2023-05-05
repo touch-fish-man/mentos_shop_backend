@@ -66,7 +66,7 @@ class User(AbstractUser, BaseModel):
                 self.level=2
             else:
                 self.level=1
-        super(User, self).save(*args, **kwargs)
+        return super(User, self).save(*args, **kwargs)
     def update_level(self):
         """
         更新用户等级
