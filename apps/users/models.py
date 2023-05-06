@@ -50,6 +50,8 @@ class User(AbstractUser, BaseModel):
         db_table = 'user'
         verbose_name = '用户'
         verbose_name_plural = verbose_name
+        ordering = ['-id']
+
     def save(self, *args, **kwargs):
         if self._state.adding==False:
             self.level = self.get_level()
