@@ -52,6 +52,11 @@ class OrdersApi(ComModelViewSet):
 
     # @swagger_auto_schema(operation_description="获取订单状态", responses={200: OrdersStatusSerializer},
     #                      query_serializer=OrdersStatusSerializer)
+    def list(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            self.queryset=self.queryset.filter(pay_status=1)
+        return super().list(request, *args, **kwargs)
+
     @action(methods=['get'], detail=False, url_path='get_status', url_name='get_status')
     def get_status(self, request):
         # 用于前端轮询订单状态
