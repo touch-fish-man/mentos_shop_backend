@@ -20,6 +20,11 @@ def read_csv(file_path):
         keys = lines[0].strip().split(',')
         values = [line.strip().split(',') for line in lines[1:]]
         return {key: list(set(value[i] for value in values if value[i])) for i, key in enumerate(keys)}
+def create_acl_base():
+    for data_key, data_value in data.items():
+                acl_value="\n".join(data_value)
+                description = fake.sentence()
+                Acls.objects.create(name=data_key, acl_value=acl_value, description=description)
 def main():
     base__dir = os.path.dirname(os.path.abspath(__file__))
     data = read_csv(os.path.join(base__dir, 'acl_list.csv'))
@@ -27,10 +32,7 @@ def main():
         print("Generating acl...")
         AclGroup.objects.all().delete()
         Acls.objects.all().delete()
-        for data_key, data_value in data.items():
-            acl_value="\n".join(data_value)
-            description = fake.sentence()
-            Acls.objects.create(name=data_key, acl_value=acl_value, description=description)
+        create_acl_base()
         for i in range(5):
             name = 'test acl group {}'.format(i)
             description = fake.sentence()
