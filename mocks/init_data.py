@@ -2,7 +2,7 @@ import os
 from init_env import *
 
 from users import create_default_user
-from acls import create_acl_base 
+from acls import create_acl_base,clean_users
 from giftcard import main as mock_giftcard
 from sync_shopify import main as sync_shopify
 # 使用线程池，提高速度

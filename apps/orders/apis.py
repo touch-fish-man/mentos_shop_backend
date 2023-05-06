@@ -55,9 +55,17 @@ class OrdersApi(ComModelViewSet):
     @action(methods=['get'], detail=False, url_path='get_status', url_name='get_status')
     def get_status(self, request):
         # 用于前端轮询订单状态
-        serializer = self.get_status_serializer_class(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
-        return SuccessResponse(data=serializer.data, msg="获取成功")
+        request_data = request.query_params.dict()
+        order_id= request_data.get('order_id', None)
+        if not order_id:
+            return ErrorResponse(data={}, msg="订单号不能为空")
+        order = Orders.objects.filter(order_id=order_id)
+        if not order.exists():
+            return ErrorResponse(data={}, msg="订单不存在")
+        order = order.first()
+        if order.pay_status == 1:
+            return SuccessResponse(data={"status": 1}, msg="订单已支付")
+        return SuccessResponse(data={"status": 0}, msg="订单未支付")
 
     def retrieve(self, request, *args, **kwargs):
         proxy = Proxy.objects.filter(order_id=kwargs.get('pk'))
