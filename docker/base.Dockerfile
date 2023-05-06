@@ -3,6 +3,7 @@ RUN mkdir /opt/mentos_shop_backend
 COPY . /opt/mentos_shop_backend
 WORKDIR /opt/mentos_shop_backend
 ENV DJANGO_ENV=prod
+RUN cp -r /opt/mentos_shop_backend/.env.sample /opt/mentos_shop_backend/config/.env
 RUN awk 'BEGIN { cmd="cp -r /opt/mentos_shop_backend/.env.sample /opt/mentos_shop_backend/config/.env"; print "n" |cmd; }'
 ENV TZ="UTC"
 ENV DJANDO_ENV="pord"
