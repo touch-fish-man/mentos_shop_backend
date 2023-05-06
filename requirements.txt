@@ -25,3 +25,4 @@ celery
 django-celery-results
 django-celery-beat
 psycopg2-binary
+pyquery
