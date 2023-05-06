@@ -5,6 +5,7 @@ from users import create_default_user,clean_users
 from acls import create_acl_base
 from giftcard import main as mock_giftcard
 from sync_shopify import main as sync_shopify
+from servers import main as mock_servers
 # 使用线程池，提高速度
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
 executor = ThreadPoolExecutor(15)
@@ -13,7 +14,7 @@ def main():
     create_default_user()
     threads = []
     threads.append(executor.submit(create_acl_base))
-    # threads.append(executor.submit(mock_invite_log))
+    threads.append(executor.submit(mock_servers))
     # threads.append(executor.submit(mock_rebate_record))
     # threads.append(executor.submit(mock_orders))
     threads.append(executor.submit(mock_giftcard))

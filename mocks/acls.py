@@ -21,6 +21,8 @@ def read_csv(file_path):
         values = [line.strip().split(',') for line in lines[1:]]
         return {key: list(set(value[i] for value in values if value[i])) for i, key in enumerate(keys)}
 def create_acl_base():
+    base__dir = os.path.dirname(os.path.abspath(__file__))
+    data = read_csv(os.path.join(base__dir, 'acl_list.csv'))
     for data_key, data_value in data.items():
         acl_value="\n".join(data_value)
         description = fake.sentence()
