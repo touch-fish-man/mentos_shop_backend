@@ -59,7 +59,7 @@ def check_chaptcha(captcha_id, captcha_code):
         if five_minute_ago > expiration:
             raise ValidationError(message="Captcha code error, please refresh the page.")
         else:
-            if response.lower() != captcha_code.lower():
+            if str(response).lower() != str(captcha_code).lower():
                 raise ValidationError(message="Captcha code error, please refresh the page.")
     else:
         raise ValidationError(message="Captcha code error, please refresh the page.")
