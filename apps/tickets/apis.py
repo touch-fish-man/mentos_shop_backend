@@ -29,19 +29,19 @@ class TicketsApi(ComModelViewSet):
     def create(self, request, *args, **kwargs):
         captcha_id = request.data.get('captcha_id')
         if not captcha_id:
-            return ErrorResponse(msg='请先获取验证码')
+            return ErrorResponse(msg='Please refresh the page')
         else:
             request.data.pop('captcha_id')
         captcha_code = request.data.get('captcha')
         if not captcha_code:
-            return ErrorResponse(msg='请输入验证码')
+            return ErrorResponse(msg='Please enter captcha code')
         else:
             request.data.pop('captcha')
         if not settings.DEBUG:
             try:
                 check_chaptcha(captcha_id, captcha_code)
             except Exception as e:
-                return ErrorResponse(msg=e.message)
+                return ErrorResponse(msg='Captcha code error, please refresh the page.')
         return super().create(request, *args, **kwargs)
     
 class FQA(ComModelViewSet):
