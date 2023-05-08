@@ -19,7 +19,7 @@ from .services import send_email_code, check_email_code, check_verify_id, insert
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from django.conf import settings
-
+import logging
 
 class UserApi(ComModelViewSet):
     """
@@ -288,3 +288,13 @@ class InviteCodeAPIView(APIView):
             return SuccessResponse(data=data)
         else:
             return ErrorResponse(msg="error")
+
+
+class BotWebHookAPIView(APIView):
+    """
+    discord bot webhook
+    """
+    def post(self, request):
+        data = request.data
+        logging.error(data)
+        return SuccessResponse()

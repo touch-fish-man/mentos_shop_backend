@@ -1,6 +1,6 @@
 from django.urls import path
 from .apis import  EmailValidateApi, ResetPasswordApi, \
-    ChangePasswordApi, ResetPasswordVerifyApi, UserApi,RebateRecordApi,InviteLogApi,InviteCodeAPIView
+    ChangePasswordApi, ResetPasswordVerifyApi, UserApi,RebateRecordApi,InviteLogApi,InviteCodeAPIView,BotWebHookAPIView
 from rest_framework import routers
 
 router = routers.DefaultRouter()
@@ -16,6 +16,6 @@ urlpatterns = [
     path("invite_code", InviteCodeAPIView.as_view(), name="invite_code"),
     path("invite_log", InviteLogApi.as_view(), name="invite_log"),
     path("rebate_record", RebateRecordApi.as_view(), name="rebate_record"),
-
+    path("bot_webhook", BotWebHookAPIView.as_view(), name="bot_webhook"),
 ]
 urlpatterns += router.urls
