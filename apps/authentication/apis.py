@@ -36,16 +36,19 @@ class LoginApi(APIView):
         captcha_id = request.data.get('captcha_id')
         captcha_code = request.data.get('captcha')
         if not settings.DEBUG:
-            check_chaptcha(captcha_id, captcha_code)
+            try:
+                heck_chaptcha(captcha_id, captcha_code)
+            except serializers.ValidationError as e:
+                return ErrorResponse(msg='Captcha code error, please refresh the page.')
         user = authenticate(username=username, password=password)
         if user is not None:
             login(request, user)
             if not user.is_active:
-                return ErrorResponse(msg="用户被禁用")
+                return ErrorResponse(msg="User has been disabled")
             data = user_get_login_data(user=user)
             return SuccessResponse(data=data, msg="登录成功")
         else:
-            return ErrorResponse(msg="用户名或密码错误")
+            return ErrorResponse(msg="Username or Password error")
 
     def get(self, request):
         if request.user.is_authenticated:
