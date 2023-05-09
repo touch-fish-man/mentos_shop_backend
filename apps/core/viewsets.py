@@ -44,7 +44,7 @@ class ComModelViewSet(ModelViewSet,CustomLoginRequiredMixin):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        return SuccessResponse(data=serializer.data, msg="新增成功")
+        return SuccessResponse(data=serializer.data, msg="Success")
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -53,12 +53,12 @@ class ComModelViewSet(ModelViewSet,CustomLoginRequiredMixin):
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
-        return LimitOffsetResponse(data=serializer.data, msg="获取成功")
+        return LimitOffsetResponse(data=serializer.data, msg="Success")
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return SuccessResponse(data=serializer.data, msg="获取成功")
+        return SuccessResponse(data=serializer.data, msg="Success")
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -66,12 +66,12 @@ class ComModelViewSet(ModelViewSet,CustomLoginRequiredMixin):
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return SuccessResponse(data=serializer.data, msg="修改成功")
+        return SuccessResponse(data=serializer.data, msg="Success")
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
-        return SuccessResponse(msg="删除成功")
+        return SuccessResponse(msg="Success")
 
     @swagger_auto_schema(auto_schema=None)
     def partial_update(self, request, *args, **kwargs):

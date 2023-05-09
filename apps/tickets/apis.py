@@ -33,7 +33,7 @@ class TicketsApi(ComModelViewSet):
         else:
             request.data.pop('captcha_id')
         captcha_code = request.data.get('captcha')
-        if not captcha_code:
+        if captcha_code is None or captcha_code == '':
             return ErrorResponse(msg='Please enter captcha code')
         else:
             request.data.pop('captcha')
