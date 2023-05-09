@@ -13,8 +13,8 @@ def main():
     clean_users()
     create_default_user()
     threads = []
-    threads.append(executor.submit(create_acl_base))
-    threads.append(executor.submit(mock_servers))
+    # threads.append(executor.submit(create_acl_base))
+    # threads.append(executor.submit(mock_servers))
     # threads.append(executor.submit(mock_rebate_record))
     # threads.append(executor.submit(mock_orders))
     threads.append(executor.submit(mock_giftcard))
