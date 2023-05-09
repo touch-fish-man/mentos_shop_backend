@@ -23,6 +23,7 @@ class ProductViewSet(ComModelViewSet):
     queryset = Product.objects.filter(soft_delete=False).all()
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
+    update_serializer_class = ProductCreateSerializer
     search_fields = '__all__'
     filter_fields = '__all__'
     filterset_fields = '__all__'
@@ -74,7 +75,7 @@ class ProductCollectionViewSet(ComModelViewSet):
     sync_collection:从shopify同步系列
     """
     permission_classes = [IsSuperUser]
-    queryset = ProductCollection.objects.all()
+    queryset = ProductCollection.objects.filter(soft_delete=False).all()
     serializer_class = ProductCollectionSerializer
     unauthenticated_actions = ['list']
 
@@ -108,7 +109,7 @@ class ProductTagViewSet(ComModelViewSet):
     sync_tags:从shopify同步商品标签
 
     """
-    queryset = ProductTag.objects.all()
+    queryset = ProductTag.objects.filter(soft_delete=False).all()
     serializer_class = ProductTagSerializer
     permission_classes = [IsSuperUser]
     unauthenticated_actions = ['list']

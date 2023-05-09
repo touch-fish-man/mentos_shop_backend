@@ -188,3 +188,42 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             product_tag = ProductTagSerializer().create(product_tag_data)
             product.product_tags.add(product_tag)
         return product
+class ProductUpdateSerializer(serializers.ModelSerializer):
+    product_collections = ProductCollectionSerializer(many=True, required=True)
+    product_tags = ProductTagSerializer(many=True)
+    variants = VariantCreateSerializer(many=True, required=True)
+    variant_options = OptionSerializer(many=True, required=True)
+
+    class Meta:
+        model = Product
+        fields = (
+            'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
+            'variants',
+            'variant_options')
+    def validate_product_collections(self, product_collections):
+        if not product_collections:
+            raise serializers.ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
+        return product_collections
+
+    def update(self, instance, validated_data):
+        # 先创建variant,再创建product,再add
+        variants_data = validated_data.pop('variants')
+        product_collections_data = validated_data.pop('product_collections')
+        product_tags_data = validated_data.pop('product_tags')
+        options_data = validated_data.pop('variant_options')
+        # 创建option
+        for option_data in options_data:
+            option_data['product'] = instance
+            OptionSerializer().create(option_data)  # 创建variant
+        for variant_data in variants_data:
+            variant_data['product'] = instance
+            VariantCreateSerializer().create(variant_data)
+        # 创建product_collection
+        for product_collection_data in product_collections_data:
+            product_collection = ProductCollectionSerializer().create(product_collection_data)
+            instance.product_collections.add(product_collection)
+        # 创建product_tag
+        for product_tag_data in product_tags_data:
+            product_tag = ProductTagSerializer().create(product_tag_data)
+            instance.product_tags.add(product_tag)
+        return instance

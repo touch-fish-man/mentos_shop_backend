@@ -5,6 +5,10 @@ from django.db import models
 class ProductTag(BaseModel):
     tag_name = models.CharField(max_length=255, verbose_name='标签名')
     tag_desc = models.TextField(verbose_name='标签描述', blank=True, null=True)
+    soft_delete = models.BooleanField(default=False, verbose_name='软删除')
+    def delete(self, using=None, keep_parents=False):
+        self.soft_delete = True
+        self.save()
 
 
 class ProductCollection(BaseModel):
@@ -14,6 +18,10 @@ class ProductCollection(BaseModel):
     collection_name = models.CharField(max_length=255, verbose_name='系列名称')
     collection_desc = models.TextField(verbose_name='描述')
     shopify_collection_id = models.CharField(max_length=255, verbose_name='shopify商品系列id')
+    soft_delete = models.BooleanField(default=False, verbose_name='软删除')
+    def delete(self, using=None, keep_parents=False):
+        self.soft_delete = True
+        self.save()
 
 
 class OptionValue(BaseModel):

@@ -38,7 +38,7 @@ class LoginApi(APIView):
         if not settings.DEBUG:
             try:
                 check_chaptcha(captcha_id, captcha_code)
-            except serializers.ValidationError as e:
+            except Exception as e:
                 return ErrorResponse(msg='Captcha code error, please refresh the page.')
         user = authenticate(username=username, password=password)
         if user is not None:
