@@ -21,7 +21,7 @@ def main():
     # threads.append(executor.submit(mock_coupon_code))
     # threads.append(executor.submit(mock_point_record))
     # threads.append(executor.submit(mock_faq))
-    threads.append(executor.submit(sync_shopify,True))
+    # threads.append(executor.submit(sync_shopify,True))
     
     wait(threads, return_when=ALL_COMPLETED)
     # mock_products()

@@ -135,7 +135,7 @@ class ProxyServerApi(ComModelViewSet):
         except:
             del_resp = {}
         return SuccessResponse(data=del_resp)
-    @action(methods=['post'], detail=True, url_path='reset_proxy', url_name='reset_proxy')
+    @action(methods=['post'], detail=True, url_path='reset_all_proxy', url_name='reset_proxy')
     def reset_proxy(self, request, *args, **kwargs):
         """
         重置所有用户 todo 未完成存在逻辑问题
@@ -144,8 +144,15 @@ class ProxyServerApi(ComModelViewSet):
             return SuccessResponse(data={"code": 200, "message": "success"})
         proxy_server = self.get_object()
         ip = proxy_server.ip
+        # 查询所有用户
+        # 更新用户代理
+        cidrs = request.data.get('cidrs', [])
+        if len(cidrs) == 0:
+            return ErrorResponse('参数错误')
 
-        return SuccessResponse(data=reset_resp)
+
+
+        return SuccessResponse(data={})
 
 
 class AclGroupApi(ComModelViewSet):
