@@ -57,9 +57,9 @@ def check_chaptcha(captcha_id, captcha_code):
         five_minute_ago = datetime.now() - timedelta(hours=0, minutes=5, seconds=0)
         five_minute_ago = five_minute_ago.replace(tzinfo=pytz.timezone("Asia/Shanghai"))
         if five_minute_ago > expiration:
-            raise ValidationError(message="Captcha code error, please refresh the page.")
+            raise ValidationError(message="Captcha code error, please refresh the page.1")
         else:
             if str(response).lower() != str(captcha_code).lower():
-                raise ValidationError(message="Captcha code error, please refresh the page.")
+                raise ValidationError(message="Captcha code error, please refresh the page.2")
     else:
-        raise ValidationError(message="Captcha code error, please refresh the page.")
+        raise ValidationError(message="Captcha code error, please refresh the page.3")

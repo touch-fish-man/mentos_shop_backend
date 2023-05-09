@@ -1,3 +1,5 @@
+import logging
+
 from apps.core.permissions import IsSuperUser
 from apps.tickets.models import Tickets, Question
 from apps.core.viewsets import ComModelViewSet
@@ -41,6 +43,7 @@ class TicketsApi(ComModelViewSet):
             try:
                 check_chaptcha(captcha_id, captcha_code)
             except Exception as e:
+                logging.exception(e)
                 return ErrorResponse(msg='Captcha code error, please refresh the page.')
         return super().create(request, *args, **kwargs)
     
