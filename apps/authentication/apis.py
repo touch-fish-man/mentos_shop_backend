@@ -37,7 +37,7 @@ class LoginApi(APIView):
         captcha_code = request.data.get('captcha')
         if not settings.DEBUG:
             try:
-                heck_chaptcha(captcha_id, captcha_code)
+                check_chaptcha(captcha_id, captcha_code)
             except serializers.ValidationError as e:
                 return ErrorResponse(msg='Captcha code error, please refresh the page.')
         user = authenticate(username=username, password=password)

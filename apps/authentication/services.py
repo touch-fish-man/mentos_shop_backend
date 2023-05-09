@@ -55,8 +55,7 @@ def check_chaptcha(captcha_id, captcha_code):
         expiration = code_obj.expiration
         expiration = expiration.astimezone(pytz.timezone("Asia/Shanghai"))
         response = code_obj.response
-        # code_obj.delete()
-        logging.error("captcha_code: %s, response: %s id: %s" % (captcha_code, response, captcha_id))
+        code_obj.delete()
         five_minute_ago = datetime.now() - timedelta(hours=0, minutes=5, seconds=0)
         five_minute_ago = five_minute_ago.replace(tzinfo=pytz.timezone("Asia/Shanghai"))
         if five_minute_ago > expiration:
