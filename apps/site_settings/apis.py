@@ -15,8 +15,8 @@ class SiteSettingsApi(APIView, LoginRequiredMixin):
     def post(self, request):
         BASE_DIR = settings.BASE_DIR
         if request.data.get("geofeed"):
-            os.makedirs("/opt/geofeed", exist_ok=True)
-            with open("/opt/geofeed/geofeed.csv", "w") as f:
+            os.makedirs("/opt/mentos_shop_backend/geofeed", exist_ok=True)
+            with open("/opt/mentos_shop_backend/geofeed/geofeed.csv", "w") as f:
                 f.write(request.data.get("geofeed"))
         save_site_settings(data=request.data, file=os.path.join(BASE_DIR, "config", ".env"))
         revoke = change_site_settings()
@@ -31,7 +31,7 @@ class SiteSettingsApi(APIView, LoginRequiredMixin):
     def get(self, request):
         data = get_site_setting()
         try:
-            geofeed = open("/opt/geofeed/geofeed.csv", "r").read()
+            geofeed = open("/opt/mentos_shop_backend/geofeed/geofeed.csv", "r").read()
         except:
             geofeed = ""
         data["geofeed"] = geofeed
