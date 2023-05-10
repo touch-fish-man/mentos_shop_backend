@@ -249,7 +249,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     product_collections = ProductCollectionSerializer(many=True, read_only=True)
     product_tags = ProductTagSerializer(many=True, read_only=True)
     variants = VariantUpdateSerializer(many=True, required=True)
-    variant_options = OptionSerializer(many=True, required=True,read_only=True)
+    variant_options = OptionSerializer(many=True, read_only=True)
 
     class Meta:
         model = Product
