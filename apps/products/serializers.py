@@ -116,6 +116,63 @@ class ProductTagSerializer(serializers.ModelSerializer):
         else:
             product_tag = ProductTag.objects.create(**validated_data)
         return product_tag
+class ProductTagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductTag
+        fields = ('id','tag_name', 'tag_desc')
+        extra_kwargs = {
+            'id': {'read_only': True},
+        }
+
+    def update(self, instance, validated_data):
+        for k, v in validated_data.items():
+            setattr(instance, k, v)
+        instance.save()
+        return instance
+class VariantUpdateSerializer(serializers.ModelSerializer):
+    cart_step = serializers.IntegerField(required=True)
+    variant_price = serializers.FloatField(required=True)
+    server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
+    acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
+    class Meta:
+        model = Variant
+        fields = ('variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
+            'variant_price',
+            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
+    def get_cidr(self,server_group):
+        cidr_ids = []
+        if server_group:
+
+            server_ids=ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id', flat=True)
+            cidr_ids=ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
+            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
+            return cidr_ids,ip_count
+        else:
+            return cidr_ids,[]
+    def update(self, instance, validated_data):
+        # 修改商品时，如果商品的server_group发生变化
+        cidr_ids,ip_count=self.get_cidr(validated_data.get('server_group'))
+        acl_group_id = validated_data.get('acl_group').id
+        for idx, cidr_id in enumerate(cidr_ids):
+            # 如果cidr_id不存在，则创建,否则更新cart_step
+            if not ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first():
+                cart_stock = ip_count[idx]//validated_data.get('cart_step')
+                porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=instance.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
+                subnets = porxy_stock.gen_subnets()
+                porxy_stock.current_subnet = subnets[0]
+                porxy_stock.save()
+            else:
+                porxy_stock = ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first()
+                porxy_stock.cart_step = validated_data.get('cart_step')
+                porxy_stock.cart_stock = ip_count[idx]//validated_data.get('cart_step')
+                porxy_stock.save()
+        current_stock=ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id).all()
+        # 更新库存
+        if current_stock:
+            instance.variant_stock=0
+        for stock in current_stock:
+            instance.variant_stock+=stock.ip_stock
+        return instance
 
 
 class ProductCollectionSerializer(serializers.ModelSerializer):
@@ -189,10 +246,10 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             product.product_tags.add(product_tag)
         return product
 class ProductUpdateSerializer(serializers.ModelSerializer):
-    product_collections = ProductCollectionSerializer(many=True, required=True)
-    product_tags = ProductTagSerializer(many=True)
-    variants = VariantCreateSerializer(many=True, required=True)
-    variant_options = OptionSerializer(many=True, required=True)
+    product_collections = ProductCollectionSerializer(many=True, read_only=True)
+    product_tags = ProductTagSerializer(many=True, read_only=True)
+    variants = VariantUpdateSerializer(many=True, required=True)
+    variant_options = OptionSerializer(many=True, required=True,read_only=True)
 
     class Meta:
         model = Product
@@ -207,23 +264,10 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # 先创建variant,再创建product,再add
-        variants_data = validated_data.pop('variants')
-        product_collections_data = validated_data.pop('product_collections')
-        product_tags_data = validated_data.pop('product_tags')
-        options_data = validated_data.pop('variant_options')
-        # 创建option
-        for option_data in options_data:
-            option_data['product'] = instance
-            OptionSerializer().create(option_data)  # 创建variant
-        for variant_data in variants_data:
-            variant_data['product'] = instance
-            VariantCreateSerializer().create(variant_data)
-        # 创建product_collection
-        for product_collection_data in product_collections_data:
-            product_collection = ProductCollectionSerializer().create(product_collection_data)
-            instance.product_collections.add(product_collection)
-        # 创建product_tag
-        for product_tag_data in product_tags_data:
-            product_tag = ProductTagSerializer().create(product_tag_data)
-            instance.product_tags.add(product_tag)
-        return instance
+        # variants_data = validated_data.pop('variants')
+        # product_collections_data = validated_data.pop('product_collections')
+        # product_tags_data = validated_data.pop('product_tags')
+        # options_data = validated_data.pop('variant_options')
+
+
+        return super(ProductUpdateSerializer, self).update(instance, validated_data)

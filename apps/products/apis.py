@@ -1,6 +1,6 @@
 from .models import Product, Variant, ProductCollection, ProductTag
 from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer, \
-    ProductCreateSerializer
+    ProductCreateSerializer,ProductUpdateSerializer
 from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient, SyncClient
 from rest_framework.decorators import action
@@ -23,7 +23,7 @@ class ProductViewSet(ComModelViewSet):
     queryset = Product.objects.filter(soft_delete=False).all()
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
-    update_serializer_class = ProductCreateSerializer
+    update_serializer_class = ProductUpdateSerializer
     search_fields = '__all__'
     filter_fields = '__all__'
     filterset_fields = '__all__'
