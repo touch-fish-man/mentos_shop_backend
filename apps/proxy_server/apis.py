@@ -1,3 +1,5 @@
+import ipaddress
+
 from rest_framework.views import APIView
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup
@@ -10,6 +12,7 @@ from rest_framework.decorators import action
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
+from apps.orders.services import create_proxy_by_order
 from django.conf import settings
 
 
@@ -138,7 +141,7 @@ class ProxyServerApi(ComModelViewSet):
     @action(methods=['post'], detail=True, url_path='reset_all_proxy', url_name='reset_proxy')
     def reset_proxy(self, request, *args, **kwargs):
         """
-        重置所有用户 todo 未完成存在逻辑问题
+        重置所有用户
         """
         if settings.DEBUG:
             return SuccessResponse(data={"code": 200, "message": "success"})
@@ -149,10 +152,28 @@ class ProxyServerApi(ComModelViewSet):
         cidrs = request.data.get('cidrs', [])
         if len(cidrs) == 0:
             return ErrorResponse('参数错误')
-
-
-
-        return SuccessResponse(data={})
+        proxy=Proxy.objects.filter(server_ip=ip).all()
+        need_reset_user_list = {}
+        for p in proxy:
+            is_in = False
+            for cidr in cidrs:
+                # 判断ip是否在cidr中
+                if ipaddress.ip_address(p.ip) in ipaddress.ip_network(cidr):
+                    is_in = True
+                    break
+            if not is_in:
+                need_reset_user_list[p.username] = p.order_id
+        kaxy_client = KaxyClient(ip)
+        falid_order_id = []
+        for username, order_id in need_reset_user_list.items():
+            kaxy_client.del_user(username)
+            Proxy.objects.filter(username=username).all().delete()
+            # 通过订单创建代理
+            if not create_proxy_by_order(order_id):
+                falid_order_id.append({"username":username,"order_id":order_id})
+        if len(falid_order_id) > 0:
+            return SuccessResponse(data={"falid_order_id":falid_order_id,"message":"部分订单创建失败,请手动创建"},msg="部分订单创建失败,请手动创建")
+        return SuccessResponse(data={"message": "success"})
 
 
 class AclGroupApi(ComModelViewSet):
