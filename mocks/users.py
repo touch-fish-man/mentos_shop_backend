@@ -29,7 +29,8 @@ def create_default_user():
     invite_count = 100
     discord_id = 758212164619075614
     discord_name = fake.user_name()
-    User.objects.create(username=username, email=email, password=password, is_active=is_active,
+    if not User.objects.filter(username=username).exists():
+        User.objects.create(username=username, email=email, password=password, is_active=is_active,
                         is_superuser=is_superuser, level_points=level_points, level=level, reward_points=reward_points,invite_count=invite_count,discord_id=discord_id,discord_name=discord_name)
     username = "test"
     email = "test@test.com"
@@ -40,7 +41,8 @@ def create_default_user():
     level = 5
     reward_points = 110000
     invite_count = 100
-    User.objects.create(username=username, email=email, password=password, is_active=is_active,
+    if not User.objects.filter(username=username).exists():
+        User.objects.create(username=username, email=email, password=password, is_active=is_active,
                         is_superuser=is_superuser, level_points=level_points, level=level, reward_points=reward_points,invite_count=invite_count,discord_id=discord_id,discord_name=discord_name)
 
 

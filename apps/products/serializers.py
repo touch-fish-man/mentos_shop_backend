@@ -262,19 +262,3 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
         if not product_collections:
             raise serializers.ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
         return product_collections
-
-    def update(self, instance, validated_data):
-        # 先创建variant,再创建product,再add
-        # variants_data = validated_data.pop('variants')
-        # # product_collections_data = validated_data.pop('product_collections')
-        # # product_tags_data = validated_data.pop('product_tags')
-        # # options_data = validated_data.pop('variant_options')
-        # # 更新variants
-        # for variant_data in variants_data:
-        #     variant_instance=Variant.objects.filter(id=variant_data.get('id')).first()
-        #     if variant_instance:
-        #         VariantUpdateSerializer(variant_data,instance=variant_instance).update(variant_instance,variant_data)
-
-
-
-        return super(ProductUpdateSerializer, self).update(instance, validated_data)

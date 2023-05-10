@@ -10,7 +10,6 @@ from servers import main as mock_servers
 from concurrent.futures import ThreadPoolExecutor,wait, ALL_COMPLETED
 executor = ThreadPoolExecutor(15)
 def main():
-    clean_users()
     create_default_user()
     threads = []
     # threads.append(executor.submit(create_acl_base))

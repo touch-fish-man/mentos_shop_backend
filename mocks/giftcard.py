@@ -14,7 +14,7 @@ from apps.rewards.models import GiftCard,LevelCode
 from django.utils import timezone
 fake = Faker(locale='zh_CN')
 discount_choices = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,"$1","$2","$3","$4","$5","$6","$7","$8","$9","$10"]
-level_choices = [0,0.1,0.2,0.3,0.4]
+level_choices = [0,0.05,0.1,0.15,0.2]
 level_points = [0,1000,2000,3000,4000]
 
 def main():
