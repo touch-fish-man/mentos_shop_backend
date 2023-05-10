@@ -306,8 +306,9 @@ class BotWebHookAPIView(APIView):
         if token == TOKEN_:
             user = User.objects.filter(discord_id=discord_id).first()
             if user:
-                user.level_points += credit
+                user.level_points += int(credit)
                 user.save()
+                user.update_level()
                 return SuccessResponse()
 
         return SuccessResponse()
