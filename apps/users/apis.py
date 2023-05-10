@@ -21,6 +21,7 @@ from apps.core.permissions import IsAuthenticated
 from django.conf import settings
 import logging
 
+
 class UserApi(ComModelViewSet):
     """
     用户接口
@@ -62,7 +63,8 @@ class UserApi(ComModelViewSet):
         if invite_code:
             # 插入邀请记录
             if resp.data.get("data", {}).get('id'):
-                insert_invite_log(resp.data.get("data", {}).get('id'),resp.data.get("data",{}).get('username'), invite_code)
+                insert_invite_log(resp.data.get("data", {}).get('id'), resp.data.get("data", {}).get('username'),
+                                  invite_code)
         return resp
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
@@ -294,7 +296,18 @@ class BotWebHookAPIView(APIView):
     """
     discord bot webhook
     """
+
     def post(self, request):
         data = request.data
-        logging.error(data)
+        TOKEN_ = "9s0G6MOfZ7Coya2t"
+        discord_id = data.get('discord_id')
+        credit = data.get('credit')
+        token = data.get('token')
+        if token == TOKEN_:
+            user = User.objects.filter(discord_id=discord_id).first()
+            if user:
+                user.level_points += credit
+                user.save()
+                return SuccessResponse()
+
         return SuccessResponse()
