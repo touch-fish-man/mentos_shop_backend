@@ -26,3 +26,4 @@ django-celery-results
 django-celery-beat
 psycopg2-binary
 pyquery
+drf-writable-nested

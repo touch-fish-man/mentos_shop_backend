@@ -5,6 +5,7 @@ from .models import Product, Variant, ProductTag, ProductCollection, Option, Opt
 from apps.proxy_server.models import Acls, Cidr, ProxyStock
 from apps.proxy_server.serializers import ServersGroupSerializer,AclsGroupSerializer,AclGroup,ServerGroup
 from apps.proxy_server.models import ServerGroupThrough,ServerCidrThrough
+from drf_writable_nested.serializers import WritableNestedModelSerializer
 
 
 class OptionValueSerializer(serializers.ModelSerializer):
@@ -245,7 +246,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             product_tag = ProductTagSerializer().create(product_tag_data)
             product.product_tags.add(product_tag)
         return product
-class ProductUpdateSerializer(serializers.ModelSerializer):
+class ProductUpdateSerializer(WritableNestedModelSerializer):
     product_collections = ProductCollectionSerializer(many=True, read_only=True)
     product_tags = ProductTagSerializer(many=True, read_only=True)
     variants = VariantUpdateSerializer(many=True, required=True)
@@ -257,22 +258,23 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
             'variants',
             'variant_options')
-    # def validate_product_collections(self, product_collections):
-    #     if not product_collections:
-    #         raise serializers.ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
-    #     return product_collections
+    def validate_product_collections(self, product_collections):
+        if not product_collections:
+            raise serializers.ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
+        return product_collections
 
     def update(self, instance, validated_data):
         # 先创建variant,再创建product,再add
-        variants_data = validated_data.pop('variants')
-        # product_collections_data = validated_data.pop('product_collections')
-        # product_tags_data = validated_data.pop('product_tags')
-        # options_data = validated_data.pop('variant_options')
-        # 更新variants
-        for variant_data in variants_data:
-            variant_instance=Variant.objects.filter(id=variant_data.get('id')).first()
-            if variant_instance:
-                VariantUpdateSerializer().update(variant_instance,variant_data)
+        # variants_data = validated_data.pop('variants')
+        # # product_collections_data = validated_data.pop('product_collections')
+        # # product_tags_data = validated_data.pop('product_tags')
+        # # options_data = validated_data.pop('variant_options')
+        # # 更新variants
+        # for variant_data in variants_data:
+        #     variant_instance=Variant.objects.filter(id=variant_data.get('id')).first()
+        #     if variant_instance:
+        #         VariantUpdateSerializer(variant_data,instance=variant_instance).update(variant_instance,variant_data)
+
 
 
         return super(ProductUpdateSerializer, self).update(instance, validated_data)
