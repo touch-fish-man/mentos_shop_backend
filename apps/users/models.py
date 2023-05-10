@@ -8,6 +8,7 @@ from apps.core.models import BaseModel
 from django.conf import settings
 from apps.rewards.models import LevelCode
 
+
 def gen_uid():
     # 生成8位uuid
     return str(uuid4()).replace('-', '')[:8]
@@ -32,7 +33,7 @@ class User(AbstractUser, BaseModel):
     email = models.EmailField(max_length=100, unique=True, verbose_name='邮箱')
     password = models.CharField(max_length=100, verbose_name='密码')
     is_active = models.BooleanField(default=True, verbose_name='是否激活')
-    discord_id = models.CharField(max_length=100, null=True, verbose_name='discord_id',blank=True)
+    discord_id = models.CharField(max_length=100, null=True, verbose_name='discord_id', blank=True)
     discord_name = models.CharField(max_length=100, null=True, verbose_name='discord_name')
     is_superuser = models.BooleanField(default=False, verbose_name='是否超级管理员')
     level = models.IntegerField(default=1, verbose_name='等级', choices=LEVEL_CHOICES)
@@ -41,6 +42,7 @@ class User(AbstractUser, BaseModel):
     invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码',
                                    default=gen_invite_code)
     invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
+
     # invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
 
     def __str__(self):
@@ -53,9 +55,9 @@ class User(AbstractUser, BaseModel):
         ordering = ['-id']
 
     def save(self, *args, **kwargs):
-        if self._state.adding==False:
+        if self._state.adding == False:
             self.level = self.get_level()
-            logging.error("level:"+str(self.level))
+            logging.error("level:" + str(self.level))
         super().save(*args, **kwargs)
 
     def update_level(self):
@@ -64,35 +66,36 @@ class User(AbstractUser, BaseModel):
         """
         self.level = self.get_level()
         self.save()
+
     def get_level(self):
         """
         获取用户等级
         """
         level_code = LevelCode.objects.all()
-        level=1
+        level = 1
         dict_level = {}
         for item in level_code:
             dict_level[item.level] = item.point
-        if self.level_points>=dict_level[5]:
-            level=5
-        elif self.level_points>=dict_level[4]:
-            level=4
-        elif self.level_points>=dict_level[3]:
-            level=3
-        elif self.level_points>=dict_level[2]:
-            level=2
+        if self.level_points >= dict_level[5]:
+            level = 5
+        elif self.level_points >= dict_level[4]:
+            level = 4
+        elif self.level_points >= dict_level[3]:
+            level = 3
+        elif self.level_points >= dict_level[2]:
+            level = 2
         else:
-            level=1
+            level = 1
         return level
+
     def level_points_decay(self):
         """
         等级积分衰减
         """
-        
-        self.level_points-=settings.LEVEL_POINTS_DECAY_RATE*self.level_points
+
+        self.level_points -= settings.LEVEL_POINTS_DECAY_RATE * self.level_points
         self.save()
         self.update_level()
-
 
 
 class InviteLog(BaseModel):
@@ -104,7 +107,6 @@ class InviteLog(BaseModel):
     invite_code = models.CharField(max_length=100, verbose_name="邀请码")
     inviter_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='inviter_user')
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='user')
-
 
     class Meta:
         db_table = 'invite_log'
