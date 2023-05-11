@@ -35,6 +35,7 @@ services:
     privileged: true
     environment:
       - DJANGO_ENV=test
+      - disable_discord_bot=true
     command: sh config/docker-entrypoint.sh
     
 
