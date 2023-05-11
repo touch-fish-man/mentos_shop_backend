@@ -21,9 +21,6 @@ django.setup()
 from django.conf import settings
 from apps.users.models import User, DiscordMessageLog
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-
 discord_token = settings.DISCORD_BOT_TOKEN
 channel_ids = settings.DISCORD_BOT_CHANNELS
 
