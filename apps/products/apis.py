@@ -85,9 +85,6 @@ class ProductCollectionViewSet(ComModelViewSet):
         api_key = settings.SHOPIFY_API_KEY
         api_scert = settings.SHOPIFY_API_SECRET
         shopify_app_key = settings.SHOPIFY_APP_KEY
-        for x in ProductCollection.objects.filter(soft_delete=True).all():
-            x.soft_delete = False
-            x.save()
         shopify_client_sync = SyncClient(shop_url, api_key, api_scert, shopify_app_key)
         sync_ret = shopify_client_sync.sync_product_collections()
         if sync_ret:
@@ -123,9 +120,6 @@ class ProductTagViewSet(ComModelViewSet):
         api_key = settings.SHOPIFY_API_KEY
         api_scert = settings.SHOPIFY_API_SECRET
         shopify_app_key = settings.SHOPIFY_APP_KEY
-        for x in ProductTag.objects.filter(soft_delete=True).all():
-            x.soft_delete = False
-            x.save()
         shopify_client_sync = SyncClient(shop_url, api_key, api_scert, shopify_app_key)
         sync_ret = shopify_client_sync.sync_product_tags()
         if sync_ret:

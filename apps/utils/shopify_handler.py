@@ -364,8 +364,15 @@ class SyncClient(ShopifyClient):
         for i in collection_list:
             if ProductCollection.objects.filter(collection_name=i['title']).exists():
                 ProductCollection.objects.filter(collection_name=i['title']).update(collection_desc=i['desc'])
+                ProductCollection.objects.filter(collection_name=i['title']).update(soft_delete=False)
             else:
                 ProductCollection.objects.create(collection_name=i['title'],collection_desc=i['desc'],shopify_collection_id=i['id'])
+        # 删除本地数据库中不存在的标签
+        for collection in ProductCollection.objects.filter(soft_delete=True).exclude(collection_name__in=[i['title'] for i in collection_list]).all():
+            if ProductCollectionRelation.objects.filter(product_collection=collection.id).exists():
+                # 如果标签被产品使用，则不删除
+                continue
+            collection.delete()
         return True
 
     def sync_product_tags(self):
@@ -373,10 +380,18 @@ class SyncClient(ShopifyClient):
         # 从shopify获取所有产品，插入到本地数据库
         tag_list=self.get_product_tags()
         for tag in tag_list:
-            if ProductTag.objects.filter(tag_name=tag).exists():
-                continue
+            query_ret=ProductTag.objects.filter(tag_name=tag).first()
+            if query_ret:
+                query_ret.soft_delete=False
+                query_ret.save()
             else:
                 ProductTag.objects.create(tag_name=tag)
+        # 删除本地数据库中不存在的标签
+        for tag in ProductTag.objects.filter(soft_delete=True).exclude(tag_name__in=tag_list).all():
+            if ProductTagRelation.objects.filter(product_tag=tag.id).exists():
+                # 如果标签被产品使用，则不删除
+                continue
+            tag.delete()
         return True
     def sync_shopify(self,customers=False,products=True):
         # 同步shopify
