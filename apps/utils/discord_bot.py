@@ -4,9 +4,7 @@ import datetime
 import os
 import asyncio
 
-import configparser
 import django
-import shopify
 
 if os.environ.get('DJANGO_ENV'):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,7 +14,7 @@ if os.environ.get('DJANGO_ENV'):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
 else:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 django.setup()
 from django.conf import settings
 from apps.users.models import User, DiscordMessageLog
