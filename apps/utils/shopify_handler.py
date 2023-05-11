@@ -105,7 +105,10 @@ class ShopifyClient:
                 "tag_desc": ""
             })
         product_info["product_tags"] = tags
-        product_info["product_desc"] = PyQuery(product['body_html']).text()
+        try:
+            product_info["product_desc"] = PyQuery(product['body_html']).text()
+        except:
+            product_info["product_desc"] = ""
         options = []
         for o in product['options']:
             values = []
@@ -133,7 +136,10 @@ class ShopifyClient:
             collection_info = {}
             collection_info["shopify_collection_id"] = x.id
             collection_info["collection_name"] = x.title
-            collection_info["collection_desc"] = PyQuery(x.body_html).text()
+            try:
+                collection_info["collection_desc"] = PyQuery(x.body_html).text()
+            except:
+                collection_info["collection_desc"] = ""
             collection_list.append(collection_info)
         return collection_list
 
@@ -144,7 +150,10 @@ class ShopifyClient:
             dict_collection = {}
             dict_collection['id'] = collection.id
             dict_collection['title'] = collection.title
-            dict_collection['desc'] = PyQuery(collection.body_html).text()
+            try:
+                dict_collection['desc'] = PyQuery(collection.body_html).text()
+            except:
+                dict_collection['desc'] = ""
             collection_list.append(dict_collection)
         return collection_list
 
@@ -290,7 +299,10 @@ class ShopifyClient:
     def create_product(self, product_info):
         product = shopify.Product()
         product.title = product_info['title']
-        product.body_html = PyQuery(product_info['body_html']).text()
+        try:
+            product.body_html = PyQuery(product_info['body_html']).text()
+        except:
+            product.body_html = ""
         product.vendor = product_info['vendor']
         product.product_type = product_info['product_type']
         product.tags = product_info['tags']
@@ -301,7 +313,10 @@ class ShopifyClient:
     def update_product(self, product_info):
         product = shopify.Product.find(product_info['id'])
         product.title = product_info['title']
-        product.body_html = PyQuery(product_info['body_html']).text()
+        try:
+            product.body_html = PyQuery(product_info['body_html']).text()
+        except:
+            product.body_html = ""
         product.vendor = product_info['vendor']
         product.product_type = product_info['product_type']
         product.tags = product_info['tags']
