@@ -98,6 +98,7 @@ TEMPLATES = [
         },
     },
 ]
+os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 
 WSGI_APPLICATION = 'config.wsgi.application'
 # Database

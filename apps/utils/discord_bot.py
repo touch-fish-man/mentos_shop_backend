@@ -14,7 +14,7 @@ if os.environ.get('DJANGO_ENV'):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
 else:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 django.setup()
 from django.conf import settings
 from apps.users.models import User, DiscordMessageLog
@@ -28,7 +28,7 @@ max_points_per_day = settings.MAX_POINTS_PER_DAY
 intents = discord.Intents.default()
 intents.members = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=discord.Intents.default())
 
 
 @bot.event
@@ -40,7 +40,7 @@ async def on_message(message):
         user = User.objects.filter(discord_id=user_id).first()
         discord_log = DiscordMessageLog.objects.filter(discord_id=user_id).first()
         if discord_log:
-            if discord_log.log_date == datetime.date.today():
+            if discord_log.log_date != datetime.date.today():
                 discord_log.is_notify_reg = False
                 discord_log.is_notify_max_rew = False
                 discord_log.today_rew = 0
@@ -53,18 +53,23 @@ async def on_message(message):
                     reply = await message.channel.send(
                         f"""{message.author.mention} You have reached the maximum number of rewards today. Please continue to chat tomorrow.""")
                     discord_log.is_notify_max_rew = True
+                    
                     discord_log.save()
             else:
                 user.level_points += points_per_message
                 user.save()
                 user.update_level()
+                discord_log = DiscordMessageLog.objects.filter(discord_id=user_id).first()
+                if discord_log:
+                    discord_log.today_rew += points_per_message
+                    discord_log.save()
                 points = user.level_points
                 level = user.level
                 reply = await message.channel.send(f"""🎉Thanks for your affirmation and encouragement!!!💗
-                        Name:{message.author.mention}
-                        Reward:{points_per_message:.2f}🍬
-                        Total:{points:.2f}
-                        Level:VIP{level}""")
+Name:{message.author.mention}
+Reward:{points_per_message:.2f}🍬
+Total:{points:.2f}
+Level:VIP{level}""")
         else:
             if not discord_log.is_notify_reg:
                 reply = await message.channel.send(
@@ -72,7 +77,6 @@ async def on_message(message):
                 discord_log.is_notify_reg = True
                 discord_log.save()
         await bot.process_commands(message)
-
 
 def main():
     bot.run(discord_token)
