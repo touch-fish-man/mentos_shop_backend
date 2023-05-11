@@ -43,7 +43,7 @@ def create_default_user():
     invite_count = 100
     if not User.objects.filter(username=username).exists():
         User.objects.create(username=username, email=email, password=password, is_active=is_active,
-                        is_superuser=is_superuser, level_points=level_points, level=level, reward_points=reward_points,invite_count=invite_count,discord_id=discord_id,discord_name=discord_name)
+                        is_superuser=is_superuser, level_points=level_points, level=level, reward_points=reward_points,invite_count=invite_count)
 
 
 def clean_users():

@@ -27,3 +27,4 @@ django-celery-beat
 psycopg2-binary
 pyquery
 drf-writable-nested
+discord
