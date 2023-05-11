@@ -188,3 +188,16 @@ class Code(BaseModel):
 
     def __str__(self):
         return self.email + ':' + self.code
+
+
+class DiscordMessageLog(BaseModel):
+    discord_id = models.CharField(max_length=100, verbose_name="discord_id")
+    message = models.CharField(max_length=100, verbose_name="message", null=True, blank=True)
+    log_date = models.DateField(verbose_name="日期", null=True, blank=True, auto_now_add=True)
+    is_notify_reg = models.BooleanField(verbose_name="是否已经通知注册", default=False)
+    is_notify_max_rew = models.BooleanField(verbose_name="是否已经通知最大奖励", default=False)
+    today_rew = models.IntegerField(verbose_name="今日奖励", default=0)
+    class Meta:
+        db_table = 'discord_bot_log'
+        verbose_name = 'discord消息记录'
+        verbose_name_plural = verbose_name
