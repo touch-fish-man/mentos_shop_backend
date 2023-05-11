@@ -23,7 +23,6 @@ def change_site_settings():
         'support_discord':settings.SUPPORT_DISCORD,
         'invite_level_points_per_user':settings.INVITE_LEVEL_POINTS_PER_USER,
         'billing_rate':settings.BILLING_RATE,
-        'level_points_to_upgrade':settings.LEVEL_POINTS_TO_UPGRADE,
         'level_points_decay_rate':settings.LEVEL_POINTS_DECAY_RATE,
         'level_points_decay_day':settings.LEVEL_POINTS_DECAY_DAY,
         'min_level' :settings.MIN_LEVEL,
@@ -49,7 +48,6 @@ def change_site_settings():
         settings.SUPPORT_DISCORD = env('SUPPORT_DISCORD')
         settings.INVITE_LEVEL_POINTS_PER_USER = int(env('INVITE_LEVEL_POINTS_PER_USER')) 
         settings.BILLING_RATE = float(env('BILLING_RATE'))
-        settings.LEVEL_POINTS_TO_UPGRADE = int(env('LEVEL_POINTS_TO_UPGRADE'))  
         settings.LEVEL_POINTS_DECAY_RATE = float(env('LEVEL_POINTS_DECAY_RATE'))  
         settings.LEVEL_POINTS_DECAY_DAY = int(env('LEVEL_POINTS_DECAY_DAY'))  
         settings.MIN_LEVEL = int(env('MIN_LEVEL')) 
@@ -68,7 +66,7 @@ def save_site_settings(data,file):
     """
     request_data = {}
     int_var = ['EMAIL_CODE_EXPIRE','INVITE_LEVEL_POINTS_PER_USER',
-               'LEVEL_POINTS_TO_UPGRADE','LEVEL_POINTS_DECAY_DAY','MIN_LEVEL','MAX_LEVEL']
+               'LEVEL_POINTS_TO_UPGRADE','LEVEL_POINTS_DECAY_DAY','MIN_LEVEL','MAX_LEVEL',"POINTS_PER_MESSAGE","MAX_POINTS_PER_DAY"]
     float_var = ['BILLING_RATE','LEVEL_POINTS_DECAY_RATE','LEVEL_DISCOUNT_RATE','INVITE_REBATE_RATE']
     for key,_ in data.items():
         key_upper = key.upper()
@@ -107,12 +105,15 @@ def get_site_setting():
         'support_discord':settings.SUPPORT_DISCORD,
         'invite_level_points_per_user':settings.INVITE_LEVEL_POINTS_PER_USER,
         'billing_rate':settings.BILLING_RATE,
-        'level_points_to_upgrade':settings.LEVEL_POINTS_TO_UPGRADE,
         'level_points_decay_rate':settings.LEVEL_POINTS_DECAY_RATE,
         'level_points_decay_day':settings.LEVEL_POINTS_DECAY_DAY,
         'min_level' :settings.MIN_LEVEL,
         'max_level':settings.MAX_LEVEL,
         'level_discount_rate':settings.LEVEL_DISCOUNT_RATE,
-        'invite_rebate_rate':settings.INVITE_REBATE_RATE
+        'invite_rebate_rate':settings.INVITE_REBATE_RATE,
+        'discord_bot_token':settings.DISCORD_BOT_TOKEN,
+        'discord_bot_channels':settings.DISCORD_BOT_CHANNELS,
+        'discord_bot_points_per_message':settings.POINTS_PER_MESSAGE,
+        'discord_bot_max_points_per_day':settings.MAX_POINTS_PER_DAY,
     }
     return data
