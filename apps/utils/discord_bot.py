@@ -3,7 +3,7 @@ from discord.ext import commands
 import datetime
 import os
 import asyncio
-
+import sys
 import django
 
 if os.environ.get('DJANGO_ENV'):
