@@ -211,7 +211,7 @@ class ShopifyWebhookApi(APIView):
         financial_status = shopify_order_info.get('financial_status')
         order_id = order_info.get('order_id',"")
         if financial_status == 'paid':
-            webhook_handle_thread(request.data,order_id)
+            webhook_handle_thread(request,order_id)
         else:
             logging.error("订单未支付", order_info)
 
