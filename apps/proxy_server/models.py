@@ -2,8 +2,10 @@ import ipaddress
 import json
 import logging
 import math
+import os
 import threading
 import time
+from random import randint
 
 from apps.core.models import BaseModel
 from django.db import models
@@ -254,24 +256,24 @@ class Proxy(BaseModel):
 
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
-    logging.info("deleting")
-    logging.info('删除代理')
     if instance.server_ip:
         create_delete_thread(instance.server_ip, instance.username)
 
 
 def delete_proxy(server_ip, username):
-    kax_client = KaxyClient(server_ip)
-    kax_client.del_user(username)
-    time.sleep(60)
+    """
+    删除代理, 60秒后删除,防止重复删除
+    """
+    time.sleep(randint(20, 60))
+    if not os.path.exists('/tmp/delete_proxy_thread_' + username):
+        os.mknod('/tmp/delete_proxy_thread_' + username)
+        if Proxy.objects.filter(username=username).count()==0:
+            kax_client = KaxyClient(server_ip)
+            kax_client.del_user(username)
+            time.sleep(60)
+            os.remove('/tmp/delete_proxy_thread_' + username)
 
 
 def create_delete_thread(server_ip, username):
-    thread_name = 'delete_proxy_thread' + username
-    if thread_name not in threading.enumerate():
-        thread = threading.Thread(target=delete_proxy, args=(server_ip, username), name=thread_name)
-        thread.start()
-        logging.info('创建删除线程')
-        return True
-    else:
-        return False
+    delete_thread = threading.Thread(target=delete_proxy, args=(server_ip, username))
+    delete_thread.start()

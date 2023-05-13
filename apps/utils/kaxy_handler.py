@@ -27,7 +27,7 @@ class KaxyClient:
         except requests.exceptions.ConnectionError as e:
             logging.exception(e)
         if resp.status_code != 200:
-            logging.error("请求失败: {}-->{}".format(resp.text,kwargs))
+            logging.info("请求失败: {}-->{}".format(resp.text,kwargs))
         return resp
 
     # 服务器管理
