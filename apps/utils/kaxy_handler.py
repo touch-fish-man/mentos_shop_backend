@@ -21,6 +21,7 @@ class KaxyClient:
         }
         url = self.url + path
         resp = {}
+        logging.info("请求: {}-->{}".format(url,kwargs))
         try:
             resp = requests.request(method, url, headers=headers, **kwargs)
         except requests.exceptions.ConnectionError as e:
