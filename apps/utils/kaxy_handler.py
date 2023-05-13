@@ -26,7 +26,7 @@ class KaxyClient:
         except requests.exceptions.ConnectionError as e:
             logging.exception(e)
         if resp.status_code != 200:
-            logging.error("请求失败: %s", resp.text)
+            logging.error("请求失败: {}-->{}".format(resp.text,kwargs))
         return resp
 
     # 服务器管理
@@ -243,7 +243,7 @@ class KaxyClient:
 
 if __name__ == "__main__":
     token = 'EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'
-    client = KaxyClient("112.75.252.4", token)
+    client = KaxyClient("112.75.252.8", token)
     # pprint(client.list_all_proxies().json())
     # pprint(client.list_users().json())
     acl_str = "asasas.com"
@@ -253,6 +253,6 @@ if __name__ == "__main__":
     # client.create_user("test123456", 8)
     add_user="test1234568888"
     add_acl_str="asasas11111.com"
-    pprint(client.add_user_acl(add_user,add_acl_str))
-    pprint(client.list_user_acl().text)
+    # pprint(client.add_user_acl(add_user,add_acl_str))
+    pprint(client.get_server_info().text)
     # pprint(client.get_server_info().json())

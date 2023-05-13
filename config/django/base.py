@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     'django_celery_results',
     "apps.tasks",
+    'drf_api_logger',
 ]
 
 MIDDLEWARE = [
@@ -71,6 +72,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware',
 ]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
@@ -99,7 +101,7 @@ TEMPLATES = [
     },
 ]
 os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
-
+DRF_API_LOGGER_DATABASE = True
 WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases

@@ -21,6 +21,7 @@ from apps.orders.services import create_proxy_by_order
 from apps.rewards.models import CouponCode, PointRecord
 from apps.users.models import User, InviteLog
 from apps.utils.kaxy_handler import KaxyClient
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 class OrdersApi(ComModelViewSet):
@@ -196,7 +197,7 @@ class ShopifyWebhookApi(APIView):
     """
 
     def post(self, request):
-        # todo 订单回调
+        #
         # webhook回调
         # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
         # 验证签名
@@ -204,7 +205,7 @@ class ShopifyWebhookApi(APIView):
             return ErrorResponse(data={}, msg="签名验证失败")
         # shopify订单回调
         order_info = shopify_order(request.data)
-        logging.error("shopify订单回调信息:{}".format(order_info))
+        logging.info("shopify订单回调信息:{}".format(order_info))
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
         if financial_status == 'paid':
