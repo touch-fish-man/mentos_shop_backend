@@ -259,7 +259,6 @@ def webhook_handle(request):
                 order.shopify_order_id = shpify_order_id  # shopify订单id
                 order.shopify_order_number = shopify_order_number  # shopify订单号
                 order.save()
-                logging.error("aaaaaa")
             # 生成代理，修改订单状态
             if renewal_status == "1":
                 order.renew_status = 1
@@ -269,7 +268,6 @@ def webhook_handle(request):
             else:
                 # 新订
                 order_process_ret = create_proxy_by_order(order_id)
-                logging.error(order_process_ret)
             if order_process_ret:
                 # 修改优惠券状态
                 for discount_code in discount_codes:
