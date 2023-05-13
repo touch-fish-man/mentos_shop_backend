@@ -247,21 +247,13 @@ class Proxy(BaseModel):
         db_table = 'proxy'
         verbose_name = '代理列表'
         verbose_name_plural = '代理列表'
-    def delete(self, using=None, keep_parents=False):
-        """
-        删除代理
-        """
-        # 如果数据库中username剩下最后一个，删除用户
-        logging.info('删除代理')
-        logging.info(self.username)
-        logging.info(Proxy.objects.filter(username=self.username).count())
-        if Proxy.objects.filter(username=self.username).count() == 1:
-            # 创建删除任务，去除重复
-            kax_client=KaxyClient(self.server_ip)
-            kax_client.del_user(self.username)
-        # 删除代理 
-        super(Proxy, self).delete(using, keep_parents)
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     logging.info("deleting")
     logging.info('删除代理')
+    logging.info(instance.username)
+    logging.info(Proxy.objects.filter(username=instance.username).count())
+    if Proxy.objects.filter(username=instance.username).count() == 1:
+        # 创建删除任务，去除重复
+        kax_client = KaxyClient(instance.server_ip)
+        kax_client.del_user(instance.username)
