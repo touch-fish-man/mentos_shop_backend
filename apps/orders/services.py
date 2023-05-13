@@ -238,7 +238,6 @@ def webhook_handle(request):
     # shopify订单回调
     try:
         order_info = shopify_order(request.data)
-        logging.info("shopify订单回调信息:{}".format(order_info))
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
         if financial_status == 'paid':
