@@ -54,7 +54,7 @@ class OrdersApi(ComModelViewSet):
     #                      query_serializer=OrdersStatusSerializer)
     def list(self, request, *args, **kwargs):
         if not request.user.is_superuser:
-            self.queryset=self.queryset.filter(pay_status=1)
+            self.queryset=self.queryset.filter(pay_status=1, uid=str(request.user.id))
         return super().list(request, *args, **kwargs)
 
     @action(methods=['get'], detail=False, url_path='get_status', url_name='get_status')
@@ -204,6 +204,7 @@ class ShopifyWebhookApi(APIView):
             return ErrorResponse(data={}, msg="签名验证失败")
         # shopify订单回调
         order_info = shopify_order(request.data)
+        logging.error("shopify订单回调信息:{}".format(order_info))
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
         if financial_status == 'paid':
