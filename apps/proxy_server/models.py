@@ -2,13 +2,14 @@ import ipaddress
 import json
 import logging
 import math
+import threading
+import time
 
 from apps.core.models import BaseModel
 from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
-
 
 
 # Create your models here.
@@ -23,6 +24,7 @@ class AclGroup(BaseModel):
         db_table = 'acl_group'
         verbose_name = 'ACL组'
         verbose_name_plural = 'ACL组'
+
     def delete(self, using=None, keep_parents=False, soft_delete=True):
         if soft_delete:
             self.soft_delete = True
@@ -81,7 +83,7 @@ class Server(BaseModel):
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='IP')
     cidrs = models.ManyToManyField('Cidr', verbose_name='CIDR', through='ServerCidrThrough')
-    server_status= models.IntegerField(blank=True, null=True, verbose_name='服务器状态')
+    server_status = models.IntegerField(blank=True, null=True, verbose_name='服务器状态')
     faild_count = models.IntegerField(blank=True, null=True, verbose_name='失败次数')
 
     class Meta:
@@ -186,7 +188,7 @@ class ProxyStock(BaseModel):
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
     cart_stock = models.IntegerField(blank=True, null=True, verbose_name='购物车库存')
     current_subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='当前子网')
-    subnets = models.TextField(blank=True, null=True, verbose_name='子网') # 用于存储所有子网
+    subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
 
     class Meta:
         db_table = 'ip_stock'
@@ -203,6 +205,7 @@ class ProxyStock(BaseModel):
         self.subnets = ",".join(subnets)
         self.save()
         return subnets
+
     def get_next_subnet(self):
         """
         获取下一个子网
@@ -237,7 +240,7 @@ class Proxy(BaseModel):
     username = models.CharField(max_length=255, blank=True, null=True, verbose_name='用户名')
     password = models.CharField(max_length=255, blank=True, null=True, verbose_name='密码')
     port = models.IntegerField(blank=True, null=True, verbose_name='端口')
-    proxy_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='类型',default='http')
+    proxy_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='类型', default='http')
     server_ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器IP')
     order = models.ForeignKey('orders.Orders', on_delete=models.CASCADE, blank=True, null=True, verbose_name='订单')
     expired_at = models.DateTimeField(blank=True, null=True, verbose_name='过期时间')
@@ -247,13 +250,28 @@ class Proxy(BaseModel):
         db_table = 'proxy'
         verbose_name = '代理列表'
         verbose_name_plural = '代理列表'
+
+
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     logging.info("deleting")
     logging.info('删除代理')
-    logging.info(instance.username)
-    logging.info(Proxy.objects.filter(username=instance.username).count())
-    if Proxy.objects.filter(username=instance.username).count() == 1:
-        # 创建删除任务，去除重复
-        kax_client = KaxyClient(instance.server_ip)
-        kax_client.del_user(instance.username)
+    if instance.server_ip:
+        create_delete_thread(instance.server_ip, instance.username)
+
+
+def delete_proxy(server_ip, username):
+    kax_client = KaxyClient(server_ip)
+    kax_client.del_user(username)
+    time.sleep(60)
+
+
+def create_delete_thread(server_ip, username):
+    thread_name = 'delete_proxy_thread' + username
+    if thread_name not in threading.enumerate():
+        thread = threading.Thread(target=delete_proxy, args=(server_ip, username), name=thread_name)
+        thread.start()
+        logging.info('创建删除线程')
+        return True
+    else:
+        return False
