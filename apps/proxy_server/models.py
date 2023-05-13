@@ -6,6 +6,9 @@ import math
 from apps.core.models import BaseModel
 from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
+from django.db.models.signals import post_delete
+from django.dispatch.dispatcher import receiver
+
 
 
 # Create your models here.
@@ -258,3 +261,7 @@ class Proxy(BaseModel):
             kax_client.del_user(self.username)
         # 删除代理 
         super(Proxy, self).delete(using, keep_parents)
+@receiver(post_delete, sender=Proxy)
+def _mymodel_delete(sender, instance, **kwargs):
+    logging.info("deleting")
+    logging.info('删除代理')

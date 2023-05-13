@@ -139,7 +139,7 @@ def create_proxy_by_order(order_id):
         if variant_obj:
             if variant_obj.variant_stock < order_obj.product_quantity:
                 # 库存不足
-                print('库存不足')
+                logging.info('库存不足')
                 return False
             server_group = variant_obj.server_group
             acl_group = variant_obj.acl_group
@@ -176,6 +176,8 @@ def create_proxy_by_order(order_id):
                         if len(proxy_list) >= order_obj.product_quantity:
                             # 代理数量已经够了
                             break
+            logging.info(proxy_list)
+
             if proxy_list:
                 for idx, proxy in enumerate(proxy_list):
                     ip, port, user, password = proxy.split(":")
