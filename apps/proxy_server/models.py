@@ -1,5 +1,6 @@
 import ipaddress
 import json
+import logging
 import math
 
 from apps.core.models import BaseModel
@@ -248,6 +249,9 @@ class Proxy(BaseModel):
         删除代理
         """
         # 如果数据库中username剩下最后一个，删除用户
+        logging.info('删除代理')
+        logging.info(self.username)
+        logging.info(Proxy.objects.filter(username=self.username).count())
         if Proxy.objects.filter(username=self.username).count() == 1:
             # 创建删除任务，去除重复
             kax_client=KaxyClient(self.server_ip)
