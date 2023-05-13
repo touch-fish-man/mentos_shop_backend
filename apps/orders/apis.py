@@ -15,13 +15,12 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link, renew_proxy_by_order, get_renew_checkout_link
+from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from apps.orders.services import create_proxy_by_order
-from apps.rewards.models import CouponCode, PointRecord
-from apps.users.models import User, InviteLog
+
 from apps.utils.kaxy_handler import KaxyClient
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -208,69 +207,11 @@ class ShopifyWebhookApi(APIView):
         # shopify订单回调
         order_info = shopify_order(request.data)
         logging.info("shopify订单回调信息:{}".format(order_info))
-        time.sleep(5000)
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
+        order_id = order_info.get('order_id',"")
         if financial_status == 'paid':
-            shpify_order_id = order_info.get('order_id')
-            shopify_order_number = shopify_order_info.get('order_number')
-            pay_amount = shopify_order_info.get('total_price')
-            discount_codes = order_info.get('discount_codes')
-            renewal_status = order_info.get("renewal", "0")
-            order_id = order_info.get('order_id')
-            # 更新订单
-            order = Orders.objects.filter(order_id=order_id).first()
-            if order:
-                if renewal_status == "1":
-                    order.pay_amount = order.pay_amount + pay_amount
-                order.pay_amount = pay_amount  # 支付金额
-                order.pay_status = 1  # 已支付
-                order.shopify_order_id = shpify_order_id  # shopify订单id
-                order.shopify_order_number = shopify_order_number  # shopify订单号
-                order.save()
-                logging.error("aaaaaa")
-            # 生成代理，修改订单状态
-            if renewal_status == "1":
-                order.renew_status = 1
-                order.save()
-                # 续费
-                order_process_ret = renew_proxy_by_order(order_id)
-            else:
-                # 新订
-                order_process_ret = create_proxy_by_order(order_id)
-                logging.error(order_process_ret)
-            if order_process_ret:
-                # 修改优惠券状态
-                for discount_code in discount_codes:
-                    coupon = CouponCode.objects.filter(code=discount_code).first()
-                    if coupon:
-                        coupon.used_code()
-                # 增加邀请人奖励积分
-                order_user = User.objects.filter(id=order.uid).first()
-                if order_user:
-                    invite_log = InviteLog.objects.filter(uid=order.uid).first()
-                    if invite_log:
-                        inviter_user = User.objects.filter(id=invite_log.inviter_uid).first()
-                        if inviter_user:
-                            inviter_user.reward_points += int(
-                                float(order.pay_amount) * float(settings.INVITE_REBATE_RATE))  # 奖励积分
-                            inviter_user.save()
-                            # 创建积分变动记录
-                            PointRecord.objects.create(uid=inviter_user.id, point=int(
-                                float(order.pay_amount) * float(settings.INVITE_REBATE_RATE)),
-                                                       reason=PointRecord.REASON_DICT["invite_buy"])
-                # 增加用户等级积分
-                order_user.level_points += int(float(order.pay_amount) * float(settings.BILLING_RATE))  # 等级积分
-                order_user.save()
-                # 更新用户等级
-                order_user.update_level()
-                # fixme 发送邮件
-                # send_order_email(order_id)
-
-            else:
-                # fixme 发送邮件
-                # send_order_email(order_id)
-                pass
+            webhook_handle_thread(request.data,order_id)
         else:
             logging.error("订单未支付", order_info)
 
