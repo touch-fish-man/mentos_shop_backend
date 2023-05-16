@@ -7,11 +7,13 @@ from apps.core.validators import CustomUniqueValidator
 from apps.users.models import User, InviteLog, RebateRecord
 from django.core.cache import cache
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id', 'uid', 'username', 'email', 'is_active', 'discord_id','discord_name','is_superuser', 'level', 'level_points',
+            'id', 'uid', 'username', 'email', 'is_active', 'discord_id', 'discord_name', 'is_superuser', 'level',
+            'level_points',
             'invite_code', 'reward_points', 'invite_count', 'reward_points', 'created_at')
 
 
@@ -28,7 +30,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True,
                                    validators=[
                                        CustomUniqueValidator(queryset=User.objects.all(), message="邮箱已存在")])
-    discord_id = serializers.CharField(required=False,allow_blank=True,allow_null=True)
+    discord_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
 
     # email_code_id = serializers.IntegerField(required=True)
     # email_code = serializers.CharField(required=False)
@@ -40,6 +42,19 @@ class UserCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(str(exc))
         value = make_password(value)
         return value
+
+    def validate_username(self, value):
+        # 限制用户名长度，只能是字母、数字，且不能是纯数字
+        if len(value) < 4:
+            raise serializers.ValidationError("Username must be at least 4 characters long")
+        if len(value) > 10:
+            raise serializers.ValidationError("Username cannot be more than 10 characters long")
+        if value.isdigit():
+            raise serializers.ValidationError("Username cannot be only of numbers")
+        if not value.isalnum():
+            raise serializers.ValidationError("Username can only contain alphanumeric characters")
+        return value
+
     def validate(self, attrs):
         if attrs.get("discord_id"):
             discord_id = attrs.get("discord_id", "")
@@ -48,12 +63,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
             try:
                 discord_id = int(discord_id)
 
-                discord_name=cache.get(discord_id)
+                discord_name = cache.get(discord_id)
                 if discord_name:
-                    attrs["discord_name"]=discord_name
+                    attrs["discord_name"] = discord_name
             except:
                 discord_id = None
         return attrs
+
     def validate_discord_id(self, value):
         if value:
             if User.objects.filter(discord_id=value).exists():
@@ -62,9 +78,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email',"password", 'is_active', 'discord_id','id')
+        fields = ('username', 'email', "password", 'is_active', 'discord_id', 'id')
         extra_kwargs = {"is_active": {"read_only": True}, "id": {"read_only": True}, "discord_id": {"required": False},
-                     "password": {"required": True, "min_length": 6,"write_only": True},
+                        "password": {"required": True, "min_length": 6, "write_only": True},
 
                         }
 
@@ -83,7 +99,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'email',  'is_active', "uid", "level", "level_points", "reward_points","is_superuser")
+        fields = ('username', 'email', 'is_active', "uid", "level", "level_points", "reward_points", "is_superuser")
         extra_kwargs = {
             "uid": {"read_only": True},
             "level": {"read_only": True},
@@ -104,13 +120,15 @@ class UserPasswordSerializer(serializers.ModelSerializer):
         instance.password = make_password(validated_data['password'])
         instance.save()
         return instance
+
+
 class InviteLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = InviteLog
         fields = '__all__'
 
+
 class RebateRecordSerializer(serializers.ModelSerializer):
     class Meta:
         model = RebateRecord
         fields = '__all__'
-

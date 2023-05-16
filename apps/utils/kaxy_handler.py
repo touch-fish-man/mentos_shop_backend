@@ -1,5 +1,7 @@
 import ipaddress
 import logging
+import random
+import string
 
 import requests
 import json
@@ -7,10 +9,9 @@ import os
 from pprint import pprint
 
 
-
 class KaxyClient:
     def __init__(self, host, token='EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'):
-        self.host=host
+        self.host = host
         self.url = "http://{}:65533".format(host)
         self.token = token
 
@@ -21,13 +22,13 @@ class KaxyClient:
         }
         url = self.url + path
         resp = {}
-        logging.info("请求: {}-->{}".format(url,kwargs))
+        logging.info("请求: {}-->{}".format(url, kwargs))
         try:
             resp = requests.request(method, url, headers=headers, **kwargs)
         except requests.exceptions.ConnectionError as e:
             logging.exception(e)
         if resp.status_code != 200:
-            logging.info("请求失败: {}-->{}".format(resp.text,kwargs))
+            logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
         return resp
 
     # 服务器管理
@@ -102,7 +103,7 @@ class KaxyClient:
         data = {
             "user": user,
         }
-        resp_ret=[]
+        resp_ret = []
         resp = self.__send_request("post", "/api/update-user", json=data)
         if resp.status_code == 200:
             resp_json = resp.json()
@@ -198,22 +199,31 @@ class KaxyClient:
         acl_user_str = "\n".join([user + " " + x for x in acl_str])
         user_acl_dict[user] = acl_user_str
         return user_acl_dict
-    def create_user_acl_by_prefix(self, user, prefix,acl_str):
+
+    def create_user_acl_by_prefix(self, user, prefix, acl_str):
         # 创建用户acl，指定ip前缀
         proxy_info = {"proxy": [], "num_of_ips": []}
-        resp=self.create_user_by_prefix(user, prefix)
-        self.add_user_acl(user,acl_str)
-        try:
-            resp=resp.json()
-            proxy_info["num_of_ips"]=resp["data"]["num_of_ips"]
-            for proxy_i in resp["data"]["proxy_str"]:
-                # 判断ip是否在指定网段内
-                if ipaddress.IPv4Address(proxy_i.split(":")[0]) in ipaddress.IPv4Network(prefix):
-                    proxy_info["proxy"].append(proxy_i)
-        except:
-            pass
+        for x in range(5):
+            resp = self.create_user_by_prefix(user, prefix)
+            try:
+                resp = resp.json()
+                proxy_info["num_of_ips"] = resp["data"]["num_of_ips"]
+                for proxy_i in resp["data"]["proxy_str"]:
+                    # 判断ip是否在指定网段内
+                    if ipaddress.IPv4Address(proxy_i.split(":")[0]) in ipaddress.IPv4Network(prefix):
+                        proxy_info["proxy"].append(proxy_i)
+                break
+            except:
+                if "Bad format for user." in resp.text:
+                    user = self.random_username()
+
+        self.add_user_acl(user, acl_str)
 
         return proxy_info
+
+    def random_username(self):
+        # 生成随机用户名
+        return "R" + ''.join(random.sample(string.ascii_letters + string.digits, 6)).lower()
 
     def add_subnet_acl(self, acl_str):
         # 添加子网acl
@@ -248,12 +258,12 @@ if __name__ == "__main__":
     # pprint(client.list_all_proxies().json())
     # pprint(client.list_users().json())
     acl_str = "asasas.com"
-    user="test123456"
-    user_acl_str=user+" "+acl_str+"\n"
+    user = "test123456"
+    user_acl_str = user + " " + acl_str + "\n"
     # pprint(client.add_acl(user_acl_str).json())
     # client.create_user("test123456", 8)
-    add_user="test1234568888"
-    add_acl_str="asasas11111.com"
+    add_user = "test1234568888"
+    add_acl_str = "asasas11111.com"
     # pprint(client.add_user_acl(add_user,add_acl_str))
     pprint(client.get_server_info().text)
     # pprint(client.get_server_info().json())

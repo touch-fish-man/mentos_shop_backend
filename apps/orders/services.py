@@ -176,7 +176,7 @@ def create_proxy_by_order(order_id):
                         if len(proxy_list) >= order_obj.product_quantity:
                             # 代理数量已经够了
                             break
-            logging.info(proxy_list)
+            # logging.info(proxy_list)
 
             if proxy_list:
                 for idx, proxy in enumerate(proxy_list):
