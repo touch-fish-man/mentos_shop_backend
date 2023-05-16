@@ -253,8 +253,8 @@ def webhook_handle(request):
             order = Orders.objects.filter(order_id=order_id).first()
             if order:
                 if renewal_status == "1":
-                    order.pay_amount = order.pay_amount + pay_amount
-                order.pay_amount = pay_amount  # 支付金额
+                    order.pay_amount = float(order.pay_amount) + float(pay_amount)
+                order.pay_amount = float(pay_amount)  # 支付金额
                 order.pay_status = 1  # 已支付
                 order.shopify_order_id = shpify_order_id  # shopify订单id
                 order.shopify_order_number = shopify_order_number  # shopify订单号

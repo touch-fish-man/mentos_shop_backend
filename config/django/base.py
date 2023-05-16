@@ -162,7 +162,7 @@ X_FRAME_OPTIONS = "SAMEORIGIN"
 SILENCED_SYSTEM_CHECKS = ["security.W019"]
 AUTH_USER_MODEL = "users.User"
 # 验证码
-CAPTCHA_IMAGE_SIZE = (100, 40)  # 图片大小
+CAPTCHA_IMAGE_SIZE = (120, 40)  # 图片大小
 CAPTCHA_LENGTH = 4  # 字符个数
 CAPTCHA_TIMEOUT = 1  # 超时(minutes)
 CAPTCHA_OUTPUT_FORMAT = "%(image)s %(text_field)s %(hidden_field)s "
@@ -271,7 +271,7 @@ CACHES = {
 }
 # 配置日志
 SERVER_LOGS_FILE = os.path.join(BASE_DIR, "logs", "django.log")
-ERROR_LOGS_FILE
+ERROR_LOGS_FILE = os.path.join(BASE_DIR, "logs", "error.log")
 if not os.path.exists(os.path.join(BASE_DIR, "logs")):
     os.makedirs(os.path.join(BASE_DIR, "logs"))
 
