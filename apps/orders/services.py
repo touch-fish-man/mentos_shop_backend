@@ -159,6 +159,7 @@ def create_proxy_by_order(order_id):
                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
                                                           variant_id=variant_obj.id).first()
                         if Stock:
+                            logging.error("1111111")
                             while Stock.cart_stock > 0:
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
