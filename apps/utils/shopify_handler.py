@@ -99,9 +99,9 @@ class ShopifyClient:
         product_info["product_name"] = product['title']
         product_info["shopify_product_id"] = product['id']
         tags = []
-        for t in product['tags'].split(',').strip():
+        for t in product['tags'].strip().split(','):
             tags.append({
-                "tag_name": t,
+                "tag_name": t.strip(),
                 "tag_desc": ""
             })
         product_info["product_tags"] = tags
@@ -162,7 +162,7 @@ class ShopifyClient:
         tag_list = []
         products=self.get_products()
         for product in products:
-            tags = product['tags'].split(',').strip()
+            tags = [x.strip() for x in product['tags'].strip().split(',')]
             for tag in tags:
                 if tag not in tag_list:
                     tag_list.append(tag)
