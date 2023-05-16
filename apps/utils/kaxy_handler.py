@@ -206,14 +206,14 @@ class KaxyClient:
         for x in range(5):
             resp = self.create_user_by_prefix(user, prefix)
             try:
-                resp = resp.json()
-                proxy_info["num_of_ips"] = resp["data"]["num_of_ips"]
-                for proxy_i in resp["data"]["proxy_str"]:
+                resp_json = resp.json()
+                proxy_info["num_of_ips"] = resp_json["data"]["num_of_ips"]
+                for proxy_i in resp_json["data"]["proxy_str"]:
                     # 判断ip是否在指定网段内
                     if ipaddress.IPv4Address(proxy_i.split(":")[0]) in ipaddress.IPv4Network(prefix):
                         proxy_info["proxy"].append(proxy_i)
                 break
-            except:
+            except Exception as e:
                 if "Bad format for user." in resp.text:
                     user = self.random_username()
 
