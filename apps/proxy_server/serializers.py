@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from apps.core.serializers import CommonSerializer
@@ -47,7 +48,7 @@ class AclGroupCreateSerializer(CommonSerializer):
         validated_data['acl_value'] = "\n".join(acl_value)
         # 判断是否有重复的acl_value
         if AclGroup.objects.filter(acl_value=validated_data['acl_value']).exists():
-            raise serializers.ValidationError("acl组已存在")
+            raise ValidationError("acl组已存在")
         return super().create(validated_data)
 
     class Meta:

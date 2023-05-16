@@ -1,5 +1,6 @@
 from pprint import pprint
 
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue
 from apps.proxy_server.models import Acls, Cidr, ProxyStock
@@ -220,7 +221,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'variant_options')
     def validate_product_collections(self, product_collections):
         if not product_collections:
-            raise serializers.ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
+            raise ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
         return product_collections
 
     def create(self, validated_data):
@@ -260,5 +261,5 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
             'variant_options')
     def validate_product_collections(self, product_collections):
         if not product_collections:
-            raise serializers.ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
+            ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
         return product_collections

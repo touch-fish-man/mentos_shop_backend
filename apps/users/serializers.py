@@ -36,23 +36,20 @@ class UserCreateSerializer(serializers.ModelSerializer):
     # email_code = serializers.CharField(required=False)
 
     def validate_password(self, value):
-        try:
-            validate_password(value)
-        except ValidationError as exc:
-            raise serializers.ValidationError(str(exc))
+        validate_password(value)
         value = make_password(value)
         return value
 
     def validate_username(self, value):
         # 限制用户名长度，只能是字母、数字，且不能是纯数字
         if len(value) < 4:
-            raise serializers.ValidationError("Username must be at least 4 characters long")
+            raise ValidationError("Username must be at least 4 characters long")
         if len(value) > 10:
-            raise serializers.ValidationError("Username cannot be more than 10 characters long")
+            raise ValidationError("Username cannot be more than 10 characters long")
         if value.isdigit():
-            raise serializers.ValidationError("Username cannot be only of numbers")
-        if not value.isalnum():
-            raise serializers.ValidationError("Username can only contain alphanumeric characters")
+            raise ValidationError("Username cannot be only of numbers")
+        if not value.encode().isalnum()():
+            raise ValidationError("Username can only contain alphanumeric characters")
         return value
 
     def validate(self, attrs):
@@ -73,7 +70,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def validate_discord_id(self, value):
         if value:
             if User.objects.filter(discord_id=value).exists():
-                raise serializers.ValidationError("discord_id已存在")
+                raise ValidationError("Discord account is already exists")
         return value
 
     class Meta:

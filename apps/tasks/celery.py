@@ -58,4 +58,8 @@ app.conf.beat_schedule = {
         'task': 'delete_timeout_order',
         'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
+    'delete_api_logs': {
+        'task': 'delete_api_logs',
+        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+    },
 }

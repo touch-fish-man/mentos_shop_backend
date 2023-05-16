@@ -16,10 +16,7 @@ class TicketsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def validate_email(self, value):
-        try:
-            validate_email(value)
-        except ValidationError as exc:
-            raise serializers.ValidationError(str(exc))
+        validate_email(value)
         return value
 
     def save(self, **kwargs):

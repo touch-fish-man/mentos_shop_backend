@@ -102,6 +102,7 @@ TEMPLATES = [
 ]
 os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 DRF_API_LOGGER_DATABASE = True
+DRF_API_LOGGER_SKIP_URL_NAME = ['checkout']
 WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
