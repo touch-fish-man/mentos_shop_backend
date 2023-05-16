@@ -18,25 +18,25 @@ services:
     environment:
       - DJANGO_ENV=prod
     command: sh config/docker-entrypoint.sh
-  mentos_test:
-    restart: always
-    container_name: mentos_test
-    build:
-      context: ./
-      dockerfile: docker/base.Dockerfile
-    networks:
-      network:
-        ipv4_address: 177.8.0.12
-    ports:
-      - "3000:8000"
-    volumes:
-      - /opt/mentos_shop_backend/logs_test/:/opt/mentos_shop_backend/logs/
-      - /opt/geofeed:/opt/mentos_shop_backend/geofeed
-    privileged: true
-    environment:
-      - DJANGO_ENV=test
-      - disable_discord_bot=true
-    command: sh config/docker-entrypoint.sh
+#  mentos_test:
+#    restart: always
+#    container_name: mentos_test
+#    build:
+#      context: ./
+#      dockerfile: docker/base.Dockerfile
+#    networks:
+#      network:
+#        ipv4_address: 177.8.0.12
+#    ports:
+#      - "3000:8000"
+#    volumes:
+#      - /opt/mentos_shop_backend/logs_test/:/opt/mentos_shop_backend/logs/
+#      - /opt/geofeed:/opt/mentos_shop_backend/geofeed
+#    privileged: true
+#    environment:
+#      - DJANGO_ENV=test
+#      - disable_discord_bot=true
+#    command: sh config/docker-entrypoint.sh
     
 
 networks:
