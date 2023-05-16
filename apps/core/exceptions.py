@@ -59,6 +59,6 @@ def CustomExceptionHandler(ex, context):
             msg = str(ex.detail)
         else:
             logger.error(traceback.format_exc())
-            msg = str(ex.detail)
+            msg = 'Server error, please contact the administrator'
 
     return ErrorResponse(msg=msg, code=code)
