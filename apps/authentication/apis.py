@@ -136,12 +136,12 @@ class DiscordBindRedirectApi(APIView):
         # 绑定用户
         user = request.user
         if User.objects.filter(discord_id=discord_id).first():
-            return redirect("/#/dashboard?refresh-user=1")
+            return redirect("/#/dashboard/index/setting?refresh-user=1&discord-bind-error=1")
         user.discord_id = discord_id
         user.discord_name = discord_username
         user.save()
         # 重定向到用户页面
-        return redirect("/#/dashboard/index/setting?refresh-user=1")
+        return redirect("/#/dashboard/index/setting?refresh-user=1&discord-bind-success=1")
 
 
 class CaptchaApi(APIView):

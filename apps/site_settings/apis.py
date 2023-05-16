@@ -36,3 +36,11 @@ class SiteSettingsApi(APIView, LoginRequiredMixin):
             geofeed = ""
         data["geofeed"] = geofeed
         return SuccessResponse(data=data, msg=("获取成功"))
+class SocialSettingsApi(APIView):
+    def get(self, request):
+        data = get_site_setting()
+        ret_dict = {}
+        ret_dict["discord"] = data.get("support_discord")
+        ret_dict["twitter"] = data.get("support_twitter")
+        return SuccessResponse(data=ret_dict, msg=("获取成功"))
+
