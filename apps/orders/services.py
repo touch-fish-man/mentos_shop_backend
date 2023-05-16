@@ -155,7 +155,7 @@ def create_proxy_by_order(order_id):
                     logging.error(server.ip)
                     cidr_info = server.get_cidr_info()
                     for cidr in cidr_info:
-                        logging.error("222e232")
+                        logging.error("acl_group:{} cidr:{} variant_id:{}".format(acl_group.id, cidr['id'], variant_obj.id))
                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
                                                           variant_id=variant_obj.id).first()
                         if Stock:
