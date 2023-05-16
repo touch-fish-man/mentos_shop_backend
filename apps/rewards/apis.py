@@ -3,9 +3,12 @@ from rest_framework.decorators import action
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.core.viewsets import ComModelViewSet
 from apps.rewards.models import CouponCode, PointRecord, GiftCard, LevelCode
-from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, LevelCodeSerializer,CouponCodeCreateSerializer
+from apps.rewards.serializers import CouponCodeSerializer, PointRecordSerializer, GiftCardSerializer, \
+    LevelCodeSerializer, CouponCodeCreateSerializer
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
+import threading
+from apps.users.models import User
 
 
 class CouponCodeViewSet(ComModelViewSet):
@@ -36,7 +39,7 @@ class CouponCodeViewSet(ComModelViewSet):
                 return super().list(request, *args, **kwargs)
             queryset = self.queryset.filter(holder_uid=user.id).order_by('is_used')
             serializer = self.get_serializer(queryset, many=True)
-            return SuccessResponse(data={"data":serializer.data}, msg="获取成功")
+            return SuccessResponse(data={"data": serializer.data}, msg="获取成功")
         else:
             return ErrorResponse(msg="请先登录")
 
@@ -120,6 +123,16 @@ class GiftCardViewSet(ComModelViewSet):
             return ErrorResponse(msg="礼品卡已兑换完")
 
 
+def update_user_level():
+    """
+    更新用户等级
+    """
+    users = User.objects.all()
+    for user in users:
+        user.update_level()
+    return 'update user level success'
+
+
 class LevelCodeViewSet(ComModelViewSet):
     """
     等级码配置
@@ -129,7 +142,13 @@ class LevelCodeViewSet(ComModelViewSet):
     permission_classes = [IsSuperUser]
     queryset = LevelCode.objects.all()
     serializer_class = LevelCodeSerializer
+
     def get_permissions(self):
         if self.action == 'list':
             self.permission_classes = []
         return super().get_permissions()
+
+    def update(self, request, *args, **kwargs):
+        t = threading.Thread(target=update_user_level)
+        t.start()
+        return super().update(request, *args, **kwargs)

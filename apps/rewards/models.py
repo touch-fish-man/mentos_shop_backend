@@ -2,7 +2,7 @@ from django.db import models
 from apps.core.models import BaseModel
 from apps.core.validators import CustomUniqueValidator
 import datetime
-from apps.users.models import User
+
 import threading
 
 
@@ -100,21 +100,6 @@ class LevelCode(BaseModel):
         verbose_name = '等级码'
         verbose_name_plural = verbose_name
         ordering = ('level',)
-
-    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
-        # 创建刷新用户等级线程
-        t = threading.Thread(target=self.update_user_level)
-        t.start()
-        return super().save(force_insert, force_update, using, update_fields)
-
-    def update_user_level(self):
-        """
-        更新用户等级
-        """
-        users = User.objects.all()
-        for user in users:
-            user.level_points_decay()
-        return 'update user level success'
 
     def __str__(self):
         return self.code
