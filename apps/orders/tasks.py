@@ -33,6 +33,7 @@ def precheck_order_expired(ceheck_days=3,send_email=True):
                 send_email_via_mailgun(email, subject, from_email, html_message)
             else:
                 send_mail(subject, "", from_email, [email], html_message=html_message)
+    print('precheck_order_expired done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 
 @shared_task(name='check_order_expired')
@@ -51,6 +52,7 @@ def check_order_expired():
                 proxy.delete()
                 order_obj_item.order_status = 3
                 order_obj_item.save()
+    print('check_order_expired done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 @shared_task(name='delete_proxy_expired')
 def delete_proxy_expired():
@@ -69,3 +71,15 @@ def delete_proxy_expired():
         for user in users:
             client=KaxyClient(s_ip)
             client.del_user(user)
+    print('delete_proxy_expired done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+@shared_task(name='delete_timeout_order')
+def delete_timeout_order():
+    """
+    删除超时订单,每天检查一次
+    """
+    utc_now = datetime.datetime.now().astimezone(pytz.utc)
+    orders = Orders.objects.filter(pay_status=0,order_status=0).all()
+    for order_obj_item in orders:
+        if order_obj_item.created_at + datetime.timedelta(hours=1) <= utc_now:
+            order_obj_item.delete()

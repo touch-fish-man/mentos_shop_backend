@@ -54,4 +54,8 @@ app.conf.beat_schedule = {
         
         'schedule': 600.0, # 每十分钟执行一次
     },
+    'delete_timeout_order': {
+        'task': 'delete_timeout_order',
+        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+    },
 }

@@ -55,7 +55,7 @@ class User(AbstractUser, BaseModel):
         ordering = ['-id']
 
     def save(self, *args, **kwargs):
-        if self._state.adding == False:
+        if not self._state.adding:
             self.level = self.get_level()
         super().save(*args, **kwargs)
 
