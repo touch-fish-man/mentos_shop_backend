@@ -146,7 +146,7 @@ class OrdersApi(ComModelViewSet):
             # 删除代理
             Proxy.objects.filter(order_id=order_pk).all().delete()
             # 重新创建代理
-            create_proxy_by_order(order_id)
+            logging.error(create_proxy_by_order(order_id))
         else:
             return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理重置成功")
