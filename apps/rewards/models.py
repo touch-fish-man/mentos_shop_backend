@@ -2,6 +2,8 @@ from django.db import models
 from apps.core.models import BaseModel
 from apps.core.validators import CustomUniqueValidator
 import datetime
+from apps.users.models import User
+import threading
 
 
 class CouponCode(BaseModel):
@@ -17,13 +19,12 @@ class CouponCode(BaseModel):
         'giftcard': 2,
     }
     code = models.CharField(max_length=32, verbose_name='优惠券码')
-    discount = models.CharField(max_length=32, verbose_name='折扣') # 0.8, 0.9, 0.95, 0.98 $10, $20, $50, $100
-    code_type = models.IntegerField(verbose_name='类型') # 1: 折扣码, 2: 礼品卡
+    discount = models.CharField(max_length=32, verbose_name='折扣')  # 0.8, 0.9, 0.95, 0.98 $10, $20, $50, $100
+    code_type = models.IntegerField(verbose_name='类型')  # 1: 折扣码, 2: 礼品卡
     is_used = models.BooleanField(default=False, verbose_name='是否使用')
     used_at = models.DateTimeField(null=True, blank=True, verbose_name='使用时间')
     holder_uid = models.IntegerField(null=True, blank=True, verbose_name='持有者UID')
     holder_username = models.CharField(max_length=32, null=True, blank=True, verbose_name='持有者用户名')
-
 
     class Meta:
         db_table = 'coupon_code'
@@ -42,7 +43,6 @@ class CouponCode(BaseModel):
         self.is_used = True
         self.used_at = datetime.datetime.now()
         self.save()
-        
 
 
 class PointRecord(BaseModel):
@@ -84,21 +84,37 @@ class GiftCard(BaseModel):
         verbose_name = '礼品卡'
         verbose_name_plural = verbose_name
         ordering = ('-created_at',)
+
+
 class LevelCode(BaseModel):
     """
     等级码
     """
     code = models.CharField(max_length=32, verbose_name='等级码')
     level = models.IntegerField(verbose_name='等级')
-    discount = models.CharField(max_length=32, verbose_name='折扣') # 0.8, 0.9, 0.95, 0.98 $10, $20, $50, $100
+    discount = models.CharField(max_length=32, verbose_name='折扣')  # 0.8, 0.9, 0.95, 0.98 $10, $20, $50, $100
     point = models.IntegerField(verbose_name='积分')
-
 
     class Meta:
         db_table = 'level_code'
         verbose_name = '等级码'
         verbose_name_plural = verbose_name
         ordering = ('level',)
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        # 创建刷新用户等级线程
+        t = threading.Thread(target=self.update_user_level)
+        t.start()
+        return super().save(force_insert, force_update, using, update_fields)
+
+    def update_user_level(self):
+        """
+        更新用户等级
+        """
+        users = User.objects.all()
+        for user in users:
+            user.level_points_decay()
+        return 'update user level success'
 
     def __str__(self):
         return self.code
