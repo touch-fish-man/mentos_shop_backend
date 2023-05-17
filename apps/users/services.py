@@ -23,7 +23,7 @@ def generate_code(size=6, chars=string.digits):
 
 
 def check_email_code(email, email_code_id, email_code, delete=False):
-    code_item = Code.objects.filter(id=email_code_id, email=email, code=email_code)
+    code_item = Code.objects.filter(id=email_code_id, email=email)
     if settings.DEBUG:
         return code_item.first()
     if code_item.exists():

@@ -48,7 +48,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             raise ValidationError("Username cannot be more than 10 characters long")
         if value.isdigit():
             raise ValidationError("Username cannot be only of numbers")
-        if not value.encode().isalnum()():
+        if not value.encode().isalnum():
             raise ValidationError("Username can only contain alphanumeric characters")
         return value
 
