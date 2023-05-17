@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models import ProtectedError
 from django.http import Http404
 from rest_framework.exceptions import APIException as DRFAPIException, AuthenticationFailed,NotAuthenticated
+from apps.core.validators import CustomValidationError, CustomUniqueValidator
 from rest_framework.views import set_rollback
 
 from .json_response import ErrorResponse
@@ -50,6 +51,8 @@ def CustomExceptionHandler(ex, context):
             msg = str(traceback.format_exc())
         else:
             msg = 'Server error, please contact the administrator'
+    elif isinstance(ex, CustomValidationError):
+        msg = ex.detail
     else:
         logger.error(traceback.format_exc())
         msg = 'Server error, please contact the administrator'
