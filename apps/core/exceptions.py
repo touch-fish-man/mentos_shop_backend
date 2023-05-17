@@ -45,16 +45,12 @@ def CustomExceptionHandler(ex, context):
     elif isinstance(ex, ValidationError):
         set_rollback()
         msg = ex.message
-    elif isinstance(ex, Exception):
-        logger.error(traceback.format_exc())
-        if settings.DEBUG:
-            msg = str(traceback.format_exc())
-        else:
-            msg = 'Server error, please contact the administrator'
     elif isinstance(ex, CustomValidationError):
         msg = ex.detail
     else:
         logger.error(traceback.format_exc())
+        if settings.DEBUG:
+            msg = str(traceback.format_exc())
         msg = 'Server error, please contact the administrator'
 
     return ErrorResponse(msg=msg, code=code)
