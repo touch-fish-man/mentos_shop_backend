@@ -1,4 +1,5 @@
 import datetime
+import threading
 import time
 
 import pytz
@@ -146,10 +147,11 @@ class OrdersApi(ComModelViewSet):
             # 删除代理
             Proxy.objects.filter(order_id=order_pk).all().delete()
             # 重新创建代理
-            logging.error(create_proxy_by_order(order_id))
+            t1=threading.Thread(target=create_proxy_by_order, args=(order_id,)).start()
+
         else:
             return ErrorResponse(data={}, msg="订单不存在")
-        return SuccessResponse(data={}, msg="代理重置成功")
+        return SuccessResponse(data={}, msg="代理重置成功,请稍后刷新页面查看")
 
     @action(methods=['get'], detail=True, url_path='get_proxy_detail', url_name='get_proxy_detail')
     def get_proxy_detail(self, request, *args, **kwargs):
