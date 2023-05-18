@@ -99,7 +99,6 @@ class Variant(BaseModel):
             get_stock = self.get_stock()
             if get_stock:
                 self.variant_stock = get_stock
-                self.save()
         super().save(force_insert=False, force_update=False, using=None,
                      update_fields=None)
 
