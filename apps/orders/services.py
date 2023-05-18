@@ -157,7 +157,6 @@ def create_proxy_by_order(order_id):
                     logging.error(server.ip)
                     cidr_info = server.get_cidr_info()
                     for cidr in cidr_info:
-                        logging.error("acl_group:{} cidr:{} variant_id:{}".format(acl_group.id, cidr['id'], variant_obj.id))
                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
                                                           variant_id=variant_obj.id).first()
                         if Stock:
@@ -167,18 +166,17 @@ def create_proxy_by_order(order_id):
                                     break
                                 for i in range(order_obj.product_quantity // cart_step):
                                     kaxy_client = KaxyClient(server.ip)
-                                    prefix = Stock.current_subnet
+                                    prefix = Stock.get_next_subnet()
                                     proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
                                                                                        acl_value)
                                     if proxy_info["proxy"]:
                                         proxy_list.extend(proxy_info["proxy"])
                                         server_list.extend([server.ip] * len(proxy_info["proxy"]))
                                         stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
-                                        subnet_list.extend([Stock.current_subnet] * len(proxy_info["proxy"]))
-                                        Stock.current_subnet = Stock.get_next_subnet()
+                                        subnet_list.extend([prefix] * len(proxy_info["proxy"]))
+                                        Stock.remove_available_subnet(prefix)
                                         Stock.cart_stock -= 1
                                         Stock.ip_stock -= len(proxy_info["proxy"])
-                                        Stock.available_subnets=Stock.get_available_subnets()
                                     Stock.save()
                         if len(proxy_list) >= order_obj.product_quantity:
                             # 代理数量已经够了

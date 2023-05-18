@@ -190,7 +190,6 @@ class ProxyStock(BaseModel):
     variant_id = models.IntegerField(blank=True, null=True, verbose_name='变体ID')
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
     cart_stock = models.IntegerField(blank=True, null=True, verbose_name='购物车库存')
-    current_subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='当前子网')
     subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
     available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网')
 
@@ -216,30 +215,19 @@ class ProxyStock(BaseModel):
         :return:
         """
         available_subnets = self.available_subnets.split(',')
-        if self.current_subnet:
-            index = available_subnets.index(self.current_subnet)
-            if index + 1 < len(available_subnets):
-                return available_subnets[index + 1]
-            else:
-                return None
-        else:
+        if available_subnets:
             return available_subnets[0]
-
-    def get_available_subnets(self):
+    def remove_available_subnet(self, subnet):
         """
-        获取可用子网
+        更新可用子网
         :return:
         """
-        total_subnets = self.subnets.split(',')
-        if self.current_subnet:
-            index = total_subnets.index(self.current_subnet)
-            available_subnets = total_subnets[index:]
-        else:
-            available_subnets = total_subnets
-        # 去重，排序
-        available_subnets = sorted(list(set(available_subnets)))
-        available_subnets = ','.join(available_subnets)
-        return available_subnets
+        available_subnets = self.available_subnets.split(',')
+        if available_subnets:
+            available_subnets.remove(subnet)
+            self.available_subnets = ','.join(available_subnets)
+            self.save()
+
 
     def return_subnet(self, subnet):
         """
