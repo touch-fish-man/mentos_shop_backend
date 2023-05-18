@@ -231,14 +231,11 @@ class ProxyStock(BaseModel):
         :return:
         """
         total_subnets = self.subnets.split(',')
-        if self.available_subnets:
-            available_subnets = self.available_subnets.split(',')
+        if self.current_subnet:
+            index = total_subnets.index(self.current_subnet)
+            available_subnets = total_subnets[index:]
         else:
-            if self.current_subnet:
-                index = total_subnets.index(self.current_subnet)
-                available_subnets = total_subnets[index:]
-            else:
-                available_subnets = total_subnets
+            available_subnets = total_subnets
         # 去重，排序
         available_subnets = sorted(list(set(available_subnets)))
         available_subnets = ','.join(available_subnets)
@@ -310,15 +307,6 @@ class Proxy(BaseModel):
         else:
             return False
 
-    def cul_subnet(self):
-        """
-        获取所属子网
-        :return:
-        """
-        cidrs = Server.objects.filter(ip=self.server_ip).first().cidrs.all()
-        for cidr in cidrs:
-            if ipaddress.IPv4Address(self.server_ip) in ipaddress.IPv4Network(cidr):
-                return cidr
 
 
 @receiver(post_delete, sender=Proxy)
