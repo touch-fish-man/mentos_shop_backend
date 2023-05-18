@@ -154,7 +154,6 @@ def create_proxy_by_order(order_id):
             if server_group_obj:
                 servers = server_group_obj.servers.all()
                 for server in servers:
-                    logging.error(server.ip)
                     cidr_info = server.get_cidr_info()
                     for cidr in cidr_info:
                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
@@ -192,9 +191,7 @@ def create_proxy_by_order(order_id):
                 # 更新订单状态
                 order_obj.order_status = 4
                 order_obj.save()
-                # 更新套餐库存
-                variant_obj.variant_stock -= order_obj.product_quantity
-                variant_obj.save()
+                variant_obj.save() # 更新套餐库存
                 return True
     return False
 

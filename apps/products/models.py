@@ -1,6 +1,8 @@
 from apps.core.models import BaseModel
 from django.db import models
 
+from apps.proxy_server.models import ProxyStock
+
 
 class ProductTag(BaseModel):
     tag_name = models.CharField(max_length=255, verbose_name='标签名')
@@ -78,6 +80,28 @@ class Variant(BaseModel):
     variant_option2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
     variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
     proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
+
+    def get_stock(self):
+        variant_stock = 0
+        for x in ProxyStock.objects.filter(variant_id=self.id).all():
+            variant_stock += x.ip_stock
+        return self.variant_stock
+
+    def update_stock(self):
+        get_stock = self.get_stock()
+        if get_stock:
+            self.variant_stock = get_stock
+            self.save()
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if self.id:
+            get_stock = self.get_stock()
+            if get_stock:
+                self.variant_stock = get_stock
+                self.save()
+        super().save(force_insert=False, force_update=False, using=None,
+                     update_fields=None)
 
 
 class Product(BaseModel):

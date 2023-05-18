@@ -168,12 +168,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                 porxy_stock.cart_step = validated_data.get('cart_step')
                 porxy_stock.cart_stock = ip_count[idx]//validated_data.get('cart_step')
                 porxy_stock.save()
-        current_stock=ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id).all()
-        # 更新库存
-        if current_stock:
-            instance.variant_stock=0
-        for stock in current_stock:
-            instance.variant_stock+=stock.ip_stock
+
         return instance
 
 

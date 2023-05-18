@@ -319,7 +319,11 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
     if stock:
         stock.return_subnet(subnet)
         stock.return_stock()
-
+        from apps.products.models import Variant
+        # 更新库存
+        variant = Variant.objects.filter(ip_stock_id=ip_stock_id).first()
+        if variant:
+            variant.save()
 
 def create_delete_thread(server_ip, username, subnet, ip_stock_id):
     delete_thread = threading.Thread(target=delete_proxy, args=(server_ip, username, subnet, ip_stock_id))
