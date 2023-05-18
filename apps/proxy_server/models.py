@@ -249,7 +249,7 @@ class ProxyStock(BaseModel):
         :return:
         """
         self.ip_stock += ip_count
-        self.cart_step = self.ip_stock // self.cart_stock
+        self.cart_stock = self.ip_stock // self.cart_step
         self.save()
 
     @staticmethod
@@ -321,7 +321,7 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
         stock.return_stock()
         from apps.products.models import Variant
         # 更新库存
-        variant = Variant.objects.filter(id=ip_stock_id).first()
+        variant = Variant.objects.filter(id=stock.variant_id).first()
         if variant:
             variant.save()
 
