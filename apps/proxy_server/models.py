@@ -1,3 +1,4 @@
+import datetime
 import ipaddress
 import json
 import logging
@@ -191,6 +192,7 @@ class ProxyStock(BaseModel):
     cart_stock = models.IntegerField(blank=True, null=True, verbose_name='购物车库存')
     current_subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='当前子网')
     subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
+    available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网')
 
     class Meta:
         db_table = 'ip_stock'
@@ -213,15 +215,58 @@ class ProxyStock(BaseModel):
         获取下一个子网
         :return:
         """
-        subnets = self.subnets.split(',')
+        available_subnets = self.available_subnets.split(',')
         if self.current_subnet:
-            index = subnets.index(self.current_subnet)
-            if index + 1 < len(subnets):
-                return subnets[index + 1]
+            index = available_subnets.index(self.current_subnet)
+            if index + 1 < len(available_subnets):
+                return available_subnets[index + 1]
             else:
                 return None
         else:
-            return subnets[0]
+            return available_subnets[0]
+
+    def get_available_subnets(self):
+        """
+        获取可用子网
+        :return:
+        """
+        total_subnets = self.subnets.split(',')
+        if self.available_subnets:
+            available_subnets = self.available_subnets.split(',')
+        else:
+            if self.current_subnet:
+                index = total_subnets.index(self.current_subnet)
+                available_subnets = total_subnets[index:]
+            else:
+                available_subnets = total_subnets
+        # 去重，排序
+        available_subnets = sorted(list(set(available_subnets)))
+        available_subnets = ','.join(available_subnets)
+        return available_subnets
+
+    def return_subnet(self, subnet):
+        """
+        归还子网
+        :param subnet:
+        :return:
+        """
+        available_subnets = self.available_subnets.split(',')
+        if subnet not in available_subnets and subnet in self.subnets:
+            available_subnets.append(subnet)
+            available_subnets = sorted(list(set(available_subnets)))
+            available_subnets = ','.join(available_subnets)
+            self.available_subnets = ','.join(available_subnets)
+            self.save()
+
+    def reurn_stock(self, ip_count=1):
+        """
+        归还库存
+        :param ip_count:
+        :return:
+        """
+        self.ip_stock += ip_count
+        self.cart_step = self.ip_stock // self.cart_stock
+        self.save()
 
     @staticmethod
     def get_all_subnet(cidr_str, new_prefix=29):
@@ -247,33 +292,60 @@ class Proxy(BaseModel):
     order = models.ForeignKey('orders.Orders', on_delete=models.CASCADE, blank=True, null=True, verbose_name='订单')
     expired_at = models.DateTimeField(blank=True, null=True, verbose_name='过期时间')
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, blank=True, null=True, verbose_name='用户')
+    subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='subnet')  # 用于存储所所属子网
+    ip_stock_id = models.IntegerField(blank=True, null=True, verbose_name='IP库存ID')
 
     class Meta:
         db_table = 'proxy'
         verbose_name = '代理列表'
         verbose_name_plural = '代理列表'
 
+    def judge_expired(self):
+        """
+        判断是否过期
+        :return:
+        """
+        if self.expired_at:
+            return self.expired_at < datetime.datetime.now()
+        else:
+            return False
+
+    def cul_subnet(self):
+        """
+        获取所属子网
+        :return:
+        """
+        cidrs = Server.objects.filter(ip=self.server_ip).first().cidrs.all()
+        for cidr in cidrs:
+            if ipaddress.IPv4Address(self.server_ip) in ipaddress.IPv4Network(cidr):
+                return cidr
+
 
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     if instance.server_ip:
-        create_delete_thread(instance.server_ip, instance.username)
+        create_delete_thread(instance.server_ip, instance.username, instance.subnet)
 
 
-def delete_proxy(server_ip, username):
+def delete_proxy(server_ip, username, subnet, ip_stock_id):
     """
     删除代理, 60秒后删除,防止重复删除
     """
     time.sleep(randint(20, 60))
     if not os.path.exists('/tmp/delete_proxy_thread_' + username):
         os.mknod('/tmp/delete_proxy_thread_' + username)
-        if Proxy.objects.filter(username=username).count()==0:
+        if Proxy.objects.filter(username=username).count() == 0:
             kax_client = KaxyClient(server_ip)
             kax_client.del_user(username)
             time.sleep(60)
             os.remove('/tmp/delete_proxy_thread_' + username)
+    # 归还子网,归还库存
+    stock = ProxyStock.objects.filter(id=ip_stock_id).first()
+    if stock:
+        stock.return_subnet(subnet)
+        stock.return_stock()
 
 
-def create_delete_thread(server_ip, username):
-    delete_thread = threading.Thread(target=delete_proxy, args=(server_ip, username))
+def create_delete_thread(server_ip, username, subnet, ip_stock_id):
+    delete_thread = threading.Thread(target=delete_proxy, args=(server_ip, username, subnet, ip_stock_id))
     delete_thread.start()

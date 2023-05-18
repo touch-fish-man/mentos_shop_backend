@@ -81,7 +81,7 @@ class ServerSerializer(CommonSerializer):
 
     class Meta:
         model = Server
-        fields = ('id', 'name', 'ip', 'description', 'cidrs')
+        fields = ('id', 'name', 'ip', 'description', 'cidrs','server_status')
 
 
 class ServersGroupSerializer(CommonSerializer):

@@ -149,6 +149,8 @@ def create_proxy_by_order(order_id):
             proxy_expired_at = order_obj.expired_at  # 代理过期时间
             proxy_list = []
             server_list = []
+            stock_list = []
+            subnet_list = []
             if server_group_obj:
                 servers = server_group_obj.servers.all()
                 for server in servers:
@@ -159,7 +161,6 @@ def create_proxy_by_order(order_id):
                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
                                                           variant_id=variant_obj.id).first()
                         if Stock:
-                            logging.error("1111111")
                             while Stock.cart_stock > 0:
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
@@ -172,9 +173,12 @@ def create_proxy_by_order(order_id):
                                     if proxy_info["proxy"]:
                                         proxy_list.extend(proxy_info["proxy"])
                                         server_list.extend([server.ip] * len(proxy_info["proxy"]))
+                                        stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
+                                        subnet_list.extend([Stock.current_subnet] * len(proxy_info["proxy"]))
                                         Stock.current_subnet = Stock.get_next_subnet()
                                         Stock.cart_stock -= 1
                                         Stock.ip_stock -= len(proxy_info["proxy"])
+                                        Stock.available_subnets=Stock.get_available_subnets()
                                     Stock.save()
                         if len(proxy_list) >= order_obj.product_quantity:
                             # 代理数量已经够了
@@ -186,7 +190,7 @@ def create_proxy_by_order(order_id):
                     ip, port, user, password = proxy.split(":")
                     server_ip = server_list[idx]
                     Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
-                                         order=order_obj, expired_at=proxy_expired_at, user=order_user_obj)
+                                         order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,ip_stock_id=stock_list[idx],subnet=subnet_list[idx])
                 # 更新订单状态
                 order_obj.order_status = 4
                 order_obj.save()
