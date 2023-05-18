@@ -295,7 +295,7 @@ class Proxy(BaseModel):
             return False
 
 
-
+lock= threading.Lock()
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     if instance.server_ip:
@@ -306,6 +306,17 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
     """
     删除代理, 60秒后删除,防止重复删除
     """
+    # 归还子网,归还库存
+    with lock:
+        stock = ProxyStock.objects.filter(id=ip_stock_id).first()
+        if stock:
+            stock.return_subnet(subnet)
+            stock.return_stock()
+            from apps.products.models import Variant
+            # 更新库存
+            variant = Variant.objects.filter(id=stock.variant_id).first()
+            if variant:
+                variant.save()
     time.sleep(randint(20, 60))
     if not os.path.exists('/tmp/delete_proxy_thread_' + username):
         os.mknod('/tmp/delete_proxy_thread_' + username)
@@ -314,16 +325,7 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
             kax_client.del_user(username)
             time.sleep(60)
             os.remove('/tmp/delete_proxy_thread_' + username)
-    # 归还子网,归还库存
-    stock = ProxyStock.objects.filter(id=ip_stock_id).first()
-    if stock:
-        stock.return_subnet(subnet)
-        stock.return_stock()
-        from apps.products.models import Variant
-        # 更新库存
-        variant = Variant.objects.filter(id=stock.variant_id).first()
-        if variant:
-            variant.save()
+
 
 def create_delete_thread(server_ip, username, subnet, ip_stock_id):
     delete_thread = threading.Thread(target=delete_proxy, args=(server_ip, username, subnet, ip_stock_id))
