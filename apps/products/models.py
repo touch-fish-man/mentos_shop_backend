@@ -86,6 +86,7 @@ class Variant(BaseModel):
     def get_stock(self):
         variant_stock = 0
         for x in ProxyStock.objects.filter(variant_id=self.id).all():
+            logging.info('x:{}'.format(x.id))
             variant_stock += x.ip_stock
         return self.variant_stock
 
