@@ -86,9 +86,8 @@ class Variant(BaseModel):
     def get_stock(self):
         variant_stock = 0
         for x in ProxyStock.objects.filter(variant_id=self.id).all():
-            logging.info('x:{}'.format(x.id))
             variant_stock += x.ip_stock
-        return self.variant_stock
+        return variant_stock
 
     def update_stock(self):
         get_stock = self.get_stock()
@@ -100,7 +99,6 @@ class Variant(BaseModel):
              update_fields=None):
         if self.id:
             get_stock = self.get_stock()
-            logging.info('get_stock:{}'.format(get_stock))
             if get_stock:
                 self.variant_stock = get_stock
         super().save(force_insert=False, force_update=False, using=None,
