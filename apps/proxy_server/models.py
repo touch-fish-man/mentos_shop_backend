@@ -321,7 +321,7 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
         stock.return_stock()
         from apps.products.models import Variant
         # 更新库存
-        variant = Variant.objects.filter(ip_stock_id=ip_stock_id).first()
+        variant = Variant.objects.filter(id=ip_stock_id).first()
         if variant:
             variant.save()
 
