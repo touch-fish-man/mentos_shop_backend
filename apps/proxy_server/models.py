@@ -239,11 +239,10 @@ class ProxyStock(BaseModel):
         if subnet not in available_subnets and subnet in self.subnets:
             available_subnets.append(subnet)
             available_subnets = sorted(list(set(available_subnets)))
-            available_subnets = ','.join(available_subnets)
             self.available_subnets = ','.join(available_subnets)
             self.save()
 
-    def reurn_stock(self, ip_count=1):
+    def return_stock(self, ip_count=1):
         """
         归还库存
         :param ip_count:

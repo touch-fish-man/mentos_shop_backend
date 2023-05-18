@@ -22,13 +22,15 @@ class KaxyClient:
         }
         url = self.url + path
         resp = {}
-        logging.info("请求: {}-->{}".format(url, kwargs))
+        if "write-user-acl" not in path:
+            logging.info("请求: {}-->{}".format(url, kwargs))
         try:
             resp = requests.request(method, url, headers=headers, **kwargs)
         except requests.exceptions.ConnectionError as e:
             logging.exception(e)
         if resp.status_code != 200:
-            logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
+            if "write-user-acl" not in path:
+                logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
         return resp
 
     # 服务器管理
