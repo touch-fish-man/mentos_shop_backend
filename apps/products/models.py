@@ -1,3 +1,5 @@
+import logging
+
 from apps.core.models import BaseModel
 from django.db import models
 
@@ -97,6 +99,7 @@ class Variant(BaseModel):
              update_fields=None):
         if self.id:
             get_stock = self.get_stock()
+            logging.info('get_stock:{}'.format(get_stock))
             if get_stock:
                 self.variant_stock = get_stock
         super().save(force_insert=False, force_update=False, using=None,

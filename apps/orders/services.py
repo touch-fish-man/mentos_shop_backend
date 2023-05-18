@@ -190,6 +190,8 @@ def create_proxy_by_order(order_id):
                                          order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,ip_stock_id=stock_list[idx],subnet=subnet_list[idx])
                 # 更新订单状态
                 order_obj.order_status = 4
+                order_obj.delivery_status = 1
+                order_obj.delivery_num = len(proxy_list)
                 order_obj.save()
                 variant_obj.save() # 更新套餐库存
                 return True
