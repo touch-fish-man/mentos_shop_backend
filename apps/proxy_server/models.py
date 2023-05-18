@@ -324,7 +324,7 @@ class Proxy(BaseModel):
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     if instance.server_ip:
-        create_delete_thread(instance.server_ip, instance.username, instance.subnet)
+        create_delete_thread(instance.server_ip, instance.username, instance.subnet,instance.ip_stock_id)
 
 
 def delete_proxy(server_ip, username, subnet, ip_stock_id):
