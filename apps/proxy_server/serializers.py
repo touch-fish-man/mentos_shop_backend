@@ -4,9 +4,8 @@ from rest_framework import serializers
 from apps.core.serializers import CommonSerializer
 from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr, cidr_ip_count, fix_network_by_ip
 from apps.core.validators import CustomUniqueValidator, CustomValidationError
-from django.core.validators import ip_address_validators
 from apps.utils.kaxy_handler import KaxyClient
-
+from django.core.validators import validate_ipv46_address
 
 class AclsSerializer(CommonSerializer):
     class Meta:
@@ -138,17 +137,17 @@ class ServerCreateSerializer(CommonSerializer):
 
     def validate(self, attrs):
         try:
-            ip_address_validators('ipv4', attrs['ip'])
-        except ValidationError:
-            return ValidationError("ip地址格式错误")
+            validate_ipv46_address(attrs['ip'])
+        except Exception:
+            return CustomValidationError("ip地址格式错误")
         try:
             c_client = KaxyClient(attrs['ip'])
             server_cidrs = c_client.get_cidr()
         except Exception as e:
-            raise ValidationError("代理服务器连接失败，请检查服务器是否正常")
+            raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
         for cidr in attrs['cidrs']:
             if cidr['cidr'] not in server_cidrs:
-                raise ValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
+                raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
         return attrs
 
     def create(self, validated_data):
