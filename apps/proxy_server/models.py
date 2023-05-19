@@ -205,8 +205,6 @@ class ProxyStock(BaseModel):
         """
         # 计算
         subnets = self.get_all_subnet(self.cidr.cidr, new_prefix=32 - int(math.log(self.cart_step, 2)))
-        self.subnets = ",".join(subnets)
-        self.save()
         return subnets
 
     def get_next_subnet(self):

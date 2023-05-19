@@ -253,6 +253,13 @@ class KaxyClient:
         resp = self.__send_request("post", "/api/flush-access-log")
         return resp
 
+    def get_cidr(self):
+        # 获取cidr
+        resp = self.get_server_info()
+        if resp.status_code != 200:
+            return []
+        return resp.json().get("data").get("cidr")
+
 
 if __name__ == "__main__":
     token = 'EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'

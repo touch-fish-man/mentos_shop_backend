@@ -100,7 +100,8 @@ class VariantCreateSerializer(serializers.ModelSerializer):
             cart_stock = ip_count[idx]//validated_data.get('cart_step')
             porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=variant.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
             subnets = porxy_stock.gen_subnets()
-            porxy_stock.available_subnets = subnets
+            porxy_stock.subnets = ",".join(subnets)
+            porxy_stock.available_subnets = porxy_stock.subnets
             porxy_stock.save()
         return variant
 
@@ -161,11 +162,13 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                 cart_stock = ip_count[idx]//validated_data.get('cart_step')
                 porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=instance.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
                 subnets = porxy_stock.gen_subnets()
-                porxy_stock.available_subnets = subnets
+                porxy_stock.subnets = ",".join(subnets)
+                porxy_stock.available_subnets = porxy_stock.subnets
                 porxy_stock.save()
             else:
                 porxy_stock = ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first()
                 porxy_stock.cart_step = validated_data.get('cart_step')
+                # TODO 需要重新计算cidr
                 porxy_stock.cart_stock = ip_count[idx]//validated_data.get('cart_step')
                 porxy_stock.save()
 

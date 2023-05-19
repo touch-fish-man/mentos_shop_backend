@@ -3,7 +3,9 @@ from rest_framework import serializers
 
 from apps.core.serializers import CommonSerializer
 from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr, cidr_ip_count, fix_network_by_ip
-from apps.core.validators import CustomUniqueValidator
+from apps.core.validators import CustomUniqueValidator, CustomValidationError
+from django.core.validators import ip_address_validators
+from apps.utils.kaxy_handler import KaxyClient
 
 
 class AclsSerializer(CommonSerializer):
@@ -30,7 +32,6 @@ class AclGroupSerializer(CommonSerializer):
     class Meta:
         model = AclGroup
         fields = '__all__'
-
 
 
 class AclGroupCreateSerializer(CommonSerializer):
@@ -81,13 +82,15 @@ class ServerSerializer(CommonSerializer):
 
     class Meta:
         model = Server
-        fields = ('id', 'name', 'ip', 'description', 'cidrs','server_status')
+        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'server_status')
 
 
 class ServersGroupSerializer(CommonSerializer):
     class Meta:
         model = Server
         fields = ('id', 'name')
+
+
 class ServerGroupSerializer(CommonSerializer):
     servers = ServersGroupSerializer(many=True)
 
@@ -133,12 +136,27 @@ class ServerCreateSerializer(CommonSerializer):
     name = serializers.CharField(required=True, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
 
+    def validate(self, attrs):
+        try:
+            ip_address_validators('ipv4', attrs['ip'])
+        except ValidationError:
+            return ValidationError("ip地址格式错误")
+        try:
+            c_client = KaxyClient(attrs['ip'])
+            server_cidrs = c_client.get_cidr()
+        except Exception as e:
+            raise ValidationError("代理服务器连接失败，请检查服务器是否正常")
+        for cidr in attrs['cidrs']:
+            if cidr['cidr'] not in server_cidrs:
+                raise ValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
+        return attrs
+
     def create(self, validated_data):
         cidrs = validated_data.pop('cidrs')
         server = Server.objects.create(**validated_data)
         cidrs_list = []
         for cidr in cidrs:
-            cidr['cidr']=fix_network_by_ip(cidr['cidr'].strip())
+            cidr['cidr'] = fix_network_by_ip(cidr['cidr'].strip())
             cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
             cidr_obj = Cidr.objects.get_or_create(**cidr)
             cidrs_list.append(cidr_obj[0].id)
