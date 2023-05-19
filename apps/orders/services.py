@@ -14,6 +14,7 @@ from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock
 from apps.products.models import Product, Variant
 from apps.utils.kaxy_handler import KaxyClient
 from apps.users.models import User, InviteLog
+from apps.users.services import send_email_api
 
 
 def verify_webhook(request):
@@ -133,7 +134,9 @@ def create_proxy_by_order(order_id):
     if order_obj:
         order_user_obj = User.objects.filter(id=order_obj.uid).first()
         order_user = order_obj.username
+        user_email = order_user_obj.email
         order_id = order_obj.order_id
+        product_name = order_obj.product_name
         proxy_username = order_user + order_id[:6]  # 生成代理用户名
         variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
         if variant_obj:
@@ -155,6 +158,7 @@ def create_proxy_by_order(order_id):
                 servers = server_group_obj.servers.all()
                 for server in servers:
                     cidr_info = server.get_cidr_info()
+                    # todo 合并cidr 为了减少循环次数
                     for cidr in cidr_info:
                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
                                                           variant_id=variant_obj.id).first()
@@ -194,6 +198,11 @@ def create_proxy_by_order(order_id):
                 order_obj.delivery_num = len(proxy_list)
                 order_obj.save()
                 variant_obj.save() # 更新套餐库存
+                email_template = settings.EMAIL_TEMPLATES.get("delivery")
+                subject = email_template.get('subject')
+                html_message = email_template.get('html').replace('{{order_id}}', order_id).replace('{{proxy_num}}',len(proxy_list)).replace('{{product}}',product_name).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
+                from_email = email_template.get('from_email')
+                send_success = send_email_api(user_email, subject, from_email, html_message)
                 return True
     return False
 

@@ -164,18 +164,23 @@ class KaxyClient:
         return resp
 
     def add_user_acl(self, user, acl_str):
+        # 构建新的 ACL 字典
         new_acl_dict = self.build_acl(user, acl_str)
+        # 获取原始的 ACL 字典
         origin_acl_dict = self.paser_api_acl()
+        # 如果用户已经存在于原始 ACL 字典中
         if user in origin_acl_dict:
-            acl_str_list = acl_str.split("\n")
-            new_acl_str = list(sorted(set(acl_str_list), key=acl_str_list.index))
-            origin_acl_str_list = origin_acl_dict[user].split("\n")
-            origin_acl_str = list(sorted(set(origin_acl_str_list), key=origin_acl_str_list.index))
+            # 将新的 ACL 字符串按行分割，去重并按原顺序排序
+            new_acl_str = sorted(set(acl_str.split("\n")), key=acl_str.split("\n").index)
+            # 将原始的 ACL 字符串按行分割，去重并按原顺序排序
+            origin_acl_str = sorted(set(origin_acl_dict[user].split("\n")), key=origin_acl_dict[user].split("\n").index)
+            # 如果新的 ACL 字符串和原始的 ACL 字符串相同，表示 ACL 没有改变，直接返回 True
             if new_acl_str == origin_acl_str:
-                # acl未改变
                 return True
-        # acl改变，生成新的acl
-        new_acl_str = "\n".join(origin_acl_dict.values()) + "\n" + new_acl_dict[user]
+        # 构建新的 ACL 字符串
+        origin_acl_str_list = [acl for acl_str in origin_acl_dict.values() for acl in acl_str.split("\n")]
+        new_acl_str_list = origin_acl_str_list + new_acl_dict[user].split("\n")
+        new_acl_str = "\n".join(sorted(set(new_acl_str_list)))
         resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": new_acl_str})
         if resp.json().get("status") == 200:
             return True
@@ -187,10 +192,16 @@ class KaxyClient:
         ori_acl = self.list_user_acl().text
         for acl in ori_acl.split("\n"):
             if acl:
-                if acl.split(" ")[0] in origin_acl_dict:
-                    origin_acl_dict[acl.split(" ")[0]] += "\n" + acl
+                if len(acl.strip().split(" ")) != 2:
+                    # acl格式错误,跳过
+                    continue
+                if acl.strip().split(" ")[0] in origin_acl_dict:
+                    origin_acl_dict[acl.strip().split(" ")[0]].add(acl)
                 else:
-                    origin_acl_dict[acl.split(" ")[0]] = acl
+                    origin_acl_dict[acl.strip().split(" ")[0]] = set([acl])
+        # 去重,排序
+        for k, v in origin_acl_dict.items():
+            origin_acl_dict[k] = "\n".join(sorted(list(v)))
         return origin_acl_dict
 
     def build_acl(self, user, acl_str):
@@ -218,8 +229,8 @@ class KaxyClient:
             except Exception as e:
                 if "Bad format for user." in resp.text:
                     user = self.random_username()
-
-        self.add_user_acl(user, acl_str)
+        if proxy_info["num_of_ips"] > 0:
+            self.add_user_acl(user, acl_str)
 
         return proxy_info
 
@@ -263,7 +274,7 @@ class KaxyClient:
 
 if __name__ == "__main__":
     token = 'EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'
-    client = KaxyClient("112.75.252.8", token)
+    client = KaxyClient("112.75.252.6", token)
     # pprint(client.list_all_proxies().json())
     # pprint(client.list_users().json())
     acl_str = "asasas.com"
@@ -274,5 +285,38 @@ if __name__ == "__main__":
     add_user = "test1234568888"
     add_acl_str = "asasas11111.com"
     # pprint(client.add_user_acl(add_user,add_acl_str))
-    pprint(client.get_server_info().text)
+    # pprint(client.paser_api_acl())
     # pprint(client.get_server_info().json())
+    servers="""38.88.88.4
+107.165.196.95
+38.88.88.11
+202.226.25.183
+12.41.2.39
+12.41.2.58
+107.165.196.97
+112.75.252.6
+202.226.25.180
+112.75.192.2
+112.75.252.5
+12.41.2.45
+12.41.2.36
+12.41.2.61
+112.75.252.2
+202.226.25.179
+202.226.25.181
+107.165.196.93
+202.226.25.184
+208.215.21.203
+208.215.21.204
+38.88.88.3"""
+    for s in servers.split("\n"):
+        client = KaxyClient(s, token)
+        new_acl = []
+        origin_acl_dict = client.paser_api_acl()
+        for k, acl in origin_acl_dict.items():
+            new_acl.extend(acl.split("\n"))
+        print(len(new_acl))
+        new_acl_str = "\n".join(sorted(new_acl))
+        client.add_acl(new_acl_str)
+
+
