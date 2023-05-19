@@ -145,9 +145,12 @@ class OrdersApi(ComModelViewSet):
             order = order.first()
             order_id = order.order_id
             # 删除代理
+            for t in threading.enumerate():
+                if t.name == "reset_{}".format(order_id):
+                    return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试")
             Proxy.objects.filter(order_id=order_pk).all().delete()
             # 重新创建代理
-            t1=threading.Thread(target=create_proxy_by_order, args=(order_id,)).start()
+            t1=threading.Thread(target=create_proxy_by_order, args=(order_id,),name="reset_{}".format(order_id)).start()
 
         else:
             return ErrorResponse(data={}, msg="订单不存在")
