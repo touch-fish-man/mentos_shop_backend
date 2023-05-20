@@ -168,7 +168,7 @@ def create_proxy_by_order(order_id):
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
                                     break
-                                for i in range(order_obj.product_quantity // cart_step):
+                                # for i in range(order_obj.product_quantity // cart_step):
                                     kaxy_client = KaxyClient(server.ip)
                                     prefix = Stock.get_next_subnet()
                                     proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
