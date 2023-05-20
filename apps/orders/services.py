@@ -162,8 +162,9 @@ def create_proxy_by_order(order_id):
                     for cidr in cidr_info:
                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
                                                           variant_id=variant_obj.id).first()
+                        cart_stock= Stock.cart_stock
                         if Stock:
-                            while Stock.cart_stock > 0:
+                            while cart_stock > 0:
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
                                     break
@@ -180,6 +181,7 @@ def create_proxy_by_order(order_id):
                                         Stock.remove_available_subnet(prefix)
                                         Stock.cart_stock -= 1
                                         Stock.ip_stock -= len(proxy_info["proxy"])
+                                        cart_stock -= 1
                                     Stock.save()
                         if len(proxy_list) >= order_obj.product_quantity:
                             # 代理数量已经够了
