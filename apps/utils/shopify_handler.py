@@ -357,6 +357,18 @@ class SyncClient(ShopifyClient):
                 self.create_customer(customer_info)
                 # 增加请求频率限制
                 time.sleep(1)
+    def add_user_to_customer(self,email):
+        from apps.users.models import User
+        user = User.objects.filter(email=email).filter()
+        if  user:
+            # 添加用户到shopify客户
+            customer_info = {
+                "first_name": user.username,
+                "last_name": user.username,
+                "email": user.email,
+                "tags": "vip"+str(user.level)
+            }
+            self.create_customer(customer_info)
 
     def sync_customer_tags(self):
         # 同步客户标签 更新用户等级

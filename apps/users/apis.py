@@ -23,6 +23,7 @@ from django.conf import settings
 import logging
 
 from .tasks import sync_user_to_shopify
+from ..utils.shopify_handler import SyncClient
 
 
 class UserApi(ComModelViewSet):
@@ -69,7 +70,12 @@ class UserApi(ComModelViewSet):
                 insert_invite_log(resp.data.get("data", {}).get('id'), resp.data.get("data", {}).get('username'),
                                   invite_code)
         # 同步用户到shopify
-        threading.Thread(target=sync_user_to_shopify).start()
+        shop_url = settings.SHOPIFY_SHOP_URL
+        api_key = settings.SHOPIFY_API_KEY
+        api_scert = settings.SHOPIFY_API_SECRET
+        private_app_password = settings.SHOPIFY_APP_KEY
+        shopify_sync_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
+        threading.Thread(target=shopify_sync_client.add_user_to_customer, args=(email,)).start()
         return resp
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
