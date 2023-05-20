@@ -35,10 +35,6 @@ def CustomExceptionHandler(ex, context):
     elif isinstance(ex,NotAuthenticated):
         code = 4001
         msg = "not authenticated"
-    elif isinstance(ex, DRFAPIException):
-        set_rollback()
-        logger.error(traceback.format_exc())
-        msg = 'Server error, please contact the administrator'
     elif isinstance(ex, ProtectedError):
         set_rollback()
         msg = "The current data is in use and cannot be deleted"
@@ -47,6 +43,10 @@ def CustomExceptionHandler(ex, context):
         msg = ex.message
     elif isinstance(ex, CustomValidationError):
         msg = ex.detail
+    elif isinstance(ex, DRFAPIException):
+        set_rollback()
+        logger.error(traceback.format_exc())
+        msg = 'Server error, please contact the administrator'
     else:
         logger.error(traceback.format_exc())
         if settings.DEBUG:
