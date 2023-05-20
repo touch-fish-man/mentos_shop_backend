@@ -167,6 +167,7 @@ CAPTCHA_LENGTH = 4  # 字符个数
 CAPTCHA_TIMEOUT = 1  # 超时(minutes)
 CAPTCHA_OUTPUT_FORMAT = "%(image)s %(text_field)s %(hidden_field)s "
 CAPTCHA_FONT_SIZE = 30  # 字体大小
+CAPTCHA_LETTER_ROTATION = (-25, 25)  # 字体旋转角度
 CAPTCHA_FOREGROUND_COLOR = "#da649d"  # 前景色
 CAPTCHA_BACKGROUND_COLOR = "#F5F7F4"  # 背景色
 #字体
