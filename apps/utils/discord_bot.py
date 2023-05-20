@@ -14,7 +14,7 @@ import django
 #         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
 # else:
 #     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.pord")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.prod")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 django.setup()
 from django.conf import settings
