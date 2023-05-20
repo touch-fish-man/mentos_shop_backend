@@ -10,6 +10,7 @@ from rest_framework.views import set_rollback
 
 from .json_response import ErrorResponse
 from django.core.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 logger = logging.getLogger(__name__)
 
 
@@ -41,6 +42,9 @@ def CustomExceptionHandler(ex, context):
     elif isinstance(ex, ValidationError):
         set_rollback()
         msg = ex.message
+    elif isinstance(ex, DRFValidationError):
+        set_rollback()
+        msg = ex.detail
     elif isinstance(ex, CustomValidationError):
         msg = ex.detail
     elif isinstance(ex, DRFAPIException):
