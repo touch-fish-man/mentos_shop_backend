@@ -200,7 +200,7 @@ def create_proxy_by_order(order_id):
                 variant_obj.save() # 更新套餐库存
                 email_template = settings.EMAIL_TEMPLATES.get("delivery")
                 subject = email_template.get('subject')
-                html_message = email_template.get('html').replace('{{order_id}}', order_id).replace('{{proxy_num}}',str(len(proxy_list))).replace('{{product}}',str(product_name)).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
+                html_message = email_template.get('html').replace('{{order_id}}', order_id).replace('{{proxy_number}}',str(len(proxy_list))).replace('{{product}}',str(product_name)).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                 from_email = email_template.get('from_email')
                 send_success = send_email_api(user_email, subject, from_email, html_message)
                 return True

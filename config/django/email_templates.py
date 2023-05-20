@@ -139,11 +139,11 @@ margin-bottom: 10px;
 <h1>You Proxy is Ready</h1>
 <p>Dear User,</p>
 <p>Your Proxy <strong id="order_id">{{order_id}}</strong> is ready to use.</p>
-<p> information:</p>
+<p>Information:</p>
 <p>Product: {{product}}</p>
 <p>Expired Time: {{proxy_expired_at}}</p>
-<p>Proxy number: {{proxy_number}}</p>
-<p>Please check your order status in your account.</p>
+<p>Proxy number: {{proxy_number}} pcs.</p>
+<a href="https://www.mentosproxy.com/#/dashboard/index/proxies" target="_blank">Click here to check your order status</a>
 <p style="text-align: right;">——From Mentos Proxy</p>
 </div>
 </body>
@@ -166,7 +166,7 @@ EMAIL_TEMPLATES = {
         "html": notification_email_template,
     },
     'delivery':{
-        'subject':'Mentos Proxy delivery.',
+        'subject':'You Proxy is Ready.',
         "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": delivery_email_template,
     }
