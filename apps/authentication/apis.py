@@ -121,8 +121,7 @@ class DiscordOauth2RedirectApi(APIView):
             return redirect(f'/#/createAccount?discord_id={discord_id}')
         else:
             # 登录
-            login(request, user)
-            login_ip= get_client_ip(request)
+            login_ip = get_client_ip(request)
             ip_location = get_ip_location(request)
             if ip_location:
                 user.last_location = ip_location
