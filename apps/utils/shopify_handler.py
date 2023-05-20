@@ -23,7 +23,6 @@ django.setup()
 from apps.products.models import *
 
 
-import logging
 
 
 # logging.basicConfig(level=logging.DEBUG)
