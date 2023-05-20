@@ -60,6 +60,6 @@ app.conf.beat_schedule = {
     },
     'delete_api_logs': {
         'task': 'delete_api_logs',
-        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+        'schedule': crontab(hour=2, minute=0), # 每天凌晨1点执行
     },
 }

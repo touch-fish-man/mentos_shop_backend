@@ -174,7 +174,6 @@ def create_proxy_by_order(order_id):
                                 prefix = Stock.get_next_subnet()
                                 proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
                                                                                    acl_value)
-                                logging.info(len(proxy_info["proxy"]))
                                 if proxy_info["proxy"]:
                                     proxy_list.extend(proxy_info["proxy"])
                                     server_list.extend([server.ip] * len(proxy_info["proxy"]))
@@ -207,6 +206,7 @@ def create_proxy_by_order(order_id):
                 html_message = email_template.get('html').replace('{{order_id}}', order_id).replace('{{proxy_number}}',str(len(proxy_list))).replace('{{product}}',str(product_name)).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                 from_email = email_template.get('from_email')
                 send_success = send_email_api(user_email, subject, from_email, html_message)
+                logging.info("delivery success")
                 return True
     return False
 
