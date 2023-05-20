@@ -44,7 +44,10 @@ def CustomExceptionHandler(ex, context):
         msg = ex.message
     elif isinstance(ex, DRFValidationError):
         set_rollback()
-        msg = ex.detail
+        if isinstance(ex.detail, dict):
+            msg = ex.detail[list(ex.detail.keys())[0]][0]
+        else:
+            msg = ex.detail[0]
     elif isinstance(ex, CustomValidationError):
         msg = ex.detail
     elif isinstance(ex, DRFAPIException):
