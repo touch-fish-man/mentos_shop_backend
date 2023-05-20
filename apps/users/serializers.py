@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'uid', 'username', 'email', 'is_active', 'discord_id', 'discord_name', 'is_superuser', 'level',
             'level_points',
-            'invite_code', 'reward_points', 'invite_count', 'reward_points', 'created_at')
+            'invite_code', 'reward_points', 'invite_count', 'reward_points', 'created_at','last_login_ip','last_location')
 
 
 class BanUserSerializer(serializers.ModelSerializer):

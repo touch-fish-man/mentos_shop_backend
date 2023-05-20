@@ -21,7 +21,7 @@ from apps.core.validators import CustomValidationError
 
 def get_client_ip(request):
     try:
-        x_forwarded_for = request.META.get('CF_CONNECTING_IP') or request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')
+        x_forwarded_for = request.META.get('HTTP_CF_CONNECTING_IP') or request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
         else:
@@ -34,11 +34,10 @@ def get_client_ip(request):
 def get_ip_location(request):
     try:
         logging.info(request.META)
-        ip_country = request.META.get('CF_IPCOUNTRY')
+        ip_country = request.META.get('HTTP_CF_IPCOUNTRY')
     except:
         ip_country = ''
     return ip_country
-
 
 def generate_code(size=6, chars=string.digits):
     return ''.join(random.choice(chars) for x in range(size))
