@@ -61,7 +61,7 @@ class UserApi(ComModelViewSet):
         email_code = request.data.get('email_code')
         email = request.data.get('email')
         invite_code = request.data.get('invite_code')
-        check_email_code(email, email_code_id, email_code, delete=True)
+        check_email_code(email, email_code_id, email_code, delete=False)
 
         resp = super().create(request, *args, **kwargs)
         if invite_code:
@@ -76,6 +76,7 @@ class UserApi(ComModelViewSet):
         private_app_password = settings.SHOPIFY_APP_KEY
         shopify_sync_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
         threading.Thread(target=shopify_sync_client.add_user_to_customer, args=(email,)).start()
+        code_item = Code.objects.filter(id=email_code_id, email=email).delete()
         return resp
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
