@@ -1,4 +1,5 @@
 import datetime
+import logging
 import random
 import string
 import time
@@ -32,6 +33,7 @@ def get_client_ip(request):
 
 def get_ip_location(request):
     try:
+        logging.info(request.META)
         ip_country = request.META.get('CF_IPCOUNTRY')
     except:
         ip_country = ''
