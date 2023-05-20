@@ -321,6 +321,7 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
         if Proxy.objects.filter(username=username).count() == 0:
             kax_client = KaxyClient(server_ip)
             kax_client.del_user(username)
+            kax_client.del_acl(username)
             time.sleep(60)
             os.remove('/tmp/delete_proxy_thread_' + username)
 

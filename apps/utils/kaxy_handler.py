@@ -162,6 +162,21 @@ class KaxyClient:
         # 添加acl
         resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": acl_str})
         return resp
+    def del_acl(self,user):
+        # 删除acl
+        # 获取原始的 ACL 字典
+        origin_acl_dict = self.paser_api_acl()
+        if user in origin_acl_dict:
+            # 删除用户
+            origin_acl_dict.pop(user)
+            # 构建新的 ACL 字符串
+            new_acl_str = self.build_acl_str(origin_acl_dict)
+            # 写入新的 ACL 字符串
+            self.add_acl(new_acl_str)
+            return True
+        return False
+
+
 
     def add_user_acl(self, user, acl_str):
         # 构建新的 ACL 字典
@@ -203,6 +218,11 @@ class KaxyClient:
         for k, v in origin_acl_dict.items():
             origin_acl_dict[k] = "\n".join(sorted(list(v)))
         return origin_acl_dict
+    def build_acl_str(self, acl_dict):
+        # 构建acl字符串 排序
+        acl_str_list = [acl for acl_str in acl_dict.values() for acl in acl_str.split("\n")]
+        acl_str = "\n".join(sorted(set(acl_str_list)))
+        return acl_str
 
     def build_acl(self, user, acl_str):
         # 生成 user acl
