@@ -42,6 +42,8 @@ class User(AbstractUser, BaseModel):
     invite_code = models.CharField(max_length=100, unique=True, null=True, verbose_name='邀请码',
                                    default=gen_invite_code)
     invite_count = models.IntegerField(default=0, verbose_name='邀请人数')
+    last_login_ip = models.CharField(max_length=100, null=True, verbose_name='最后登录IP')
+    last_location = models.CharField(max_length=100, null=True, verbose_name='最后登录地点')
 
     # invite_reward = models.IntegerField(default=0, verbose_name='邀请奖励')
 
@@ -53,6 +55,7 @@ class User(AbstractUser, BaseModel):
         verbose_name = '用户'
         verbose_name_plural = verbose_name
         ordering = ['-id']
+
 
     def save(self, *args, **kwargs):
         if not self._state.adding:

@@ -21,6 +21,9 @@ from apps.users.models import User
 import urllib
 from django.core.cache import cache
 
+from ..users.services import get_client_ip, get_ip_location
+
+
 class LoginApi(APIView):
     """
     用户登录
@@ -46,6 +49,14 @@ class LoginApi(APIView):
             if not user.is_active:
                 return ErrorResponse(msg="User has been disabled")
             data = user_get_login_data(user=user)
+            login_ip = get_client_ip(request)
+            ip_location = get_ip_location(request)
+            if ip_location:
+                user.last_location = ip_location
+            else:
+                user.last_location = "unknown"
+            user.last_login_ip = login_ip
+            user.save()
             return SuccessResponse(data=data, msg="登录成功")
         else:
             return ErrorResponse(msg="Username or Password error")
@@ -111,6 +122,13 @@ class DiscordOauth2RedirectApi(APIView):
         else:
             # 登录
             login(request, user)
+            login_ip= get_client_ip(request)
+            ip_location = get_ip_location(request)
+            if ip_location:
+                user.last_location = ip_location
+            else:
+                user.last_location = "unknown"
+            user.last_login_ip = login_ip
             if not user.is_active:
                 return redirect("/")
             user.discord_name=discord_name
