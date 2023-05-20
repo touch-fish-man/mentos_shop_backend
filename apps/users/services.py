@@ -33,7 +33,6 @@ def get_client_ip(request):
 
 def get_ip_location(request):
     try:
-        logging.info(request.META)
         ip_country = request.META.get('HTTP_CF_IPCOUNTRY')
     except:
         ip_country = ''
