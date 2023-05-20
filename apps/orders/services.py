@@ -165,6 +165,7 @@ def create_proxy_by_order(order_id):
                         cart_stock= Stock.cart_stock
                         if Stock:
                             while cart_stock > 0:
+                                logging.info('cart_stock:{}'.format(cart_stock))
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
                                     break
