@@ -165,25 +165,25 @@ def create_proxy_by_order(order_id):
                         cart_stock= Stock.cart_stock
                         if Stock:
                             while cart_stock > 0:
-                                logging.info('cart_stock:{}'.format(cart_stock))
+
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
                                     break
                                 # for i in range(order_obj.product_quantity // cart_step):
-                                    kaxy_client = KaxyClient(server.ip)
-                                    prefix = Stock.get_next_subnet()
-                                    proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
-                                                                                       acl_value)
-                                    if proxy_info["proxy"]:
-                                        proxy_list.extend(proxy_info["proxy"])
-                                        server_list.extend([server.ip] * len(proxy_info["proxy"]))
-                                        stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
-                                        subnet_list.extend([prefix] * len(proxy_info["proxy"]))
-                                        Stock.remove_available_subnet(prefix)
-                                        Stock.cart_stock -= 1
-                                        Stock.ip_stock -= len(proxy_info["proxy"])
-                                        cart_stock -= 1
-                                    Stock.save()
+                                kaxy_client = KaxyClient(server.ip)
+                                prefix = Stock.get_next_subnet()
+                                proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
+                                                                                   acl_value)
+                                if proxy_info["proxy"]:
+                                    proxy_list.extend(proxy_info["proxy"])
+                                    server_list.extend([server.ip] * len(proxy_info["proxy"]))
+                                    stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
+                                    subnet_list.extend([prefix] * len(proxy_info["proxy"]))
+                                    Stock.remove_available_subnet(prefix)
+                                    Stock.cart_stock -= 1
+                                    Stock.ip_stock -= len(proxy_info["proxy"])
+                                    cart_stock -= 1
+                                Stock.save()
                         if len(proxy_list) >= order_obj.product_quantity:
                             # 代理数量已经够了
                             break
