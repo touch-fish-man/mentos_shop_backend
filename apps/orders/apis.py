@@ -120,14 +120,16 @@ class OrdersApi(ComModelViewSet):
             expired_at = datetime.datetime.fromtimestamp(int(expired_at) // 1000).replace(tzinfo=datetime.timezone.utc)
         except Exception as e:
             return ErrorResponse(data={}, msg="过期时间格式错误")
+        if expired_at < datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(hours=8):
+            return ErrorResponse(data={}, msg="过期时间不能小于当前时间")
         order = Orders.objects.filter(id=order_id)
         if order.exists():
             order = order.first()
             proxy = Proxy.objects.filter(order_id=order_id)
             if proxy.exists():
                 for p in proxy.all():
-                    if p.expired_at > expired_at:
-                        return ErrorResponse(data={}, msg="代理过期时间不能小于当前时间")
+                    # if p.expired_at > expired_at:
+                    #     return ErrorResponse(data={}, msg="代理过期时间不能小于当前时间")
                     p.expired_at = expired_at
                     p.save()
             order.expired_at = expired_at
