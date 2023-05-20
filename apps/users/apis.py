@@ -1,6 +1,7 @@
 import base64
 import datetime
 import random
+import threading
 import uuid
 
 from django.contrib.auth.hashers import make_password
@@ -20,6 +21,8 @@ from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from django.conf import settings
 import logging
+
+from .tasks import sync_user_to_shopify
 
 
 class UserApi(ComModelViewSet):
@@ -65,6 +68,8 @@ class UserApi(ComModelViewSet):
             if resp.data.get("data", {}).get('id'):
                 insert_invite_log(resp.data.get("data", {}).get('id'), resp.data.get("data", {}).get('username'),
                                   invite_code)
+        # 同步用户到shopify
+        threading.Thread(target=sync_user_to_shopify).start()
         return resp
 
     @action(methods=['get'], detail=False, url_path='user_info', url_name='user_info')
