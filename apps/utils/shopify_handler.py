@@ -359,7 +359,7 @@ class SyncClient(ShopifyClient):
                 time.sleep(1)
     def add_user_to_customer(self,email):
         from apps.users.models import User
-        user = User.objects.filter(email=email).filter()
+        user = User.objects.filter(email=email).first()
         if  user:
             # 添加用户到shopify客户
             customer_info = {
