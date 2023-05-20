@@ -14,6 +14,7 @@ import datetime
 from pathlib import Path
 import os
 import pymysql
+
 if os.environ.get('DJANGO_ENV') != 'prod' or os.environ.get('DJANGO_ENV') != 'test':
     pymysql.version_info = (1, 4, 6, "final", 0)
     pymysql.install_as_MySQLdb()
@@ -115,7 +116,8 @@ DATABASES = {
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
-       
+        ATOMIC_REQUESTS: False,
+
     }
 }
 
@@ -170,13 +172,13 @@ CAPTCHA_FONT_SIZE = 30  # 字体大小
 CAPTCHA_LETTER_ROTATION = (-25, 25)  # 字体旋转角度
 CAPTCHA_FOREGROUND_COLOR = "#da649d"  # 前景色
 CAPTCHA_BACKGROUND_COLOR = "#F5F7F4"  # 背景色
-#字体
+# 字体
 # CAPTCHA_FONT_PATH = os.path.join(BASE_DIR, "static/PangPangZhuRouTi-2.otf")
 CAPTCHA_NOISE_FUNCTIONS = (
     "captcha.helpers.noise_arcs",  # 线
     # "captcha.helpers.noise_dots",  # 点
 )
-CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge' #字母验证码
+CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.random_char_challenge'  # 字母验证码
 # CAPTCHA_CHALLENGE_FUNCT = "captcha.helpers.math_challenge"  # 加减乘除验证码
 LOGIN_URL = "/#/login"
 
@@ -200,7 +202,8 @@ SWAGGER_SETTINGS = {
     "VALIDATOR_URL": None,
     "AUTO_SCHEMA_TYPE": 2,  # 分组根据url层级分，0、1 或 2 层
     "DEFAULT_AUTO_SCHEMA_CLASS": "apps.core.swagger.CustomSwaggerAutoSchema",
-    "DEFAULT_PAGINATOR_INSPECTORS": ['apps.core.swagger_ext.LimitOffsetPaginationInspector', 'drf_yasg.inspectors.CoreAPICompatInspector',]
+    "DEFAULT_PAGINATOR_INSPECTORS": ['apps.core.swagger_ext.LimitOffsetPaginationInspector',
+                                     'drf_yasg.inspectors.CoreAPICompatInspector', ]
 }
 REST_FRAMEWORK = {
     # 配置默认页面大小
@@ -364,10 +367,10 @@ SHOPIFY_WEBHOOK_KEY = env('SHOPIFY_WEBHOOK_KEY')
 # SHOPIFY_PRIVATE_APP_PASSWORD = env('SHOPIFY_PRIVATE_APP_PASSWORD')
 
 # 邮件相关配置
-EMAIL_METHOD = env('EMAIL_METHOD') # 邮件发送方式 mailgun or sendgrid
-EMAIL_CODE_EXPIRE = int(env('EMAIL_CODE_EXPIRE'))   # 邮件验证码过期时间
+EMAIL_METHOD = env('EMAIL_METHOD')  # 邮件发送方式 mailgun or sendgrid
+EMAIL_CODE_EXPIRE = int(env('EMAIL_CODE_EXPIRE'))  # 邮件验证码过期时间
 # smtp 配置
-EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # 发送邮件配置
 # sendgrid 配置
 SENDGRID_API_KEY = env('SENDGRID_API_KEY')
 # mailgun 配置
@@ -392,11 +395,10 @@ INVITE_REBATE_RATE = float(env('INVITE_REBATE_RATE'))  # 邀请返利比例 金�
 # ---------需要动态配置的配置项----------------
 FRONTEND_URL = env('FRONTEND_URL')
 
-
-DISCORD_BOT_TOKEN=env('DISCORD_BOT_TOKEN')
-DISCORD_BOT_CHANNELS=env('DISCORD_BOT_CHANNELS')
-POINTS_PER_MESSAGE=int(env('POINTS_PER_MESSAGE'))
-MAX_POINTS_PER_DAY=int(env('MAX_POINTS_PER_DAY'))
+DISCORD_BOT_TOKEN = env('DISCORD_BOT_TOKEN')
+DISCORD_BOT_CHANNELS = env('DISCORD_BOT_CHANNELS')
+POINTS_PER_MESSAGE = int(env('POINTS_PER_MESSAGE'))
+MAX_POINTS_PER_DAY = int(env('MAX_POINTS_PER_DAY'))
 # 导入邮件模板配置
 from .email_templates import *
 from .celery import *
