@@ -10,7 +10,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /opt/mentos_shop_backend/config/nginx/mentosproxy.conf:/etc/nginx/conf.d/mentosproxy.conf
+      - /opt/mentos_shop_backend/config/nginx/:/etc/nginx/conf.d/
       - /opt/mentos_shop_backend/config/nginx/cert:/etc/nginx/cert
       - /opt/mentos_shop_backend/dist:/opt/dist
       - /opt/geofeed:/opt/mentos_shop_backend/geofeed
