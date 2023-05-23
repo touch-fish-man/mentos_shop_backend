@@ -117,8 +117,16 @@ DATABASES = {
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
         "ATOMIC_REQUESTS": False,
+    },
+    'mysql': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mentos_proxy',
+        'USER': 'mentos_shop',
+        'PASSWORD': '347dpWjxkKwrheBt',
+        'HOST': 'rm-0xifvzx2x3769byjm.mysql.rds.aliyuncs.com',
+        'PORT': 3066,
+        "ATOMIC_REQUESTS": False,
 
-    }
 }
 
 # Password validation
