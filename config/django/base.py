@@ -125,7 +125,7 @@ DATABASES = {
         'PASSWORD': '347dpWjxkKwrheBt',
         'HOST': 'rm-0xifvzx2x3769byjm.mysql.rds.aliyuncs.com',
         'PORT': 3066,
-        "ATOMIC_REQUESTS": False,
+        "ATOMIC_REQUESTS": False}
 
 }
 
