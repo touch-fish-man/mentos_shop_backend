@@ -120,7 +120,7 @@ DATABASES = {
     },
     'mysql': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mentos_proxy',
+        'NAME': 'mentos',
         'USER': 'mentos_shop',
         'PASSWORD': '347dpWjxkKwrheBt',
         'HOST': 'rm-0xifvzx2x3769byjm.mysql.rds.aliyuncs.com',
