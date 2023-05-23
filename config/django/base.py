@@ -109,7 +109,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'postgress': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
@@ -118,7 +118,7 @@ DATABASES = {
         'PORT': env('DB_PORT'),
         "ATOMIC_REQUESTS": False,
     },
-    'mysql': {
+    'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'mentos',
         'USER': 'mentos_shop',
