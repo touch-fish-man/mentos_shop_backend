@@ -105,6 +105,7 @@ def get_checkout_link(request):
             "note": "order_id_{}".format(order_id),
             'attributes': {"order_id": order_id, "renewal": request.data.get("renewal", "0")},
             "ref": "mentosproxy_web",
+            "access_token":"b1eadac0d1d5d003be6ed95eb9997022"
         }
         checkout_link = ShopifyClient.get_checkout_link(settings.SHOPIFY_SHOP_URL, check_info)
         new_order.checkout_url = checkout_link
