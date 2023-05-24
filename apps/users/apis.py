@@ -16,7 +16,7 @@ from apps.users.models import User, Code, InviteLog, RebateRecord
 from apps.users.selectors import user_get_login_data
 from apps.users.serializers import UserSerializer, UserCreateSerializer, UserUpdateSerializer, BanUserSerializer, \
     InviteLogSerializer, RebateRecordSerializer
-from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log
+from .services import send_email_code, check_email_code, check_verify_id, insert_invite_log, add_user_to_shopify
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from django.conf import settings
@@ -70,12 +70,7 @@ class UserApi(ComModelViewSet):
                 insert_invite_log(resp.data.get("data", {}).get('id'), resp.data.get("data", {}).get('username'),
                                   invite_code)
         # 同步用户到shopify
-        shop_url = settings.SHOPIFY_SHOP_URL
-        api_key = settings.SHOPIFY_API_KEY
-        api_scert = settings.SHOPIFY_API_SECRET
-        private_app_password = settings.SHOPIFY_APP_KEY
-        shopify_sync_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
-        threading.Thread(target=shopify_sync_client.add_user_to_customer, args=(email,)).start()
+        threading.Thread(target=add_user_to_shopify, args=(email,)).start()
         code_item = Code.objects.filter(id=email_code_id, email=email).delete()
         return resp
 

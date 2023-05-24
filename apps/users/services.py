@@ -17,6 +17,7 @@ import os
 
 from apps.users.models import Code, InviteLog, User
 from apps.core.validators import CustomValidationError
+from apps.utils.shopify_handler import SyncClient
 
 
 def get_client_ip(request):
@@ -105,7 +106,13 @@ def send_email_code(email, email_template):
     else:
         ret = None
     return ret
-
+def add_user_to_shopify(email):
+    shop_url = settings.SHOPIFY_SHOP_URL
+    api_key = settings.SHOPIFY_API_KEY
+    api_scert = settings.SHOPIFY_API_SECRET
+    private_app_password = settings.SHOPIFY_APP_KEY
+    shopify_sync_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
+    shopify_sync_client.add_user_to_customer(email)
 
 def send_email_api(email, subject, from_email, html_message):
     if settings.EMAIL_METHOD == 'sendgrid':
