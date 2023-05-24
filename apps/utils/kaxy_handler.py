@@ -235,7 +235,7 @@ class KaxyClient:
 
     def create_user_acl_by_prefix(self, user, prefix, acl_str):
         # 创建用户acl，指定ip前缀
-        proxy_info = {"proxy": [], "num_of_ips": []}
+        proxy_info = {"proxy": [], "num_of_ips": 0}
         for x in range(5):
             resp = self.create_user_by_prefix(user, prefix)
             try:
