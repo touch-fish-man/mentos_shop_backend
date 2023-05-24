@@ -233,7 +233,7 @@ class CheckoutApi(APIView):
 
     def post(self, request, *args, **kwargs):
         # 生成订单
-        if request.user.is_superuser:
+        if not request.user.is_superuser:
             return ErrorResponse(data={}, msg="管理员无法购买")
         checkout_url, order_id = get_checkout_link(request)
         if not checkout_url:
