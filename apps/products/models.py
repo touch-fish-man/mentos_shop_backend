@@ -92,17 +92,14 @@ class Variant(BaseModel):
 
     def update_stock(self):
         get_stock = self.get_stock()
-        if get_stock:
-            self.variant_stock = get_stock
-            self.save()
+        self.variant_stock = get_stock
+        self.save()
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        logging.info(self.id)
         if self.id:
             get_stock = self.get_stock()
-            if get_stock:
-                self.variant_stock = get_stock
+            self.variant_stock = get_stock
         super().save(force_insert=False, force_update=False, using=None,
                      update_fields=None)
 

@@ -228,7 +228,7 @@ class ProxyStock(BaseModel):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        if len(self.available_subnets):
+        if self.available_subnets:
             available_subnets = self.available_subnets.split(',')
             # 去除空字符串
             available_subnets = [x for x in available_subnets if x]
