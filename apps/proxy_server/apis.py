@@ -164,6 +164,7 @@ class ProxyServerApi(ComModelViewSet):
                     break
             if not is_in:
                 need_reset_user_list[p.username] = p.order_id
+        logging.info("need_reset_user_list:{}".format(need_reset_user_list))
         kaxy_client = KaxyClient(ip)
         falid_order_id = []
         for username, order_id in need_reset_user_list.items():
