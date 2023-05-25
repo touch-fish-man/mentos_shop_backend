@@ -24,7 +24,7 @@ class ProductViewSet(ComModelViewSet):
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
     update_serializer_class = ProductUpdateSerializer
-    search_fields = '__all__'
+    search_fields = ['product_name', 'product_desc']
     filter_fields = '__all__'
     filterset_fields = '__all__'
     permission_classes = [IsSuperUser]
