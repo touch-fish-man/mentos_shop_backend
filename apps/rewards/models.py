@@ -58,7 +58,7 @@ class PointRecord(BaseModel):
     uid = models.IntegerField(verbose_name='用户ID')
     username = models.CharField(max_length=32, verbose_name='用户名')
     point = models.IntegerField(verbose_name='积分')  # 正数为增加，负数为减少
-    reason = models.CharField(max_length=32, verbose_name='原因')
+    reason = models.CharField(max_length=64, verbose_name='原因')
 
     class Meta:
         db_table = 'point_record'
