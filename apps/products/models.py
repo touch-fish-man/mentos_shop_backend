@@ -98,8 +98,6 @@ class Variant(BaseModel):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        logging.info(self.shopify_variant_id)
-        logging.info(traceback.print_stack())
         if self.id:
             get_stock = self.get_stock()
             if get_stock:
