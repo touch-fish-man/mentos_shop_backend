@@ -138,11 +138,15 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     variant_price = serializers.FloatField(required=True)
     server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
     acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
+    shopify_variant_id = serializers.CharField(required=False)
     class Meta:
         model = Variant
         fields = ('variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
+        extra_kwargs = {
+            'shopify_variant_id': {'read_only': True},
+        }
     def get_cidr(self,server_group):
         cidr_ids = []
         if server_group:
