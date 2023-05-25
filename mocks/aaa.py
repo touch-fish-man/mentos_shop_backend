@@ -1,3 +1,4 @@
+import datetime
 import random
 import string
 
@@ -16,37 +17,46 @@ from apps.orders.models import Orders
 from apps.products.models import Variant
 import ipaddress
 
-for xxx in ProxyStock.objects.all():
-    if xxx.subnets and xxx.current_subnet:
-        xxx.available_subnets=xxx.subnets[xxx.subnets.index(xxx.current_subnet):]
-        xxx.save()
-# for ppp in Proxy.objects.all():
-#     order_id=ppp.order_id
-#     print(order_id)
-#     order_obj = Orders.objects.filter(id=order_id).first()
-#     if order_obj:
-#         order_id = order_obj.order_id
-#         variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
-#         if variant_obj:
-#             server_group = variant_obj.server_group
-#             acl_group = variant_obj.acl_group
-#             cart_step = variant_obj.cart_step  # 购物车步长
-#             acl_value = acl_group.acl_value  # 获取acl组的acl值
-#             server_group_obj = ServerGroup.objects.filter(id=server_group.id).first()
-#             proxy_expired_at = order_obj.expired_at  # 代理过期时间
-#             proxy_list = []
-#             server_list = []
-#             stock_list = []
-#             subnet_list = []
-#             if server_group_obj:
-#                 servers = server_group_obj.servers.all()
-#                 for server in servers:
-#                     cidr_info = server.get_cidr_info()
-#                     for cidr in cidr_info:
-#                         Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
-#                                                         variant_id=variant_obj.id).first()
-#                         for c in Stock.subnets.split(","):
-#                             if ipaddress.IPv4Address(ppp.ip) in ipaddress.IPv4Network(c):
-#                                 ppp.subnet=c
-#                                 ppp.ip_stock_id=Stock.id
-#                                 ppp.save()
+# for xxx in ProxyStock.objects.all():
+#     ppp=Proxy.objects.filter(ip_stock_id=xxx.id).all()
+#     if xxx.subnets:
+#         subnets=xxx.subnets.split(",")
+#         for p in ppp:
+#             if p.subnet in subnets:
+#                 subnets.remove(p.subnet)
+#         subnets.sort()
+#         cart_stock=len(subnets)
+#         xxx.available_subnets=",".join(subnets)
+#         # print(xxx.available_subnets)
+#         if xxx.cart_stock!=cart_stock:
+#             print(xxx.cart_stock,cart_stock,xxx.id)
+#             print(xxx.cart_stock*xxx.cart_step,cart_stock*xxx.cart_step)
+#             xxx.cart_stock=cart_stock
+#             xxx.available_subnets=",".join(subnets)
+#             xxx.ip_stock=cart_stock*xxx.cart_step
+#             xxx.save()
+v_idlist= Variant.objects.values_list("id",flat=True).all()
+s_list= ProxyStock.objects.values_list("variant_id",flat=True).all()
+for v_id in v_idlist:
+    if v_id not in s_list:
+        V=Variant.objects.filter(id=v_id).first()
+        print(V.id,V.acl_group_id)
+
+print("--------------")
+for s_id in s_list:
+    if s_id not in v_idlist:
+        print(s_id)
+        s=ProxyStock.objects.filter(variant_id=s_id).first()
+        print(s.id,s.acl_group_id)
+
+
+
+# for x in Variant.objects.all():
+#     x.save()
+# for ddd in Orders.objects.all():
+#
+#     if ddd.expired_at.replace(tzinfo=None)<=datetime.datetime.utcnow():
+#         ddd.status=3
+#         ddd.delete()
+
+

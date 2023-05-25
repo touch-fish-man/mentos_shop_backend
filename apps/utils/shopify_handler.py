@@ -200,7 +200,7 @@ class ShopifyClient:
 
     def list_orders(self):
         # 获取所有订单
-        orders = shopify.Order.find(status='any', fields="id,note,email,financial_status", order="created_at DESC")
+        orders = shopify.Order.find(status='any', fields="id,note,email,financial_status,order_number", order="created_at DESC")
         order_list = []
         for order in orders:
             order_list.append(order.to_dict())
@@ -442,6 +442,11 @@ if __name__ == '__main__':
     api_key = 'dd6b4fd6efe094ef3567c61855f11385'
     api_scert = 'f729623ef6a576808a5e83d426723fc1'
     private_app_password = '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'
+    SHOPIFY_SHOP_URL = 'https://mentosproxy-2.myshopify.com/'
+    SHOPIFY_APP_KEY = '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'
+    SHOPIFY_API_KEY = '07616114a90f98723b476cc38ad7f22a'
+    SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
+    SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     # shopify_client = SyncClient(shop_url, api_version, api_key, api_scert, private_app_password)
 
     # for product in shopify_client.get_products(format=True):
@@ -463,9 +468,9 @@ if __name__ == '__main__':
     # pprint(shopify_client.get_product_tags())
     # pprint(shopify_client.get_customers())
 
-    syncclient = SyncClient(shop_url, api_key, api_scert, private_app_password)
+    syncclient = SyncClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
     # print(syncclient.sync_product_collections())
     # print(syncclient.sync_product_tags())
     # print(syncclient.get_customers())
-    print(syncclient.list_price_rules())
+    pprint(syncclient.list_orders())
     
