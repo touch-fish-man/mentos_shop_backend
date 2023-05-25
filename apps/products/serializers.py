@@ -139,6 +139,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
     acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
     shopify_variant_id = serializers.CharField(required=False)
+    id = serializers.CharField(required=False)
     class Meta:
         model = Variant
         fields = ('id','variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
@@ -161,6 +162,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids,[]
     def validate(self, attrs):
         logging.info(attrs)
+        logging.info(self.instance)
         # cidr_ids,ip_count=self.get_cidr(attrs.get('server_group'))
         # acl_group_id = attrs.get('acl_group').id
         # for idx, cidr_id in enumerate(cidr_ids):
