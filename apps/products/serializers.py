@@ -154,27 +154,27 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         else:
             return cidr_ids,[]
     def save(self, **kwargs):
-        logging.info(kwargs["product"])
+        logging.info(kwargs["product"].variants)
         # 修改商品时，如果商品的server_group发生变化
-        cidr_ids,ip_count=self.get_cidr(kwargs.get('server_group'))
-        acl_group_id = kwargs.get('acl_group').id
-        for idx, cidr_id in enumerate(cidr_ids):
-            # 如果cidr_id不存在，则创建,否则更新cart_step
-            if not ProxyStock.objects.filter(variant_id=self.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first():
-                cart_stock = ip_count[idx]//kwargs.get('cart_step')
-                porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=instance.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
-                subnets = porxy_stock.gen_subnets()
-                porxy_stock.subnets = ",".join(subnets)
-                porxy_stock.available_subnets = porxy_stock.subnets
-                porxy_stock.save()
-            else:
-                porxy_stock = ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first()
-                porxy_stock.cart_step = validated_data.get('cart_step')
-                # TODO 需要重新计算cidr
-                porxy_stock.cart_stock = ip_count[idx]//validated_data.get('cart_step')
-                porxy_stock.save()
+        # cidr_ids,ip_count=self.get_cidr(kwargs.get('server_group'))
+        # acl_group_id = kwargs.get('acl_group').id
+        # for idx, cidr_id in enumerate(cidr_ids):
+        #     # 如果cidr_id不存在，则创建,否则更新cart_step
+        #     if not ProxyStock.objects.filter(variant_id=self.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first():
+        #         cart_stock = ip_count[idx]//kwargs.get('cart_step')
+        #         porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=instance.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
+        #         subnets = porxy_stock.gen_subnets()
+        #         porxy_stock.subnets = ",".join(subnets)
+        #         porxy_stock.available_subnets = porxy_stock.subnets
+        #         porxy_stock.save()
+        #     else:
+        #         porxy_stock = ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first()
+        #         porxy_stock.cart_step = validated_data.get('cart_step')
+        #         # TODO 需要重新计算cidr
+        #         porxy_stock.cart_stock = ip_count[idx]//validated_data.get('cart_step')
+        #         porxy_stock.save()
 
-        return instance
+        return super().save(**kwargs)
 
 
 class ProductCollectionSerializer(serializers.ModelSerializer):
