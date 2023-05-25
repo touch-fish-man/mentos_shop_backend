@@ -14,7 +14,7 @@ from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
 from apps.orders.services import create_proxy_by_order
 from django.conf import settings
-
+import logging
 
 class AclsApi(ComModelViewSet):
     """
