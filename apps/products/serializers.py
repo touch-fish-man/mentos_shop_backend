@@ -153,15 +153,15 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids,ip_count
         else:
             return cidr_ids,[]
-    def save(self, instance, validated_data):
-        logging.info(validated_data)
+    def save(self, **kwargs):
+        logging.info(kwargs)
         # 修改商品时，如果商品的server_group发生变化
-        cidr_ids,ip_count=self.get_cidr(validated_data.get('server_group'))
-        acl_group_id = validated_data.get('acl_group').id
+        cidr_ids,ip_count=self.get_cidr(kwargs.get('server_group'))
+        acl_group_id = kwargs.get('acl_group').id
         for idx, cidr_id in enumerate(cidr_ids):
             # 如果cidr_id不存在，则创建,否则更新cart_step
-            if not ProxyStock.objects.filter(variant_id=instance.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first():
-                cart_stock = ip_count[idx]//validated_data.get('cart_step')
+            if not ProxyStock.objects.filter(variant_id=self.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first():
+                cart_stock = ip_count[idx]//kwargs.get('cart_step')
                 porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=instance.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
                 subnets = porxy_stock.gen_subnets()
                 porxy_stock.subnets = ",".join(subnets)
