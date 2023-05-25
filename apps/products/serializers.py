@@ -1,6 +1,7 @@
+import logging
 from pprint import pprint
 
-from django.core.exceptions import ValidationError
+from apps.core.validators import CustomValidationError
 from rest_framework import serializers
 from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue
 from apps.proxy_server.models import Acls, Cidr, ProxyStock
@@ -153,6 +154,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         else:
             return cidr_ids,[]
     def update(self, instance, validated_data):
+        logging.info(validated_data)
         # 修改商品时，如果商品的server_group发生变化
         cidr_ids,ip_count=self.get_cidr(validated_data.get('server_group'))
         acl_group_id = validated_data.get('acl_group').id
@@ -219,7 +221,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'variant_options')
     def validate_product_collections(self, product_collections):
         if not product_collections:
-            raise ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
+            raise CustomValidationError("产品系列不能为空,请在shopify中添加后重新同步")
         return product_collections
 
     def create(self, validated_data):
@@ -259,5 +261,5 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
             'variant_options')
     def validate_product_collections(self, product_collections):
         if not product_collections:
-            ValidationError("产品系列不能为空,请在shopify中添加后重新同步")
+            CustomValidationError("产品系列不能为空,请在shopify中添加后重新同步")
         return product_collections
