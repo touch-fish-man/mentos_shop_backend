@@ -153,7 +153,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids,ip_count
         else:
             return cidr_ids,[]
-    def update(self, instance, validated_data):
+    def save(self, instance, validated_data):
         logging.info(validated_data)
         # 修改商品时，如果商品的server_group发生变化
         cidr_ids,ip_count=self.get_cidr(validated_data.get('server_group'))
