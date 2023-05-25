@@ -141,17 +141,19 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     shopify_variant_id = serializers.CharField(required=False)
     class Meta:
         model = Variant
-        fields = ('variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
+        fields = ('id','variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price','shopify_variant_id',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
         extra_kwargs = {
             'shopify_variant_id': {'read_only': True},
+            'id': {'read_only': True},
         }
     def get_cidr(self,server_group):
         cidr_ids = []
         if server_group:
+            server_group_id=server_group.id
 
-            server_ids=ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id', flat=True)
+            server_ids=ServerGroupThrough.objects.filter(server_group_id=server_group_id).values_list('server_id', flat=True)
             cidr_ids=ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
             ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
             return cidr_ids,ip_count
@@ -159,17 +161,13 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids,[]
     def validate(self, attrs):
         logging.info(attrs)
-        return attrs
-        
-    def save(self, **kwargs):
-        # 修改商品时，如果商品的server_group发生变化
-        # cidr_ids,ip_count=self.get_cidr(kwargs.get('server_group'))
-        # acl_group_id = kwargs.get('acl_group').id
+        # cidr_ids,ip_count=self.get_cidr(attrs.get('server_group'))
+        # acl_group_id = attrs.get('acl_group').id
         # for idx, cidr_id in enumerate(cidr_ids):
         #     # 如果cidr_id不存在，则创建,否则更新cart_step
-        #     if not ProxyStock.objects.filter(variant_id=self.id, acl_group_id=instance.acl_group_id,cidr_id=cidr_id).first():
-        #         cart_stock = ip_count[idx]//kwargs.get('cart_step')
-        #         porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=instance.id,cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
+        #     if not ProxyStock.objects.filter(variant_id=attrs.get(id), acl_group_id=acl_group_id,cidr_id=cidr_id).first():
+        #         cart_stock = ip_count[idx]//attrs.get('cart_step')
+        #         porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx], variant_id=self.id,cart_step=attrs.get('cart_step'),cart_stock=cart_stock)
         #         subnets = porxy_stock.gen_subnets()
         #         porxy_stock.subnets = ",".join(subnets)
         #         porxy_stock.available_subnets = porxy_stock.subnets
@@ -180,7 +178,9 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         #         # TODO 需要重新计算cidr
         #         porxy_stock.cart_stock = ip_count[idx]//validated_data.get('cart_step')
         #         porxy_stock.save()
+        return attrs
 
+    def save(self, **kwargs):
         return super().save(**kwargs)
 
 
