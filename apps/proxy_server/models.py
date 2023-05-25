@@ -225,6 +225,16 @@ class ProxyStock(BaseModel):
             available_subnets.remove(subnet)
             self.available_subnets = ','.join(available_subnets)
             self.save()
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        if len(self.available_subnets):
+            available_subnets = ','.join(self.available_subnets)
+            # 去除空字符串
+            available_subnets = [x for x in available_subnets if x]
+            self.available_subnets = ','.join(available_subnets)
+        super().save(force_insert, force_update, using, update_fields)
+
 
 
     def return_subnet(self, subnet):
