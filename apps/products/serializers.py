@@ -157,8 +157,10 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids,ip_count
         else:
             return cidr_ids,[]
+    def validated_data(self,validated_data):
+        logging.info(validated_data)
+        return validated_data
     def save(self, **kwargs):
-        logging.info(kwargs["product"].variants)
         # 修改商品时，如果商品的server_group发生变化
         # cidr_ids,ip_count=self.get_cidr(kwargs.get('server_group'))
         # acl_group_id = kwargs.get('acl_group').id
