@@ -142,7 +142,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Variant
         fields = ('variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
-            'variant_price',
+            'variant_price','shopify_variant_id',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
         extra_kwargs = {
             'shopify_variant_id': {'read_only': True},
