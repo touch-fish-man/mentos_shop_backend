@@ -158,6 +158,7 @@ class ProxyServerApi(ComModelViewSet):
             is_in = False
             for cidr in cidrs:
                 # 判断ip是否在cidr中
+                logging.info("ip:{},cidr:{}".format(p.ip,cidr))
                 if ipaddress.ip_address(p.ip) in ipaddress.ip_network(cidr):
                     is_in = True
                     break
