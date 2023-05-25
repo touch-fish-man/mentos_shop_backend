@@ -20,6 +20,7 @@ from django.conf import settings
 from apps.users.models import User
 import urllib
 from django.core.cache import cache
+import logging
 
 from ..users.services import get_client_ip, get_ip_location
 
@@ -132,6 +133,7 @@ class DiscordOauth2RedirectApi(APIView):
                 return redirect("/")
             user.discord_name=discord_name
             user.save()
+            logging.info(f"用户{user.username}登录成功")
             return redirect("/#/dashboard?refresh-user=1")
 
 

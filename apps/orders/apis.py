@@ -90,9 +90,9 @@ class OrdersApi(ComModelViewSet):
             permission_classes=[IsSuperUser])
     def reset_proxy_password(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
-        server_ip = Proxy.objects.filter(order_id=order_id).distinct('server_ip').all()
-        username = Proxy.objects.filter(order_id=order_id).distinct('username').all()
-        if server_ip.exists() and username.exists():
+        server_ip = Proxy.objects.filter(order_id=order_id).values_list('server_ip', flat=True).distinct()
+        username = Proxy.objects.filter(order_id=order_id).values_list('username', flat=True).distinct()
+        if len(server_ip) and len(username):
             for s_ip in server_ip:
                 for u in username:
                     ip_ = s_ip.server_ip
