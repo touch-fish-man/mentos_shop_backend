@@ -246,6 +246,7 @@ class ShopifyClient:
         note_str = "&note=" + data.get("note") if data.get("note") else ""
         discount_str = "&discount=" + data.get("discount") if data.get("discount") else ""
         ref_str = "&ref=" + data.get("ref") if data.get("ref") else ""
+        access_token_str = "&access_token=" + data.get("access_token") if data.get("access_token") else ""
         attributes_str = ""
         for attr_name,attr_value in data.get("attributes").items():
             attributes_str+="&attributes[{}]={}".format(attr_name,attr_value)
@@ -261,7 +262,7 @@ class ShopifyClient:
         # 将多个cart_id和quantity拼接成字符串，用逗号隔开
         cart_quantity_str = ",".join([cart_ids[i] + ":" + quantities[i] for i in range(len(cart_ids))])
 
-        url = base_url + cart_quantity_str + "?"+email_str+note_str+attributes_str + discount_str + ref_str
+        url = base_url + cart_quantity_str + "?"+email_str+note_str+attributes_str + discount_str + ref_str+access_token_str
         return url
 
     def get_customers(self):
