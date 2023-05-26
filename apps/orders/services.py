@@ -226,6 +226,111 @@ def create_proxy_by_order(order_id):
     return False
 
 
+def create_proxy_by_id(id):
+    """
+    根据订单创建代理
+    """
+    order_obj = Orders.objects.filter(id=id, pay_status=1).first()
+
+    if order_obj:
+        order_user_obj = User.objects.filter(id=order_obj.uid).first()
+        order_user = order_obj.username
+        user_email = order_user_obj.email
+        order_id = order_obj.order_id
+        product_name = order_obj.product_name
+        proxy_username = order_user + order_id[:6]  # 生成代理用户名
+        variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
+        if variant_obj:
+            if variant_obj.variant_stock < order_obj.product_quantity:
+                # 库存不足
+                logging.info('库存不足')
+                return False
+            server_group = variant_obj.server_group
+            acl_group = variant_obj.acl_group
+            cart_step = variant_obj.cart_step  # 购物车步长
+            acl_value = acl_group.acl_value  # 获取acl组的acl值
+            server_group_obj = ServerGroup.objects.filter(id=server_group.id).first()
+            proxy_expired_at = order_obj.expired_at  # 代理过期时间
+            proxy_list = []
+            server_list = []
+            stock_list = []
+            subnet_list = []
+            logging.info('开始创建代理')
+            if server_group_obj:
+                servers = server_group_obj.servers.all()
+                for server in servers:
+                    cidr_info = server.get_cidr_info()
+                    logging.info('服务器{}的cidr信息{}'.format(server.ip, cidr_info))
+                    if not len(cidr_info):
+                        logging.info('服务器{}没有可用的cidr'.format(server.ip))
+                    # todo 合并cidr 为了减少循环次数
+                    for cidr in cidr_info:
+                        Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
+                                                          variant_id=variant_obj.id).first()
+
+                        if Stock:
+                            cart_stock = Stock.cart_stock
+                            while cart_stock > 0:
+                                logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
+                                if len(proxy_list) >= order_obj.product_quantity:
+                                    # 代理数量已经够了
+                                    break
+                                # for i in range(order_obj.product_quantity // cart_step):
+                                kaxy_client = KaxyClient(server.ip)
+                                prefix = Stock.get_next_subnet()
+                                proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
+                                                                                   acl_value)
+                                if proxy_info["proxy"]:
+                                    proxy_list.extend(proxy_info["proxy"])
+                                    server_list.extend([server.ip] * len(proxy_info["proxy"]))
+                                    stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
+                                    subnet_list.extend([prefix] * len(proxy_info["proxy"]))
+                                    Stock.remove_available_subnet(prefix)
+                                    Stock.cart_stock -= 1
+                                    Stock.ip_stock -= len(proxy_info["proxy"])
+                                    cart_stock -= 1
+
+                                Stock.save()
+                            logging.info("cart stock:{}".format(Stock.cart_stock))
+                        else:
+                            logging.info("no stock")
+                        if len(proxy_list) >= order_obj.product_quantity:
+                            # 代理数量已经够了
+                            break
+            # logging.info(proxy_list)
+
+            if proxy_list:
+                for idx, proxy in enumerate(proxy_list):
+                    ip, port, user, password = proxy.split(":")
+                    server_ip = server_list[idx]
+                    Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
+                                         order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
+                                         ip_stock_id=stock_list[idx], subnet=subnet_list[idx])
+                # 更新订单状态
+                order_obj.order_status = 4
+                order_obj.delivery_status = 1
+                order_obj.delivery_num = len(proxy_list)
+                order_obj.save()
+                variant_obj.save()  # 更新套餐库存
+                email_template = settings.EMAIL_TEMPLATES.get("delivery")
+                subject = email_template.get('subject')
+                html_message = email_template.get('html').replace('{{order_id}}', order_id).replace('{{proxy_number}}',
+                                                                                                    str(len(
+                                                                                                        proxy_list))).replace(
+                    '{{product}}', str(product_name)).replace('{{proxy_expired_at}}',
+                                                              proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
+                from_email = email_template.get('from_email')
+                send_success = send_email_api(user_email, subject, from_email, html_message)
+                logging.info("delivery success")
+                return True
+        else:
+            logging.info('套餐不存在')
+            return False
+    else:
+        logging.info('订单不存在')
+    return False
+
+
 def renew_proxy_by_order(order_id):
     """
     根据订单续费代理

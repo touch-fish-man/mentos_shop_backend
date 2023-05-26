@@ -12,7 +12,7 @@ from rest_framework.decorators import action
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
-from apps.orders.services import create_proxy_by_order
+from apps.orders.services import create_proxy_by_order,create_proxy_by_id
 from django.conf import settings
 import logging
 
@@ -172,7 +172,7 @@ class ProxyServerApi(ComModelViewSet):
         for username, order_id in need_reset_user_list.items():
             kaxy_client.del_user(username)
             # 通过订单创建代理
-            if not create_proxy_by_order(order_id):
+            if not create_proxy_by_id(order_id):
                 falid_order_id.append({"username":username,"order_id":order_id})
         # 删除代理
         Proxy.objects.filter(id__in=need_delete_proxy_list).delete()
