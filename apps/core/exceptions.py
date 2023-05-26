@@ -25,7 +25,6 @@ def CustomExceptionHandler(ex, context):
     """
     msg = ''
     code = 4000
-    traceback.print_exc()
 
     if isinstance(ex, AuthenticationFailed):
         code = 401
