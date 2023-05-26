@@ -111,13 +111,7 @@ class ProductTagSerializer(serializers.ModelSerializer):
         fields = ('id','tag_name', 'tag_desc')
 
     def create(self, validated_data):
-        if ProductTag.objects.filter(tag_name=validated_data.get('tag_name')).exists():
-            product_tag = ProductTag.objects.get(tag_name=validated_data.get('tag_name'))
-            for k, v in validated_data.items():
-                setattr(product_tag, k, v)
-            product_tag.save()
-        else:
-            product_tag = ProductTag.objects.create(**validated_data)
+        product_tag, _ = ProductTag.objects.get_or_create(**validated_data)
         return product_tag
 class ProductTagSerializer(serializers.ModelSerializer):
     class Meta:
