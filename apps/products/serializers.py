@@ -16,20 +16,6 @@ class OptionValueSerializer(serializers.ModelSerializer):
         fields = ('option_value',)
 
 
-class ProductTagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductTag
-        fields = ('tag_name', 'tag_desc')
-
-    def create(self, validated_data):
-        if ProductTag.objects.filter(tag_name=validated_data.get('tag_name')).exists():
-            tag = ProductTag.objects.get(tag_name=validated_data.get('tag_name'))
-            for k, v in validated_data.items():
-                setattr(tag, k, v)
-            tag.save()
-        else:
-            tag = ProductTag.objects.create(**validated_data)
-        return tag
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -109,23 +95,13 @@ class ProductTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductTag
         fields = ('id','tag_name', 'tag_desc')
-
-    def create(self, validated_data):
-        product_tag, _ = ProductTag.objects.get_or_create(**validated_data)
-        return product_tag
-class ProductTagSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductTag
-        fields = ('id','tag_name', 'tag_desc')
         extra_kwargs = {
             'id': {'read_only': True},
         }
 
-    def update(self, instance, validated_data):
-        for k, v in validated_data.items():
-            setattr(instance, k, v)
-        instance.save()
-        return instance
+    def create(self, validated_data):
+        product_tag, _ = ProductTag.objects.get_or_create(**validated_data)
+        return product_tag
 class VariantUpdateSerializer(serializers.ModelSerializer):
     cart_step = serializers.IntegerField(required=True)
     variant_price = serializers.FloatField(required=True)
