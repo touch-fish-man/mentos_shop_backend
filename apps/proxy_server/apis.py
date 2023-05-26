@@ -154,6 +154,7 @@ class ProxyServerApi(ComModelViewSet):
             return ErrorResponse('参数错误')
         proxy=Proxy.objects.filter(server_ip=ip).all()
         need_reset_user_list = {}
+        need_delete_proxy_list = []
         for p in proxy:
             is_in = False
             for cidr in cidrs:
@@ -161,6 +162,7 @@ class ProxyServerApi(ComModelViewSet):
                 logging.info("ip:{},cidr:{}".format(p.ip,cidr))
                 if ipaddress.ip_address(p.ip) in ipaddress.ip_network(cidr):
                     is_in = True
+                    need_delete_proxy_list.append(p.id)
                     break
             if not is_in:
                 need_reset_user_list[p.username] = p.order_id
@@ -169,10 +171,11 @@ class ProxyServerApi(ComModelViewSet):
         falid_order_id = []
         for username, order_id in need_reset_user_list.items():
             kaxy_client.del_user(username)
-            Proxy.objects.filter(username=username).all().delete()
             # 通过订单创建代理
             if not create_proxy_by_order(order_id):
                 falid_order_id.append({"username":username,"order_id":order_id})
+        # 删除代理
+        Proxy.objects.filter(id__in=need_delete_proxy_list).delete()
         if len(falid_order_id) > 0:
             return SuccessResponse(data={"falid_order_id":falid_order_id,"message":"部分订单创建失败,请手动创建"},msg="部分订单创建失败,请手动创建")
         return SuccessResponse(data={"message": "success"})
