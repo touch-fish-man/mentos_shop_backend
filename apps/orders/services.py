@@ -155,6 +155,7 @@ def create_proxy_by_order(order_id):
             server_list = []
             stock_list = []
             subnet_list = []
+            logging.info('开始创建代理')
             if server_group_obj:
                 servers = server_group_obj.servers.all()
                 for server in servers:
