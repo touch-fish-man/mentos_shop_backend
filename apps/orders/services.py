@@ -218,6 +218,11 @@ def create_proxy_by_order(order_id):
                 send_success = send_email_api(user_email, subject, from_email, html_message)
                 logging.info("delivery success")
                 return True
+        else:
+            logging.info('套餐不存在')
+            return False
+    else:
+        logging.info('订单不存在')
     return False
 
 
