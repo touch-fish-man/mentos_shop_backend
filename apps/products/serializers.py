@@ -94,8 +94,6 @@ class VariantCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         variant = Variant.objects.create(**validated_data)
         cidr_ids,ip_count=self.get_cidr(validated_data.get('server_group'))
-        variant.variant_stock = sum(ip_count)
-        variant.save()
         acl_group_id = validated_data.get('acl_group').id
         for idx, cidr_id in enumerate(cidr_ids):
             cart_stock = ip_count[idx]//validated_data.get('cart_step')
@@ -104,6 +102,7 @@ class VariantCreateSerializer(serializers.ModelSerializer):
             porxy_stock.subnets = ",".join(subnets)
             porxy_stock.available_subnets = porxy_stock.subnets
             porxy_stock.save()
+        variant.save()
         return variant
 
 class ProductTagSerializer(serializers.ModelSerializer):
