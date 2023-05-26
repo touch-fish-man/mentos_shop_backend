@@ -138,7 +138,7 @@ margin-bottom: 10px;
 <div class="container">
 <h1>You Proxy is Ready</h1>
 <p>Dear User,</p>
-<p>Your Proxy <strong id="order_id">{{order_id}}</strong> is ready to use.</p>
+<p>Your order id <strong id="order_id">{{order_id}}</strong> is ready to use.</p>
 <p>Information:</p>
 <p>Product: {{product}}</p>
 <p>Expired Time: {{proxy_expired_at}}</p>

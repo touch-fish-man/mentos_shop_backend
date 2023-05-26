@@ -137,6 +137,7 @@ def create_proxy_by_order(order_id):
         order_user = order_obj.username
         user_email = order_user_obj.email
         order_id = order_obj.order_id
+        order_pk = order_obj.id
         product_name = order_obj.product_name
         proxy_username = order_user + order_id[:6]  # 生成代理用户名
         variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
@@ -213,7 +214,7 @@ def create_proxy_by_order(order_id):
                 variant_obj.save() # 更新套餐库存
                 email_template = settings.EMAIL_TEMPLATES.get("delivery")
                 subject = email_template.get('subject')
-                html_message = email_template.get('html').replace('{{order_id}}', order_id).replace('{{proxy_number}}',str(len(proxy_list))).replace('{{product}}',str(product_name)).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
+                html_message = email_template.get('html').replace('{{order_id}}', order_pk).replace('{{proxy_number}}',str(len(proxy_list))).replace('{{product}}',str(product_name)).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                 from_email = email_template.get('from_email')
                 send_success = send_email_api(user_email, subject, from_email, html_message)
                 logging.info("delivery success")
@@ -314,7 +315,7 @@ def create_proxy_by_id(id):
                 variant_obj.save()  # 更新套餐库存
                 email_template = settings.EMAIL_TEMPLATES.get("delivery")
                 subject = email_template.get('subject')
-                html_message = email_template.get('html').replace('{{order_id}}', order_id).replace('{{proxy_number}}',
+                html_message = email_template.get('html').replace('{{order_id}}', id).replace('{{proxy_number}}',
                                                                                                     str(len(
                                                                                                         proxy_list))).replace(
                     '{{product}}', str(product_name)).replace('{{proxy_expired_at}}',
