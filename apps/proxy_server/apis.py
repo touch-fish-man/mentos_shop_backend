@@ -177,8 +177,12 @@ class ProxyServerApi(ComModelViewSet):
         # 删除代理
         Proxy.objects.filter(id__in=need_delete_proxy_list).delete()
         if len(falid_order_id) > 0:
-            return SuccessResponse(data={"falid_order_id":falid_order_id,"message":"部分订单创建失败,请手动创建"},msg="部分订单创建失败,请手动创建")
-        return SuccessResponse(data={"message": "success"})
+            return SuccessResponse(data={"falid_order_id":falid_order_id,"message":"部分订单创建失败,请手动创建"})
+        success_dict= []
+        for username, order_id in need_reset_user_list.items():
+            success_dict.append({"username":username,"order_id":order_id})
+
+        return SuccessResponse(data={"message": "reset success","success_list":need_reset_user_list})
 
 
 class AclGroupApi(ComModelViewSet):
