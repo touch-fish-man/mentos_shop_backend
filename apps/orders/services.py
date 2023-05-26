@@ -159,6 +159,7 @@ def create_proxy_by_order(order_id):
                 servers = server_group_obj.servers.all()
                 for server in servers:
                     cidr_info = server.get_cidr_info()
+                    logging.info('服务器{}的cidr信息{}'.format(server.ip, cidr_info))
                     if not len(cidr_info):
                         logging.info('服务器{}没有可用的cidr'.format(server.ip))
                     # todo 合并cidr 为了减少循环次数
