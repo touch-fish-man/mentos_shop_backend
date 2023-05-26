@@ -143,28 +143,25 @@ class ProxyServerApi(ComModelViewSet):
         """
         重置所有用户
         """
-        if settings.DEBUG:
-            return SuccessResponse(data={"code": 200, "message": "success"})
         proxy_server = self.get_object()
         ip = proxy_server.ip
         # 查询所有用户
         # 更新用户代理
-        cidrs = request.data.get('cidrs', [])
-        if len(cidrs) == 0:
+        cidr_whitelist = request.data.get('cidrs', [])
+        if len(cidr_whitelist) == 0:
             return ErrorResponse('参数错误')
         proxy=Proxy.objects.filter(server_ip=ip).all()
         need_reset_user_list = {}
         need_delete_proxy_list = []
         for p in proxy:
             is_in = False
-            for cidr in cidrs:
-                # 判断ip是否在cidr中
-                logging.info("ip:{},cidr:{}".format(p.ip,cidr))
+            for cidr in cidr_whitelist:
+                # 判断ip是否在白名单内
                 if ipaddress.ip_address(p.ip) in ipaddress.ip_network(cidr):
                     is_in = True
-                    need_delete_proxy_list.append(p.id)
                     break
             if not is_in:
+                need_delete_proxy_list.append(p.id)
                 need_reset_user_list[p.username] = p.order_id
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
         kaxy_client = KaxyClient(ip)
