@@ -187,7 +187,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     product_collections = ProductCollectionSerializer(many=True, required=True)
-    product_tags = ProductTagSerializer(many=True)
+    product_tags = ProductTagSerializer(many=True, required=True)
     variants = VariantCreateSerializer(many=True, required=True)
     variant_options = OptionSerializer(many=True, required=True)
 

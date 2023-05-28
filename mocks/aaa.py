@@ -15,7 +15,7 @@ console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
 from apps.orders.models import Orders
-from apps.products.models import Variant
+from apps.products.models import Variant, ProductTag, ProductTagRelation
 import ipaddress
 # 库存修复
 def fix_stock():
@@ -39,7 +39,7 @@ def fix_stock():
                 xxx.save()
     for x in Variant.objects.all():
         x.save()
-fix_stock()
+# fix_stock()
 # 删除多余库存数据
 def delete_stock():
     for xxx in ProxyStock.objects.all():
@@ -48,6 +48,7 @@ def delete_stock():
         if not ppp and not va:
             print(xxx.id)
             xxx.delete()
+delete_stock()
 def get_cidr(server_group):
     cidr_ids = []
     if server_group:
@@ -89,4 +90,26 @@ def fix_cidr():
                         porxy_stock.save()
                         print("更新库存", porxy_stock.id)
         variant_obj.save()
-# fix_cidr()
+def fix_product():
+    # 合并商品标签关系
+    tag_dict={}
+    for product_tag in ProductTag.objects.all():
+        if product_tag.tag_name not in tag_dict:
+            tag_dict[product_tag.tag_name]=[]
+            tag_dict[product_tag.tag_name].append(product_tag.id)
+        else:
+            tag_dict[product_tag.tag_name].append(product_tag.id)
+            tag_dict[product_tag.tag_name].sort()
+    for relation in ProductTagRelation.objects.all():
+        # 合并商品标签关系
+        for tag_k,tag_v in tag_dict.items():
+            if relation.product_tag_id in tag_v[1:]:
+                relation.product_tag_id=tag_v[0]
+                relation.save()
+                print("合并商品标签关系",relation.id)
+    # 删除多余商品标签
+    for tag_k,tag_v in tag_dict.items():
+        for tag_id in tag_v[1:]:
+            ProductTag.objects.filter(id=tag_id).delete()
+            print("删除多余商品标签",tag_id)
+# fix_product()
