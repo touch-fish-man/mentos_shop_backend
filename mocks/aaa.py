@@ -12,7 +12,8 @@ import ipaddress
 
 console = Console()
 
-from apps.proxy_server.models import Proxy,ProxyStock,ServerGroup,Server,AclGroup
+from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
+    ServerGroupThrough, Cidr
 from apps.orders.models import Orders
 from apps.products.models import Variant
 import ipaddress
@@ -36,30 +37,56 @@ def fix_stock():
                 xxx.available_subnets=",".join(subnets)
                 xxx.ip_stock=cart_stock*xxx.cart_step
                 xxx.save()
-    # for x in Variant.objects.all():
-    #     x.save()
+    for x in Variant.objects.all():
+        x.save()
 fix_stock()
-# v_idlist= Variant.objects.values_list("id",flat=True).all()
-# s_list= ProxyStock.objects.values_list("variant_id",flat=True).all()
-# for v_id in v_idlist:
-#     if v_id not in s_list:
-#         V=Variant.objects.filter(id=v_id).first()
-#         print(V.id,V.acl_group_id)
-#
-# print("--------------")
-# for s_id in s_list:
-#     if s_id not in v_idlist:
-#         print(s_id)
-#         s=ProxyStock.objects.filter(variant_id=s_id).first()
-#         print(s.id,s.acl_group_id)
+# 删除多余库存数据
+def delete_stock():
+    for xxx in ProxyStock.objects.all():
+        ppp=Proxy.objects.filter(ip_stock_id=xxx.id).all() # 没有发货数据
+        va=Variant.objects.filter(id=xxx.variant_id).first() # 没有商品数据
+        if not ppp and not va:
+            print(xxx.id)
+            xxx.delete()
+def get_cidr(server_group):
+    cidr_ids = []
+    if server_group:
 
+        server_ids=ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id', flat=True)
+        cidr_ids=ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
+        ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
+        return cidr_ids,ip_count
+    else:
+        return cidr_ids,[]
+def fix_cidr():
+    # 查询所有产品
+    for variant_obj in Variant.objects.all():
+        servers = variant_obj.server_group.servers.all()
+        acl_group = variant_obj.acl_group.id
 
-
-
-# for ddd in Orders.objects.all():
-#
-#     if ddd.expired_at.replace(tzinfo=None)<=datetime.datetime.utcnow():
-#         ddd.status=3
-#         ddd.delete()
-
-
+        for server in servers:
+            cidr_info = server.get_cidr_info()
+            for cidr_i in cidr_info:
+                ip_stock = cidr_i.get('ip_count')
+                if not ProxyStock.objects.filter(variant_id=variant_obj.id, acl_group_id=acl_group, cidr_id=cidr_i['id']).exists():
+                    cart_stock = ip_stock // variant_obj.cart_step
+                    porxy_stock = ProxyStock.objects.create(cidr_id=cidr_i['id'], acl_group_id=acl_group,
+                                                            ip_stock=ip_stock, variant_id=variant_obj.id,
+                                                            cart_step=variant_obj.cart_step,
+                                                            cart_stock=cart_stock)
+                    subnets = porxy_stock.gen_subnets()
+                    porxy_stock.subnets = ",".join(subnets)
+                    porxy_stock.available_subnets = porxy_stock.subnets
+                    porxy_stock.save()
+                    print("创建库存", porxy_stock.id)
+                else:
+                    porxy_stock = ProxyStock.objects.filter(variant_id=variant_obj.id, acl_group_id=acl_group,
+                                                            cidr_id=cidr_i['id']).first()
+                    if not porxy_stock.subnets:
+                        subnets = porxy_stock.gen_subnets()
+                        porxy_stock.subnets = ",".join(subnets)
+                        porxy_stock.available_subnets = porxy_stock.subnets
+                        porxy_stock.save()
+                        print("更新库存", porxy_stock.id)
+        variant_obj.save()
+# fix_cidr()
