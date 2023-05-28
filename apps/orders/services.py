@@ -271,7 +271,7 @@ def create_proxy_by_id(id):
 
                         if Stock:
                             cart_stock = Stock.cart_stock
-                            while cart_stock > 0:
+                            while cart_stock > 0 and Stock.available_subnet:
                                 logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
