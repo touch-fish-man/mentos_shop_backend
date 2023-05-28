@@ -44,7 +44,7 @@ class OrdersApi(ComModelViewSet):
     serializer_class = OrdersSerializer
     update_serializer_class = OrdersUpdateSerializer
     get_status_serializer_class = OrdersStatusSerializer
-    search_fields = ('order_id', 'username', 'uid', 'product_name')
+    search_fields = ('id','order_id','shopify_order_number', 'username', 'uid', 'product_name', 'product_type')
     filterset_fields = ('order_id', 'username', 'uid', 'product_name', 'product_type')
     permission_classes = [IsAuthenticated]
 
