@@ -52,7 +52,6 @@ class VariantSerializer(serializers.ModelSerializer):
 
     def get_variant_stock(self, obj):
         variant_stock = obj.update_stock()
-        logging.info("variant_stock:{}".format(variant_stock))
         return variant_stock
 
     def to_representation(self, instance):
