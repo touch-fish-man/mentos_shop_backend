@@ -164,22 +164,9 @@ class ProxyServerApi(ComModelViewSet):
                 need_delete_proxy_list.append(p.id)
                 need_reset_user_list[p.username] = p.order_id
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
-        kaxy_client = KaxyClient(ip)
-        falid_order_id = []
         for username, order_id in need_reset_user_list.items():
-            kaxy_client.del_user(username)
-            # 通过订单创建代理
-            if not create_proxy_by_id(order_id):
-                falid_order_id.append({"username":username,"order_id":order_id})
-        # 删除代理
-        Proxy.objects.filter(id__in=need_delete_proxy_list).delete()
-        if len(falid_order_id) > 0:
-            return SuccessResponse(data={"falid_order_id":falid_order_id,"message":"部分订单创建失败,请手动创建"})
-        success_dict= []
-        for username, order_id in need_reset_user_list.items():
-            success_dict.append({"username":username,"order_id":order_id})
-
-        return SuccessResponse(data={"message": "reset success","success_list":need_reset_user_list})
+            create_proxy_task(order_id,username, server_ip)
+        return SuccessResponse(data={"message": "reset success","reset_list":need_reset_user_list})
 
 
 class AclGroupApi(ComModelViewSet):
