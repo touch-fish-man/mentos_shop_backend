@@ -38,7 +38,7 @@ def check_server_status():
     print('check_server_status done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
 
-@shared_task
+@shared_task(name='reset_proxy')
 def reset_proxy_fn(order_id, username, server_ip):
     ret_json = {}
     kaxy_client = KaxyClient(server_ip)
@@ -72,7 +72,7 @@ def create_proxy_task(order_id, username, server_ip):
     interval.save()
     PeriodicTask.objects.get_or_create(
         name=f'重置代理_{order_id}',
-        task='reset_proxy_fn',
+        task='reset_proxy',
         args=json.dumps([order_id, username, server_ip]),
         interval=interval,
         start_time=datetime.datetime.now(),
