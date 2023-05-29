@@ -165,12 +165,11 @@ def create_proxy_by_order(order_id):
                         logging.info('服务器{}没有可用的cidr'.format(server.ip))
                     # todo 合并cidr 为了减少循环次数
                     for cidr in cidr_info:
-                        Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
-                                                          variant_id=variant_obj.id).first()
+                        Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
                         
                         if Stock:
                             cart_stock = Stock.cart_stock
-                            while cart_stock > 0:
+                            while cart_stock > 0 and Stock.available_subnets:
                                 logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
@@ -365,8 +364,7 @@ def create_proxy_by_id(id):
                         logging.info('服务器{}没有可用的cidr'.format(server.ip))
                     # todo 合并cidr 为了减少循环次数
                     for cidr in cidr_info:
-                        Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
-                                                          variant_id=variant_obj.id).first()
+                        Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
 
                         if Stock:
                             cart_stock = Stock.cart_stock

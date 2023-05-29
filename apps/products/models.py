@@ -4,7 +4,7 @@ import traceback
 from apps.core.models import BaseModel
 from django.db import models
 
-from apps.proxy_server.models import ProxyStock
+from apps.proxy_server.models import ProxyStock, ServerGroupThrough, ServerCidrThrough, Cidr
 
 
 class ProductTag(BaseModel):
@@ -86,9 +86,28 @@ class Variant(BaseModel):
 
     def get_stock(self):
         variant_stock = 0
-        for x in ProxyStock.objects.filter(variant_id=self.id).all():
-            variant_stock += x.ip_stock
+        cart_step = self.cart_step
+        acl_group = self.acl_group
+        server_group = self.server_group
+        cidr_ids, ip_count = self.get_cidr(server_group)
+        for cidr_id in cidr_ids:
+            stock_obj=ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group).first()
+            if stock_obj:
+                variant_stock += stock_obj.ip_stock
         return variant_stock
+
+    def get_cidr(self, server_group):
+        cidr_ids = []
+        if server_group:
+
+            server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
+                                                                                                        flat=True)
+            cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
+            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
+            return cidr_ids, ip_count
+        else:
+            return cidr_ids, []
+
 
     def update_stock(self):
         get_stock = self.get_stock()

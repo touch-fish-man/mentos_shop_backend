@@ -39,7 +39,7 @@ def fix_stock():
                 xxx.save()
     for x in Variant.objects.all():
         x.save()
-fix_stock()
+# fix_stock()
 # 删除多余库存数据
 def delete_stock():
     for xxx in ProxyStock.objects.all():
@@ -48,7 +48,7 @@ def delete_stock():
         if not ppp and not va:
             print(xxx.id)
             xxx.delete()
-delete_stock()
+# delete_stock()
 def get_cidr(server_group):
     cidr_ids = []
     if server_group:
@@ -90,7 +90,7 @@ def fix_cidr():
                         porxy_stock.save()
                         print("更新库存", porxy_stock.id)
         variant_obj.save()
-fix_cidr()
+# fix_cidr()
 def fix_product():
     # 合并商品标签关系
     tag_dict={}
@@ -114,3 +114,5 @@ def fix_product():
             ProductTag.objects.filter(id=tag_id).delete()
             print("删除多余商品标签",tag_id)
 # fix_product()
+for sss in ProxyStock.objects.all():
+    print(sss)
