@@ -16,7 +16,8 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread
+from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, \
+    reset_proxy_by_order
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -151,7 +152,7 @@ class OrdersApi(ComModelViewSet):
                     return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
             Proxy.objects.filter(order_id=order_pk).all().delete()
             # 重新创建代理
-            t1=threading.Thread(target=create_proxy_by_order, args=(order_id,),name="reset_{}".format(order_id)).start()
+            t1=threading.Thread(target=reset_proxy_by_order, args=(order_id,),name="reset_{}".format(order_id)).start()
 
         else:
             return ErrorResponse(data={}, msg="订单不存在")
