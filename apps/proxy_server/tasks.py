@@ -1,6 +1,6 @@
 import datetime
 
-from celery.utils.time import timezone
+from django.utils import timezone
 
 from apps.proxy_server.models import Server
 import json
@@ -77,7 +77,6 @@ def create_proxy_task(order_id, username, server_ip):
         task='reset_proxy',
         args=json.dumps([order_id, username, server_ip]),
         interval=interval,
-        start_time=timezone.now(),
         one_off=True,
         expires=timezone.now() + datetime.timedelta(seconds=60)
     )
