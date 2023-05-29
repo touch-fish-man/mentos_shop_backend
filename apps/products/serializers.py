@@ -42,6 +42,7 @@ class OptionSerializer(serializers.ModelSerializer):
 class VariantSerializer(serializers.ModelSerializer):
     server_group = ServersGroupSerializer()
     acl_group = AclsGroupSerializer()
+    variant_stock =  serializers.CharField(read_only=True)
     class Meta:
         model = Variant
         fields = ("id",
