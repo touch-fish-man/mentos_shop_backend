@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 import datetime
+import json
+
 import pytz
 from celery.schedules import crontab
 from apps.orders.models import Orders
@@ -43,8 +45,10 @@ def check_order_expired():
     """
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
     orders = Orders.objects.filter(pay_status=1,order_status=4).all() # 已支付，已发货
+    ret_orders = []
     for order_obj_item in orders:
         if order_obj_item.expired_at <= utc_now:
+            ret_orders.append(order_obj_item.id)
             proxy = Proxy.objects.filter(order_id=order_obj_item.id).first()
             if proxy:
                 client=KaxyClient(proxy.server_ip)
@@ -52,7 +56,11 @@ def check_order_expired():
                 proxy.delete()
                 order_obj_item.order_status = 3
                 order_obj_item.save()
-    print('check_order_expired done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    data = {
+        'orders': ret_orders,
+        'status': 1
+    }
+    return json.dumps(data)
 
 @shared_task(name='delete_proxy_expired')
 def delete_proxy_expired():
@@ -71,7 +79,7 @@ def delete_proxy_expired():
         for user in users:
             client=KaxyClient(s_ip)
             client.del_user(user)
-    print('delete_proxy_expired done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    return json.dumps({'status': 1})
 
 @shared_task(name='delete_timeout_order')
 def delete_timeout_order():
