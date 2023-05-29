@@ -39,7 +39,7 @@ def fix_stock():
                 xxx.save()
     for x in Variant.objects.all():
         x.save()
-# fix_stock()
+fix_stock()
 # 删除多余库存数据
 def delete_stock():
     for xxx in ProxyStock.objects.all():
@@ -90,6 +90,7 @@ def fix_cidr():
                         porxy_stock.save()
                         print("更新库存", porxy_stock.id)
         variant_obj.save()
+fix_cidr()
 def fix_product():
     # 合并商品标签关系
     tag_dict={}
