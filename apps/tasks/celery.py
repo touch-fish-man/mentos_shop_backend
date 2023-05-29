@@ -25,27 +25,27 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # 设置定时任务
 app.conf.beat_schedule = {
-    'update_user_level': {
+    '用户等级衰减': {
         'task': 'update_user_level',
         'schedule': crontab(hour=1, minute=0, day_of_month=1), # 每月1号凌晨1点执行
     },
-    'sync_user_to_shopify': {
+    '同步用户信息至shopify': {
         'task': 'sync_user_to_shopify',
         'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
-    'check_order_expired': {
+    '过期订单检查': {
         'task': 'check_order_expired',
         'schedule': 6000.0, # 每小时执行一次
     },
-    'delete_proxy_expired': {
+    '删除过期代理': {
         'task': 'delete_proxy_expired',
         'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
-    'precheck_order_expired': {
+    '过期订单提醒': {
         'task': 'precheck_order_expired',
         'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
-    'check_coupon_code_expired': {
+    '检查优惠券过期': {
         'task': 'check_coupon_code_expired',
         'schedule': crontab(hour=1, minute=0, day_of_week=1), # 每周1凌晨1点执行
     },
@@ -54,11 +54,11 @@ app.conf.beat_schedule = {
         
         'schedule': 6000.0, # 每小时执行一次
     },
-    'delete_timeout_order': {
+    '删除超时订单': {
         'task': 'delete_timeout_order',
         'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
     },
-    'delete_api_logs': {
+    '删除api请求记录': {
         'task': 'delete_api_logs',
         'schedule': crontab(hour=2, minute=0), # 每天凌晨1点执行
     },
