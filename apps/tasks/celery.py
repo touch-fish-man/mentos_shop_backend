@@ -49,10 +49,10 @@ app.conf.beat_schedule = {
         'task': 'check_coupon_code_expired',
         'schedule': crontab(hour=1, minute=0, day_of_week=1), # 每周1凌晨1点执行
     },
-    'check_server_status': {
+    '服务器状态检查': {
         'task': 'check_server_status',
         
-        'schedule': 600.0, # 每十分钟执行一次
+        'schedule': 6000.0, # 每小时执行一次
     },
     'delete_timeout_order': {
         'task': 'delete_timeout_order',
