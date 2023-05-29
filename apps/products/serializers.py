@@ -44,7 +44,7 @@ class VariantSerializer(serializers.ModelSerializer):
     acl_group = AclsGroupSerializer()
     class Meta:
         model = Variant
-        fields = (
+        fields = ("id",
             "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
