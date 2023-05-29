@@ -69,6 +69,7 @@ class Orders(BaseModel):
     proxy_time = models.IntegerField(default=30,verbose_name='代理时间')
     delivery_status = models.IntegerField(verbose_name='发货状态', default=0)
     delivery_num = models.IntegerField(verbose_name='发货数量', default=0)
+    reset_time = models.DateTimeField(verbose_name='重置时间', null=True, blank=True)
 
     class Meta:
         db_table = 'orders'

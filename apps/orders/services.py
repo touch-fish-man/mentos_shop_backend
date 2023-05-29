@@ -15,7 +15,7 @@ from apps.products.models import Product, Variant
 from apps.utils.kaxy_handler import KaxyClient
 from apps.users.models import User, InviteLog
 from apps.users.services import send_email_api
-
+from django.utils import timezone
 
 def verify_webhook(request):
     shopify_hmac_header = request.META.get("HTTP_X_SHOPIFY_HMAC_SHA256")
@@ -310,6 +310,7 @@ def create_proxy_by_id(id):
                 # 更新订单状态
                 order_obj.order_status = 4
                 order_obj.delivery_status = 1
+                order_obj.reset_time = timezone.now()
                 order_obj.delivery_num = len(proxy_list)
                 order_obj.save()
                 variant_obj.save()  # 更新套餐库存
