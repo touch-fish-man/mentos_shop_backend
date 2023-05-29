@@ -86,7 +86,7 @@ class VariantCreateSerializer(serializers.ModelSerializer):
             if ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=acl_group_id,cart_stock=cart_stock).exists():
                 # 如果已经存在，就不创建了
                 continue
-            porxy_stock = ProxyStock.objects.get_or_create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx],cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
+            porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx],cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
             subnets = porxy_stock.gen_subnets()
             porxy_stock.subnets = ",".join(subnets)
             porxy_stock.available_subnets = porxy_stock.subnets
