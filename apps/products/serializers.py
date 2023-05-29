@@ -48,6 +48,9 @@ class VariantSerializer(serializers.ModelSerializer):
             "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
+    def get_variant_stock(self, obj):
+        variant_stock = obj.update_stock()
+        return variant_stock
     
     def to_representation(self, instance):
         ret = super().to_representation(instance)

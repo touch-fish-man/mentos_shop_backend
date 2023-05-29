@@ -113,6 +113,7 @@ class Variant(BaseModel):
         get_stock = self.get_stock()
         self.variant_stock = get_stock
         self.save()
+        return get_stock
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
