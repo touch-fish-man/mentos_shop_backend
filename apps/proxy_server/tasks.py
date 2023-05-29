@@ -78,4 +78,5 @@ def create_proxy_task(order_id, username, server_ip):
         interval=interval,
         start_time=datetime.now(),
         one_off=True,
+        expires=datetime.now() + datetime.timedelta(seconds=60)
     )
