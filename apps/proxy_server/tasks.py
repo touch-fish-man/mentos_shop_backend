@@ -3,7 +3,6 @@ import datetime
 from apps.proxy_server.models import Server
 import json
 import time
-from datetime import datetime
 
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
@@ -76,7 +75,7 @@ def create_proxy_task(order_id, username, server_ip):
         task='reset_proxy_fn',
         args=json.dumps([order_id, username, server_ip]),
         interval=interval,
-        start_time=datetime.now(),
+        start_time=datetime.datetime.now(),
         one_off=True,
-        expires=datetime.now() + datetime.timedelta(seconds=60)
+        expires=datetime.datetime.now() + datetime.timedelta(seconds=60)
     )
