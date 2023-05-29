@@ -50,6 +50,7 @@ class VariantSerializer(serializers.ModelSerializer):
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
     def get_variant_stock(self, obj):
         variant_stock = obj.update_stock()
+        logging.info("variant_stock:{}".format(variant_stock))
         return variant_stock
     
     def to_representation(self, instance):
