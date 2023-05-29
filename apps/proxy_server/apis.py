@@ -145,13 +145,13 @@ class ProxyServerApi(ComModelViewSet):
         重置所有用户
         """
         proxy_server = self.get_object()
-        ip = proxy_server.ip
+        server_ip = proxy_server.ip
         # 查询所有用户
         # 更新用户代理
         cidr_whitelist = request.data.get('cidrs', [])
         if len(cidr_whitelist) == 0:
             return ErrorResponse('参数错误')
-        proxy=Proxy.objects.filter(server_ip=ip).all()
+        proxy=Proxy.objects.filter(server_ip=server_ip).all()
         need_reset_user_list = {}
         need_delete_proxy_list = []
         for p in proxy:
