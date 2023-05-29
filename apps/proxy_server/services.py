@@ -9,7 +9,7 @@ from celery import shared_task
 
 from apps.utils.kaxy_handler import KaxyClient
 
-
+@shared_task
 def reset_proxy_fn(order_id, username, server_ip):
     ret_json = {}
     kaxy_client = KaxyClient(server_ip)
@@ -39,14 +39,5 @@ def reset_proxy_fn(order_id, username, server_ip):
 
 def create_proxy_task(order_id, username, server_ip):
     # 创建一次性celery任务，立即执行，执行完毕后删除
-    random_str = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    interval = IntervalSchedule(every=1, period=IntervalSchedule.SECONDS)
-    interval.save()
-    PeriodicTask.objects.get_or_create(
-        name=f'重置代理_{order_id}',
-        task='apps.proxy_server.services.reset_proxy_fn',
-        args=(order_id, username, server_ip),
-        interval=interval,
-        start_time=datetime.now(),
-        one_off=True,
-    )
+    task_name = 'reset_proxy_{}_{}'.format(order_id, username)
+    reset_proxy_fn.apply_async(args=[order_id, username, server_ip], task_id=task_name)
