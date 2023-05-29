@@ -114,5 +114,21 @@ def fix_product():
             ProductTag.objects.filter(id=tag_id).delete()
             print("删除多余商品标签",tag_id)
 # fix_product()
-for sss in ProxyStock.objects.all():
-    print(sss)
+def classify_stock():
+    proxy_stock_dict={}
+    for sss in ProxyStock.objects.all():
+        # 根据cidr_id,acl_group_id,car_step合并库存
+        key="-".join((str(sss.cidr_id),str(sss.acl_group_id),str(sss.cart_step)))
+        if key not in proxy_stock_dict:
+            proxy_stock_dict[key]=[]
+            proxy_stock_dict[key].append(sss.id)
+        else:
+            proxy_stock_dict[key].append(sss.id)
+            proxy_stock_dict[key].sort()
+    for k,v in proxy_stock_dict.items():
+        for id in v[1:]:
+            # 修改proxy表中的库存id
+            Proxy.objects.filter(ip_stock_id=id).update(ip_stock_id=v[0])
+            # 删除多余库存
+            ProxyStock.objects.filter(id=id).delete()
+            print("删除多余库存",id)
