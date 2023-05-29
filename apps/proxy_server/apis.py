@@ -13,6 +13,7 @@ from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
 from apps.orders.services import create_proxy_by_order,create_proxy_by_id
+from apps.proxy_server.services import create_proxy_task
 from django.conf import settings
 import logging
 
