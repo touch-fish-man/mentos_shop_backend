@@ -23,8 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.orders.services import create_proxy_by_order
 
 from apps.utils.kaxy_handler import KaxyClient
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
+from apps.products.models import Product, Variant
 
 class OrdersApi(ComModelViewSet):
     """
@@ -183,8 +182,11 @@ class OrdersApi(ComModelViewSet):
         order_id = order.order_id
         if order.expired_at < datetime.datetime.now(tz=datetime.timezone.utc):
             return ErrorResponse(data={}, msg="The order has expired, please place a new order.")  # 订单已过期，请下新订单
+
+        if not Variant.objects.filter(id=order.local_variant_id).first():
+            return ErrorResponse(data={}, msg="The product does not exist, please place a new order.")  # 产品不存在，请下新订单
         checkout_url, order_id = get_renew_checkout_link(order_id=order_id)
-        return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="订单生成成功")
+        return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="get checkout url success")
 
 
 class OrderCallbackApi(APIView):
