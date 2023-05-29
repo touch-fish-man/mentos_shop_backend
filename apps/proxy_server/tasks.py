@@ -73,7 +73,7 @@ def create_proxy_task(order_id, username, server_ip):
     interval.save()
     PeriodicTask.objects.get_or_create(
         name=f'重置代理_{order_id}',
-        task='apps.proxy_server.services.reset_proxy_fn',
+        task='reset_proxy_fn',
         args=json.dumps([order_id, username, server_ip]),
         interval=interval,
         start_time=datetime.now(),
