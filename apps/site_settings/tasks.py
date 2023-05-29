@@ -9,6 +9,7 @@ def delete_api_logs():
     """
     删除api日志
     """
-    APILogsModel.objects.filter(added_on__lt=datetime.datetime.now() - datetime.timedelta(days=2)).delete()
-    print('delete_api_logs done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-
+    delete_list=APILogsModel.objects.filter(added_on__lt=datetime.datetime.now() - datetime.timedelta(days=2)).all()
+    for d in delete_list:
+        d.delete()
+    return {'message': 'delete {} api logs done '.format(str(len(delete_list)))}
