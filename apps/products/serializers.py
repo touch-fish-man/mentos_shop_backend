@@ -5,8 +5,8 @@ from apps.core.validators import CustomValidationError
 from rest_framework import serializers
 from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue
 from apps.proxy_server.models import Acls, Cidr, ProxyStock
-from apps.proxy_server.serializers import ServersGroupSerializer,AclsGroupSerializer,AclGroup,ServerGroup
-from apps.proxy_server.models import ServerGroupThrough,ServerCidrThrough
+from apps.proxy_server.serializers import ServersGroupSerializer, AclsGroupSerializer, AclGroup, ServerGroup
+from apps.proxy_server.models import ServerGroupThrough, ServerCidrThrough
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 
 
@@ -14,8 +14,6 @@ class OptionValueSerializer(serializers.ModelSerializer):
     class Meta:
         model = OptionValue
         fields = ('option_value',)
-
-
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -42,56 +40,65 @@ class OptionSerializer(serializers.ModelSerializer):
 class VariantSerializer(serializers.ModelSerializer):
     server_group = ServersGroupSerializer()
     acl_group = AclsGroupSerializer()
-    variant_stock =  serializers.CharField(read_only=True)
+    variant_stock = serializers.CharField(read_only=True)
+
     class Meta:
         model = Variant
         fields = ("id",
-            "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
-            'variant_price',
-            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
+                  "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step',
+                  'is_active',
+                  'variant_price',
+                  'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
+
     def get_variant_stock(self, obj):
         variant_stock = obj.update_stock()
         logging.info("variant_stock:{}".format(variant_stock))
         return variant_stock
-    
+
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         if not ret["variant_desc"]:
             ret["variant_desc"] = ''
+        ret["variant_stock"] = self.get_variant_stock(instance)
         return ret
+
 
 class VariantCreateSerializer(serializers.ModelSerializer):
     cart_step = serializers.IntegerField(required=True)
     variant_price = serializers.FloatField(required=True)
     server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
     acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
+
     class Meta:
         model = Variant
         fields = (
             "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
             'variant_price',
-            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
-    def get_cidr(self,server_group):
+            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
+
+    def get_cidr(self, server_group):
         cidr_ids = []
         if server_group:
 
-            server_ids=ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id', flat=True)
-            cidr_ids=ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
+            server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
+                                                                                                        flat=True)
+            cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
             ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
-            return cidr_ids,ip_count
+            return cidr_ids, ip_count
         else:
-            return cidr_ids,[]
+            return cidr_ids, []
 
     def create(self, validated_data):
         variant = Variant.objects.create(**validated_data)
-        cidr_ids,ip_count=self.get_cidr(validated_data.get('server_group'))
+        cidr_ids, ip_count = self.get_cidr(validated_data.get('server_group'))
         acl_group_id = validated_data.get('acl_group').id
         for idx, cidr_id in enumerate(cidr_ids):
-            cart_stock = ip_count[idx]//validated_data.get('cart_step')
-            if ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=acl_group_id,cart_stock=cart_stock).exists():
+            cart_stock = ip_count[idx] // validated_data.get('cart_step')
+            if ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=acl_group_id, cart_stock=cart_stock).exists():
                 # 如果已经存在，就不创建了
                 continue
-            porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx],cart_step=validated_data.get('cart_step'),cart_stock=cart_stock)
+            porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx],
+                                                    cart_step=validated_data.get('cart_step'), cart_stock=cart_stock)
             subnets = porxy_stock.gen_subnets()
             porxy_stock.subnets = ",".join(subnets)
             porxy_stock.available_subnets = porxy_stock.subnets
@@ -99,10 +106,11 @@ class VariantCreateSerializer(serializers.ModelSerializer):
         variant.save()
         return variant
 
+
 class ProductTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductTag
-        fields = ('id','tag_name', 'tag_desc')
+        fields = ('id', 'tag_name', 'tag_desc')
         extra_kwargs = {
             'id': {'read_only': True},
         }
@@ -110,6 +118,8 @@ class ProductTagSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         product_tag, _ = ProductTag.objects.get_or_create(**validated_data)
         return product_tag
+
+
 class VariantUpdateSerializer(serializers.ModelSerializer):
     cart_step = serializers.IntegerField(required=True)
     variant_price = serializers.FloatField(required=True)
@@ -117,26 +127,30 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
     shopify_variant_id = serializers.CharField(required=False)
     id = serializers.CharField(required=False)
+
     class Meta:
         model = Variant
-        fields = ('id','variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
-            'variant_price','shopify_variant_id',
-            'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3',"proxy_time")
+        fields = ('id', 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
+                  'variant_price', 'shopify_variant_id',
+                  'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
         extra_kwargs = {
             'shopify_variant_id': {'read_only': True},
             'id': {'read_only': True},
         }
-    def get_cidr(self,server_group):
+
+    def get_cidr(self, server_group):
         cidr_ids = []
         if server_group:
-            server_group_id=server_group.id
+            server_group_id = server_group.id
 
-            server_ids=ServerGroupThrough.objects.filter(server_group_id=server_group_id).values_list('server_id', flat=True)
-            cidr_ids=ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
+            server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group_id).values_list('server_id',
+                                                                                                        flat=True)
+            cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
             ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
-            return cidr_ids,ip_count
+            return cidr_ids, ip_count
         else:
-            return cidr_ids,[]
+            return cidr_ids, []
+
     def validate(self, attrs):
         logging.info(attrs)
         logging.info(self.instance)
@@ -169,7 +183,7 @@ class ProductCollectionSerializer(serializers.ModelSerializer):
         fields = ('id', 'collection_name', 'collection_desc', 'shopify_collection_id')
 
     def create(self, validated_data):
-        product_collection,_=ProductCollection.objects.get_or_create(**validated_data)
+        product_collection, _ = ProductCollection.objects.get_or_create(**validated_data)
         return product_collection
 
 
@@ -185,10 +199,11 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ("id",
                   'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
                   'variants',
-                  'variant_options',"created_at","lower_price")
+                  'variant_options', "created_at", "lower_price")
+
     def get_lower_price(self, obj):
         if obj.variants.exists():
-            return "$"+str(obj.variants.order_by('variant_price').first().variant_price)+"+"
+            return "$" + str(obj.variants.order_by('variant_price').first().variant_price) + "+"
         else:
             return "$0.0+"
 
@@ -205,6 +220,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
             'variants',
             'variant_options')
+
     def validate_product_collections(self, product_collections):
         if not product_collections:
             raise CustomValidationError("产品系列不能为空,请在shopify中添加后重新同步")
@@ -233,6 +249,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             product_tag = ProductTagSerializer().create(product_tag_data)
             product.product_tags.add(product_tag)
         return product
+
+
 class ProductUpdateSerializer(WritableNestedModelSerializer):
     product_collections = ProductCollectionSerializer(many=True, read_only=True)
     product_tags = ProductTagSerializer(many=True, read_only=True)
@@ -245,6 +263,7 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
             'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
             'variants',
             'variant_options')
+
     def validate_product_collections(self, product_collections):
         if not product_collections:
             CustomValidationError("产品系列不能为空,请在shopify中添加后重新同步")
