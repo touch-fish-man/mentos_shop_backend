@@ -39,7 +39,7 @@ def fix_stock():
                 xxx.save()
     for x in Variant.objects.all():
         x.save()
-# fix_stock()
+fix_stock()
 # 删除多余库存数据
 def delete_stock():
     for xxx in ProxyStock.objects.all():
