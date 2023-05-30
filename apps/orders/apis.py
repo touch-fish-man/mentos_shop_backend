@@ -174,7 +174,7 @@ class OrdersApi(ComModelViewSet):
     @action(methods=['post'], detail=True, url_path='order-renew-checkout', url_name='order-renew-checkout')
     def order_renew_checkout(self, request, *args, **kwargs):
         order_pk = kwargs.get('pk')
-        if request.user.is_superuser and "tset" not in request.user.username:
+        if request.user.is_superuser:
             return ErrorResponse(data={}, msg="管理员无法购买")
         order = Orders.objects.filter(id=order_pk)
         if not order.exists():

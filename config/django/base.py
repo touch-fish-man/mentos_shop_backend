@@ -338,10 +338,6 @@ LOGGING = {
     },
     "loggers": {
         # default日志
-        "": {
-            "handlers": ["console", "error", "file"],
-            "level": "INFO",
-        },
         "django": {
             "handlers": ["console", "error", "file"],
             "level": "INFO",
@@ -357,6 +353,12 @@ LOGGING = {
             "handlers": [],
             "propagate": True,
             "level": "INFO",
+        },
+        # requests相关日志
+        "django.request": {  # Django的request发生error会自动记录
+            "handlers": ["mail_admins"],
+            "level": "ERROR",
+            "propagate": True,  # 向不向更高级别的logger传递
         },
     },
 }
