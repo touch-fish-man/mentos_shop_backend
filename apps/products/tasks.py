@@ -2,7 +2,7 @@ from apps.products.models import Variant, ProductTag, ProductTagRelation
 from celery import shared_task
 
 
-@shared_task
+@shared_task(bind=True, name='update_product_stock')
 def update_product_stock():
     """
     更新商品库存
