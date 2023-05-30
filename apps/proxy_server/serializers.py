@@ -186,6 +186,7 @@ class ServerUpdateSerializer(CommonSerializer):
             instance.cidrs.add(cidr_obj.id)
         instance = super().update(instance, validated_data)
         from apps.products.tasks import update_product_stock
+        from apps.tasks import celery_app
         # 更新产品库存
-        update_product_stock.delay()
+        celery_app.send_task('update_product_stock')
         return instance
