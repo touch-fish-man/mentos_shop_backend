@@ -103,7 +103,7 @@ TEMPLATES = [
 ]
 os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 DRF_API_LOGGER_DATABASE = True
-DRF_API_LOGGER_SKIP_URL_NAME = ['checkout']
+DRF_API_LOGGER_SKIP_URL_NAME = ['get_status']
 WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -299,7 +299,7 @@ CONSOLE_LOG_FORMAT = (
 
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": False,
+    "disable_existing_loggers": True,
     "formatters": {
         "standard": {"format": STANDARD_LOG_FORMAT},
         "console": {

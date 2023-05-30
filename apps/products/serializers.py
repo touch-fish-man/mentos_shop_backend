@@ -151,8 +151,6 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids, []
 
     def validate(self, attrs):
-        logging.info(attrs)
-        logging.info(self.instance)
         cidr_ids,ip_count=self.get_cidr(attrs.get('server_group'))
         acl_group_id = attrs.get('acl_group').id
         cart_step = attrs.get('cart_step')
