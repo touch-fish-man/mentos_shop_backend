@@ -357,7 +357,7 @@ LOGGING = {
         # requests相关日志
         "django.request": {
             "level": "DEBUG",
-            "handlers": ["request"],
+            "handlers": ["console", "error", "file"],
             'propagate': False,
         },
     },
