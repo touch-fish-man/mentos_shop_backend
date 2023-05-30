@@ -1,8 +1,16 @@
+from apps.products.models import Variant, ProductTag, ProductTagRelation
+from celery import shared_task
+
+
+@shared_task
 def update_product_stock():
     """
-    定时任务，更新商品库存
+    更新商品库存
     """
-    pass
+    for v in Variant.objects.all():
+        v.update_stock()
+        print("更新库存", v.id)
+
 
 def update_product_from_shopify():
     """

@@ -182,7 +182,10 @@ class ServerUpdateSerializer(CommonSerializer):
         instance.cidrs.clear()
         for cidr in cidrs:
             cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
-            cidr_obj = Cidr.objects.get_or_create(**cidr)
-            instance.cidrs.add(cidr_obj[0].id)
+            cidr_obj,if_create = Cidr.objects.get_or_create(**cidr)
+            instance.cidrs.add(cidr_obj.id)
         instance = super().update(instance, validated_data)
+        from apps.products.tasks import update_product_stock
+        # 更新产品库存
+        update_product_stock.delay()
         return instance

@@ -90,10 +90,15 @@ class Variant(BaseModel):
         acl_group = self.acl_group
         server_group = self.server_group
         cidr_ids, ip_count = self.get_cidr(server_group)
-        for cidr_id in cidr_ids:
+        for idx,cidr_id in enumerate(cidr_ids):
             stock_obj=ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group).first()
             if stock_obj:
                 variant_stock += stock_obj.ip_stock
+            else:
+                # 不存在则创建
+                cart_stock =ip_count[idx] // cart_step
+                ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group, ip_stock=ip_count[idx], cart_stock=cart_stock)
+                variant_stock += ip_count[idx]
         return variant_stock
 
     def get_cidr(self, server_group):
