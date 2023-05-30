@@ -3,10 +3,11 @@ from celery import shared_task
 
 
 @shared_task(bind=True, name='update_product_stock')
-def update_product_stock():
+def update_product_stock(*args, **kwargs):
     """
     更新商品库存
     """
+    
     for v in Variant.objects.all():
         v.update_stock()
         print("更新库存", v.id)
