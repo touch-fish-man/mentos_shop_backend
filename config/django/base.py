@@ -355,10 +355,10 @@ LOGGING = {
             "level": "INFO",
         },
         # requests相关日志
-        "django.request": {  # Django的request发生error会自动记录
-            "handlers": ["mail_admins"],
-            "level": "ERROR",
-            "propagate": True,  # 向不向更高级别的logger传递
+        "django.request": {
+            "level": "DEBUG",
+            "handlers": ["request"],
+            'propagate': False,
         },
     },
 }
