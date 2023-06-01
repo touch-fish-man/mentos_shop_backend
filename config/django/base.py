@@ -354,12 +354,12 @@ LOGGING = {
             "propagate": True,
             "level": "INFO",
         },
-        # requests相关日志
-        "django.request": {
-            "level": "INFO",
-            "handlers": ["console", "error", "file"],
-            'propagate': False,
-        },
+        # # requests相关日志
+        # "django.request": {
+        #     "level": "INFO",
+        #     "handlers": ["console", "error", "file"],
+        #     'propagate': False,
+        # },
     },
 }
 # ---------需要动态配置的配置项----------------
