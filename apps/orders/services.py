@@ -514,7 +514,7 @@ def webhook_handle(request):
                 if order_user:
                     invite_log = InviteLog.objects.filter(uid=order.uid).first()
                     if invite_log:
-                        inviter_user = User.objects.filter(id=invite_log.inviter_uid).first()
+                        inviter_user = User.objects.filter(id=invite_log.inviter_user_id).first()
                         if inviter_user:
                             inviter_user.reward_points += int(
                                 float(order.pay_amount) * float(settings.INVITE_REBATE_RATE))  # 奖励积分
