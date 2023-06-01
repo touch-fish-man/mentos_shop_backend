@@ -65,11 +65,11 @@ class ShopifyClient:
     def get_products(self, format=False):
         product_list = []
         for product in shopify.Product.find():
-
             if format:
                 product_dict = self.format_product_info(product.to_dict())
             else:
                 product_dict = product.to_dict()
+            time.sleep(0.5)
             product_dict["product_collections"] = self.format_collection_info(product.collections())
             product_list.append(product_dict)
         return product_list
@@ -360,7 +360,7 @@ class SyncClient(ShopifyClient):
     def add_user_to_customer(self,email):
         from apps.users.models import User
         user = User.objects.filter(email=email).first()
-        if  user:
+        if user:
             # 添加用户到shopify客户
             customer_info = {
                 "first_name": user.username,
