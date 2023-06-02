@@ -331,6 +331,9 @@ def create_proxy_by_id(id):
     """
     order_obj = Orders.objects.filter(id=id, pay_status=1).first()
 
+
+    logging.info('重置订单:{}'.format(id))
+
     if order_obj:
         # 订单过期
         if order_obj.expired_at < datetime.datetime.now(timezone.utc):
@@ -373,7 +376,7 @@ def create_proxy_by_id(id):
                         if Stock:
                             cart_stock = Stock.cart_stock
                             while cart_stock > 0 and Stock.available_subnets:
-                                logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
+                                # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                 if len(proxy_list) >= order_obj.product_quantity:
                                     # 代理数量已经够了
                                     break

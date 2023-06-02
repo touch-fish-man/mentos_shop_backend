@@ -165,9 +165,11 @@ class ProxyServerApi(ComModelViewSet):
                 need_delete_proxy_list.append(p.id)
                 need_reset_user_list[p.username] = p.order_id
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
+        request_data=[]
         for username, order_id in need_reset_user_list.items():
+            request_data.append([order_id,username, server_ip])
             create_proxy_task(order_id,username, server_ip)
-        return SuccessResponse(data={"message": "reset success","reset_list":need_reset_user_list})
+        return SuccessResponse(data={"message": "reset success","request_data":request_data})
 
 
 class AclGroupApi(ComModelViewSet):

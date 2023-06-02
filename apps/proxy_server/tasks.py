@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from django.utils import timezone
 
@@ -43,6 +44,7 @@ def check_server_status():
 @shared_task(name='reset_proxy')
 def reset_proxy_fn(order_id, username, server_ip):
     ret_json = {}
+    logging.info("==========create_proxy_by_id==========")
     delete_proxy = Proxy.objects.filter(username=username).all()
     delete_proxy_list = []
     kaxy_client = KaxyClient(server_ip)
@@ -60,6 +62,7 @@ def reset_proxy_fn(order_id, username, server_ip):
         ret_json['data']['delete_proxy_list'] = delete_proxy_list
         ret_json['data']['order_id'] = order_id
         ret_json['data']['re_create'] = re_create_ret
+        logging.info("==========create_proxy_by_id success==========")
         return ret_json
     else:
         ret_json['code'] = 500
@@ -67,6 +70,7 @@ def reset_proxy_fn(order_id, username, server_ip):
         ret_json['data'] = {}
         ret_json['data']['re_create'] = re_create_ret
         ret_json['data']['order_id'] = order_id
+        logging.info("==========create_proxy_by_id faild==========")
         return ret_json
 
 def create_proxy_task(order_id, username, server_ip):
