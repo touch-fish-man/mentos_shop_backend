@@ -83,7 +83,7 @@ class GiftCardViewSet(ComModelViewSet):
         """
         获取礼品卡基本信息
         """
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().filter(is_exchanged=False)
         giftcard_amount_list = queryset.values_list('mount', flat=True).distinct()
         # 查询不同金额礼品卡对应的point
         data_list = []
@@ -103,7 +103,7 @@ class GiftCardViewSet(ComModelViewSet):
         user = request.user
         giftcards = GiftCard.objects.filter(mount=exchange_mount, is_exchanged=False).all()
         if giftcards:
-            if user.reward_points < giftcards.first().point:
+            if user.point < giftcards.first().point:
                 return ErrorResponse(msg="积分不足")
             giftcard = giftcards.first()
             giftcard.is_exchanged = True
@@ -118,7 +118,7 @@ class GiftCardViewSet(ComModelViewSet):
             CouponCode.objects.create(holder_uid=user.id, code=giftcard.code, discount=giftcard.mount,
                                       is_used=False, code_type=CouponCode.CODE_TYPE_DICT_REVERSE["giftcard"],
                                       holder_username=user.username)
-            return SuccessResponse(data=giftcard, msg="兑换成功")
+            return SuccessResponse(data={}, msg="兑换成功")
         else:
             return ErrorResponse(msg="礼品卡已兑换完")
 
