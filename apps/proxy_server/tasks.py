@@ -43,15 +43,17 @@ def check_server_status():
 @shared_task(name='reset_proxy')
 def reset_proxy_fn(order_id, username, server_ip):
     ret_json = {}
+    delete_proxy = Proxy.objects.filter(username=username).all()
+    delete_proxy_list = []
     kaxy_client = KaxyClient(server_ip)
     kaxy_client.del_user(username)
     re_create_ret = create_proxy_by_id(order_id)
     if re_create_ret:
-        delete_proxy_list=[]
-        delete_proxy=Proxy.objects.filter(username=username).all()
-        for p in delete_proxy:
-            delete_proxy_list.append(p.ip)
-            p.delete()
+        new_proxy = Proxy.objects.filter(username=username).all()
+        if len(new_proxy)>len(delete_proxy):
+            for de in delete_proxy:
+                delete_proxy_list.append(de.ip)
+                de.delete()
         ret_json['code'] = 200
         ret_json['message'] = '重置成功'
         ret_json['data'] = {}
