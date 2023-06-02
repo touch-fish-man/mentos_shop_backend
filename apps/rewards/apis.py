@@ -101,7 +101,7 @@ class GiftCardViewSet(ComModelViewSet):
         """
         exchange_mount = request.data.get("mount")
         user = request.user
-        giftcards = GiftCard.objects.filter(mount=exchange_mount, is_used=False).all()
+        giftcards = GiftCard.objects.filter(mount=exchange_mount, is_exchanged=False).all()
         if giftcards:
             if user.point < giftcards.first().point:
                 return ErrorResponse(msg="积分不足")

@@ -25,9 +25,6 @@ def change_site_settings():
         'billing_rate':settings.BILLING_RATE,
         'level_points_decay_rate':settings.LEVEL_POINTS_DECAY_RATE,
         'level_points_decay_day':settings.LEVEL_POINTS_DECAY_DAY,
-        'min_level' :settings.MIN_LEVEL,
-        'max_level':settings.MAX_LEVEL,
-        'level_discount_rate':settings.LEVEL_DISCOUNT_RATE,
         'invite_rebate_rate':settings.INVITE_REBATE_RATE
     }
     try:
@@ -50,9 +47,6 @@ def change_site_settings():
         settings.BILLING_RATE = float(env('BILLING_RATE'))
         settings.LEVEL_POINTS_DECAY_RATE = float(env('LEVEL_POINTS_DECAY_RATE'))  
         settings.LEVEL_POINTS_DECAY_DAY = int(env('LEVEL_POINTS_DECAY_DAY'))  
-        settings.MIN_LEVEL = int(env('MIN_LEVEL')) 
-        settings.MAX_LEVEL = int(env('MAX_LEVEL')) 
-        settings.LEVEL_DISCOUNT_RATE = float(env('LEVEL_DISCOUNT_RATE')) 
         settings.INVITE_REBATE_RATE = float(env('INVITE_REBATE_RATE'))
         return {}
     except:
@@ -107,9 +101,6 @@ def get_site_setting():
         'billing_rate':settings.BILLING_RATE,
         'level_points_decay_rate':settings.LEVEL_POINTS_DECAY_RATE,
         'level_points_decay_day':settings.LEVEL_POINTS_DECAY_DAY,
-        'min_level' :settings.MIN_LEVEL,
-        'max_level':settings.MAX_LEVEL,
-        'level_discount_rate':settings.LEVEL_DISCOUNT_RATE,
         'invite_rebate_rate':settings.INVITE_REBATE_RATE,
         'discord_bot_token':settings.DISCORD_BOT_TOKEN,
         'discord_bot_channels':settings.DISCORD_BOT_CHANNELS,

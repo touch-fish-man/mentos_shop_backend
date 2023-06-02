@@ -392,17 +392,13 @@ MAILGUN_SENDER_DOMAIN = env('MAILGUN_SENDER_DOMAIN')
 # 客服联系方式配置
 SUPPORT_TWITTER = env('SUPPORT_TWITTER')
 SUPPORT_DISCORD = env('SUPPORT_DISCORD')
-# 等级积分配置
-INVITE_LEVEL_POINTS_PER_USER = int(env('INVITE_LEVEL_POINTS_PER_USER'))  # 邀请一个用户获得等级积分
-BILLING_RATE = float(env('BILLING_RATE'))  # 消费获得等级积分比例 金额 * 比例 = 等级积分 消费后获得等级积分
-LEVEL_POINTS_TO_UPGRADE = int(env('LEVEL_POINTS_TO_UPGRADE'))  # 升级所需等级积分
+# 等级经验配置
+INVITE_LEVEL_POINTS_PER_USER = int(env('INVITE_LEVEL_POINTS_PER_USER'))  # 邀请一个用户获得等级经验
+BILLING_RATE = float(env('BILLING_RATE'))  # 消费获得等级经验比例 金额 * 比例 = 等级积分 消费后获得等级经验
 LEVEL_POINTS_DECAY_RATE = float(env('LEVEL_POINTS_DECAY_RATE'))  # 每月等级积分衰减比例
 LEVEL_POINTS_DECAY_DAY = int(env('LEVEL_POINTS_DECAY_DAY'))  # 每月等级积分衰减日
-MIN_LEVEL = int(env('MIN_LEVEL'))  # 最低等级
-MAX_LEVEL = int(env('MAX_LEVEL'))  # 最高等级
-LEVEL_DISCOUNT_RATE = float(env('LEVEL_DISCOUNT_RATE'))  # 等级折扣比例 1 - 等级折扣比例 * (等级 - 1) = 折扣
 # 邀请返利配置
-INVITE_REBATE_RATE = float(env('INVITE_REBATE_RATE'))  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返利给邀请人
+INVITE_REBATE_RATE = float(env('INVITE_REBATE_RATE'))  # 邀请返利比例 金额 * 比例 = 返利金额 受邀用户完成订单后返金币给邀请人
 # ---------需要动态配置的配置项----------------
 FRONTEND_URL = env('FRONTEND_URL')
 

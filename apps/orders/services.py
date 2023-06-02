@@ -514,6 +514,7 @@ def webhook_handle(request):
                 if order_user:
                     invite_log = InviteLog.objects.filter(uid=order.uid).first()
                     if invite_log:
+                        # 查询邀请人
                         inviter_user = User.objects.filter(id=invite_log.inviter_user_id).first()
                         if inviter_user:
                             inviter_user.reward_points += int(
@@ -523,6 +524,7 @@ def webhook_handle(request):
                             PointRecord.objects.create(uid=inviter_user.id, point=int(
                                 float(order.pay_amount) * float(settings.INVITE_REBATE_RATE)),
                                                        reason=PointRecord.REASON_DICT["invite_buy"])
+                            logging.info("invite user reward points success")
                 # 增加用户等级积分
                 order_user.level_points += int(float(order.pay_amount) * float(settings.BILLING_RATE))  # 等级积分
                 order_user.save()
