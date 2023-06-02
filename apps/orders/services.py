@@ -332,6 +332,10 @@ def create_proxy_by_id(id):
     order_obj = Orders.objects.filter(id=id, pay_status=1).first()
 
     if order_obj:
+        # 订单过期
+        if order_obj.expired_at < datetime.datetime.now(timezone.utc):
+            logging.info('订单过期')
+            return False
         order_user_obj = User.objects.filter(id=order_obj.uid).first()
         order_user = order_obj.username
         user_email = order_user_obj.email

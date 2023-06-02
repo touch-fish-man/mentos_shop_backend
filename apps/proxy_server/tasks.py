@@ -49,8 +49,8 @@ def reset_proxy_fn(order_id, username, server_ip):
     kaxy_client.del_user(username)
     re_create_ret = create_proxy_by_id(order_id)
     if re_create_ret:
-        new_proxy = Proxy.objects.filter(username=username).all()
-        if len(new_proxy)>len(delete_proxy):
+        new_proxy_cnt = Proxy.objects.filter(username=username).count()
+        if new_proxy_cnt>len(delete_proxy):
             for de in delete_proxy:
                 delete_proxy_list.append(de.ip)
                 de.delete()
