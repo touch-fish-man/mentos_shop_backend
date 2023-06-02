@@ -147,12 +147,25 @@ class Product(BaseModel):
 
     # variants = models.ManyToManyField(Variant)
     # variant_options = models.ManyToManyField(Option)
+    active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
+    def delete(self, using=None, keep_parents=False):
+        self.soft_delete = True
+        self.save()
 
     def variants(self):
         return Variant.objects.filter(product_id=self.id)
+    def is_active(self):
+        return Variant.objects.filter(product_id=self.id, is_active=True).exists()
 
     def variant_options(self):
         return Option.objects.filter(product_id=self.id)
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        if self.id:
+            is_active = self.is_active()
+            self.active = is_active
+        super().save(force_insert=False, force_update=False, using=None,
+                     update_fields=None)
 
 
 class ProductTagRelation(BaseModel):
