@@ -79,5 +79,5 @@ def create_proxy_task(order_id, username, server_ip):
         args=json.dumps([order_id, username, server_ip]),
         interval=interval,
         one_off=True,
-        expire=timezone.now() + datetime.timedelta(seconds=70)
+        expires=timezone.now() + datetime.timedelta(seconds=70)
     )
