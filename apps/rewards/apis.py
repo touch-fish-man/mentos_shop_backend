@@ -109,7 +109,7 @@ class GiftCardViewSet(ComModelViewSet):
             giftcard.is_exchanged = True
             giftcard.save()
             # 扣除用户积分
-            user.point -= giftcard.point
+            user.reward_points -= giftcard.point
             user.save()
             # 创建积分变动记录
             PointRecord.objects.create(uid=user.id, point=-giftcard.point,
