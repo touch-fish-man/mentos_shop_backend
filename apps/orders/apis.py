@@ -188,6 +188,31 @@ class OrdersApi(ComModelViewSet):
             return ErrorResponse(data={}, msg="The product does not exist, please place a new order.")  # 产品不存在，请下新订单
         checkout_url, order_id = get_renew_checkout_link(order_id=order_id)
         return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="get checkout url success")
+    @action(methods=['post'], detail=False, url_path='one_key_reset', url_name='one_key_reset')
+    def one_key_reset(self, request, *args, **kwargs):
+        # 重置所有代理
+        order_ids= request.data.get('order_ids', None)
+        if not order_ids:
+            return ErrorResponse(data={}, msg="订单id不能为空")
+        try:
+            order_ids = order_ids.split(',')
+        except Exception as e:
+            return ErrorResponse(data={}, msg="订单id格式错误")
+        for order_id in order_ids:
+            order = Orders.objects.filter(id=order_id)
+            if order.exists():
+                order = order.first()
+                order_id = order.order_id
+                # 删除代理
+                for t in threading.enumerate():
+                    if t.name == "reset_{}".format(order_id):
+                        return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
+                Proxy.objects.filter(order_id=order_id).all().delete()
+                # 重新创建代理
+                t1 = threading.Thread(target=reset_proxy_by_order, args=(order_id,), name="reset_{}".format(order_id)).start()
+            else:
+                return ErrorResponse(data={}, msg="订单不存在")
+
 
 
 class OrderCallbackApi(APIView):
