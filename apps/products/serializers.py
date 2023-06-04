@@ -195,6 +195,7 @@ class ProductSerializer(serializers.ModelSerializer):
                   'variant_options', "created_at", "lower_price","active")
 
     def get_lower_price(self, obj):
+        logging.error("product active is %s" % obj.is_active)
         if obj.variants.exists():
             return "$" + str(obj.variants.order_by('variant_price').first().variant_price) + "+"
         else:
