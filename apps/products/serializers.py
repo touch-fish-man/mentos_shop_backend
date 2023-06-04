@@ -185,6 +185,7 @@ class ProductSerializer(serializers.ModelSerializer):
     variants = VariantSerializer(many=True)
     variant_options = OptionSerializer(many=True)
     lower_price = serializers.SerializerMethodField()
+    active = serializers.BooleanField(default=True)
 
     class Meta:
         model = Product
@@ -198,6 +199,11 @@ class ProductSerializer(serializers.ModelSerializer):
             return "$" + str(obj.variants.order_by('variant_price').first().variant_price) + "+"
         else:
             return "$0.0+"
+    def get_active(self,obj):
+        if obj.active!=obj.is_active:
+            obj.active=obj.is_active
+            obj.save()
+        return obj.is_active
 
 
 class ProductCreateSerializer(serializers.ModelSerializer):
