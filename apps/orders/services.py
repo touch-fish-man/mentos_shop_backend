@@ -339,6 +339,7 @@ def create_proxy_by_id(id):
     from apps.core.cache_lock import memcache_lock
 
     order_obj = Orders.objects.filter(id=id, pay_status=1).first()
+    ret_proxy_list = []
 
 
     logging.info('重置订单:{}'.format(id))
@@ -349,7 +350,7 @@ def create_proxy_by_id(id):
             # 订单过期
             if order_obj.expired_at < datetime.datetime.now(timezone.utc):
                 logging.info('订单过期')
-                return False
+                return False,ret_proxy_list
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
             user_email = order_user_obj.email
@@ -361,7 +362,7 @@ def create_proxy_by_id(id):
                 if variant_obj.variant_stock < order_obj.product_quantity:
                     # 库存不足
                     logging.info('库存不足')
-                    return False
+                    return False,ret_proxy_list
                 server_group = variant_obj.server_group
                 acl_group = variant_obj.acl_group
                 cart_step = variant_obj.cart_step  # 购物车步长
@@ -419,9 +420,11 @@ def create_proxy_by_id(id):
                     for idx, proxy in enumerate(proxy_list):
                         ip, port, user, password = proxy.split(":")
                         server_ip = server_list[idx]
-                        Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
+                        p_obj=Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
                                              order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
                                              ip_stock_id=stock_list[idx], subnet=subnet_list[idx])
+                        ret_proxy_list.append(p_obj.id)
+
                     # 更新订单状态
                     order_obj.order_status = 4
                     order_obj.delivery_status = 1
@@ -438,13 +441,13 @@ def create_proxy_by_id(id):
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
                     logging.info("delivery success")
-                    return True
+                    return True,ret_proxy_list
             else:
                 logging.info('套餐不存在')
-                return False
+                return False,ret_proxy_list
     else:
         logging.info('订单不存在')
-    return False
+    return False,ret_proxy_list
 
 
 def renew_proxy_by_order(order_id):
