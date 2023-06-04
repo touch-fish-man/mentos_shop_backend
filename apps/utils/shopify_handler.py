@@ -39,7 +39,6 @@ class LruCache:
     def __get__(self, instance, owner):
         def wrapped_func(*args, **kwargs):
             key = f"{self.func.__name__}:{json.dumps(args)}:{json.dumps(kwargs)}"
-            logging.info(f"key: {key}")
             value = cache.get(key)
             if value is None:
                 value = self.func(instance, *args, **kwargs)
@@ -163,7 +162,7 @@ class ShopifyClient:
                 collection_info["collection_desc"] = ""
             collection_list.append(collection_info)
         return collection_list
-
+    @LruCache()
     def get_product_collections(self):
         # 获取产品系列
         collection_list = []
