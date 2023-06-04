@@ -185,7 +185,7 @@ class ProductSerializer(serializers.ModelSerializer):
     variants = VariantSerializer(many=True)
     variant_options = OptionSerializer(many=True)
     lower_price = serializers.SerializerMethodField()
-    active = serializers.BooleanField(default=True)
+    active = serializers.BooleanField()
 
     class Meta:
         model = Product
