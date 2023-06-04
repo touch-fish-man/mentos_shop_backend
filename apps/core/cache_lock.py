@@ -1,22 +1,38 @@
+import threading
 import time
-from contextlib import contextmanager
+
 from django.core.cache import cache
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
-@contextmanager
-def memcache_lock(lock_id, oid):
-    timeout_at = time.monotonic() + LOCK_EXPIRE - 3
-    # cache.add fails if the key already exists
-    status = cache.add(lock_id, oid, LOCK_EXPIRE)
-    try:
-        yield status
-    finally:
-        # memcache delete is very slow, but we have to use it to take
-        # advantage of using add() for atomic locking
-        if time.monotonic() < timeout_at and status:
-            # don't release the lock if we exceeded the timeout
-            # to lessen the chance of releasing an expired lock
-            # owned by someone else
-            # also don't release the lock if we didn't acquire it
-            cache.delete(lock_id)
+class MemcacheLock:
+    def __init__(self, lock_id, oid):
+        self.lock_id = lock_id
+        self.oid = oid
+        self.condition = threading.Condition()
+
+    def __enter__(self):
+        self.acquire()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.release()
+
+    def acquire(self):
+        timeout = time.monotonic() + LOCK_EXPIRE
+        acquired = False
+        while not acquired and time.monotonic() < timeout:
+            acquired = cache.add(self.lock_id, self.oid, LOCK_EXPIRE)
+            if not acquired:
+                # wait for the lock to be released
+                self.condition.acquire()
+                self.condition.wait(timeout - time.monotonic())
+                self.condition.release()
+        if not acquired:
+            raise Exception("Failed to acquire lock")
+
+    def release(self):
+        if cache.get(self.lock_id) == self.oid:
+            cache.delete(self.lock_id)
+            self.condition.acquire()
+            self.condition.notify_all()
+            self.condition.release()
