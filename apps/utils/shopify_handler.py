@@ -27,17 +27,24 @@ import json
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 
-def lrucache(timeout=DEFAULT_TIMEOUT):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            key = f"{func.__name__}:{json.dumps(args)}:{json.dumps(kwargs)}"
+class LruCache:
+    def __init__(self, timeout=DEFAULT_TIMEOUT):
+        self.timeout = timeout
+        self.cache = cache
+
+    def __call__(self, func):
+        self.func = func
+        return self
+
+    def __get__(self, instance, owner):
+        def wrapped_func(*args, **kwargs):
+            key = f"{self.func.__name__}:{instance}:{json.dumps(args)}:{json.dumps(kwargs)}"
             value = cache.get(key)
             if value is None:
-                value = func(*args, **kwargs)
-                cache.set(key, value, timeout=timeout)
+                value = self.func(instance, *args, **kwargs)
+                cache.set(key, value, timeout=self.timeout)
             return value
-        return wrapper
-    return decorator
+        return wrapped_func
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -76,7 +83,7 @@ class ShopifyClient:
         if not self.session:
             self.__get_session()
         yield self.session
-
+    @LruCache()
     def get_products(self, format=False):
         product_list = []
         for product in shopify.Product.find():
