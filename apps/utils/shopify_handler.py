@@ -107,7 +107,6 @@ class ShopifyClient:
         variant_info["proxy_time"] = 30
         return variant_info
 
-    @lrucache(timeout=60)
     def format_product_info(self, product):
         product_info = {}
         product_info["product_name"] = product['title']
@@ -181,7 +180,6 @@ class ShopifyClient:
                 if tag not in tag_list:
                     tag_list.append(tag)
         return tag_list
-    @lrucache(timeout=60)
     def get_product_variants(self, product_id, format=False):
         variant = shopify.Variant.find(product_id=product_id)
         variant_list = []
