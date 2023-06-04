@@ -1,3 +1,4 @@
+import logging
 import threading
 import time
 
@@ -24,6 +25,7 @@ class memcache_lock:
             acquired = cache.add(self.lock_id, self.oid, LOCK_EXPIRE)
             if not acquired:
                 # wait for the lock to be released
+                logging.info("Waiting for lock %s", self.lock_id)
                 self.condition.acquire()
                 self.condition.wait(timeout - time.monotonic())
                 self.condition.release()
