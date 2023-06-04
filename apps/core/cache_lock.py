@@ -5,7 +5,7 @@ from django.core.cache import cache
 
 LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
 
-class MemcacheLock:
+class memcache_lock:
     def __init__(self, lock_id, oid):
         self.lock_id = lock_id
         self.oid = oid
