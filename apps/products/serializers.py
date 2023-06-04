@@ -203,7 +203,7 @@ class ProductSerializer(serializers.ModelSerializer):
         if obj.active!=obj.is_active:
             obj.active=obj.is_active
             obj.save()
-        logging.info("product active is %s"%obj.is_active)
+        logging.error("product active is %s"%obj.is_active)
         return obj.is_active
 
 
