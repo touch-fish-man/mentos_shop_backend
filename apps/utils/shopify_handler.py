@@ -22,7 +22,22 @@ django.setup()
 from apps.products.models import *
 
 
+#redis lrucache 装饰器
+import json
+from django.core.cache import cache
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
 
+def lrucache(timeout=DEFAULT_TIMEOUT):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            key = f"{func.__name__}:{json.dumps(args)}:{json.dumps(kwargs)}"
+            value = cache.get(key)
+            if value is None:
+                value = func(*args, **kwargs)
+                cache.set(key, value, timeout=timeout)
+            return value
+        return wrapper
+    return decorator
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -92,6 +107,7 @@ class ShopifyClient:
         variant_info["proxy_time"] = 30
         return variant_info
 
+    @lrucache(timeout=60)
     def format_product_info(self, product):
         product_info = {}
         product_info["product_name"] = product['title']
@@ -165,7 +181,7 @@ class ShopifyClient:
                 if tag not in tag_list:
                     tag_list.append(tag)
         return tag_list
-
+    @lrucache(timeout=60)
     def get_product_variants(self, product_id, format=False):
         variant = shopify.Variant.find(product_id=product_id)
         variant_list = []
