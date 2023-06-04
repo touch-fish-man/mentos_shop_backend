@@ -338,7 +338,7 @@ LOGGING = {
     },
     "loggers": {
         # default日志
-        "django": {
+        "": {
             "handlers": ["console", "error", "file"],
             "level": "INFO",
             "propagate": False,
