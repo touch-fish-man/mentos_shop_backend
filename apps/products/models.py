@@ -154,8 +154,8 @@ class Product(BaseModel):
 
     def variants(self):
         return Variant.objects.filter(product_id=self.id)
+    @property
     def is_active(self):
-        logging.info(Variant.objects.filter(product_id=self.id, is_active=True).exists())
         return Variant.objects.filter(product_id=self.id, is_active=True).exists()
 
     def variant_options(self):
@@ -163,8 +163,7 @@ class Product(BaseModel):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.id:
-            is_active = self.is_active()
-            self.active = is_active
+            self.active = self.is_active
         super().save(force_insert=False, force_update=False, using=None,
                      update_fields=None)
 
