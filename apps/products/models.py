@@ -155,6 +155,7 @@ class Product(BaseModel):
     def variants(self):
         return Variant.objects.filter(product_id=self.id)
     def is_active(self):
+        logging.info(Variant.objects.filter(product_id=self.id, is_active=True).exists())
         return Variant.objects.filter(product_id=self.id, is_active=True).exists()
 
     def variant_options(self):
