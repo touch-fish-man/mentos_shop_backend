@@ -267,7 +267,7 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
         if variants:
             for variant in variants:
                 logging.info(variant.get('active'))
-                if variant.get('active')== True:
+                if variant.get('active'):
                     is_active = True
                     break
         attrs['active'] = is_active
