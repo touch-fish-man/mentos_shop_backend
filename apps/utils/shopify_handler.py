@@ -39,6 +39,7 @@ class LruCache:
     def __get__(self, instance, owner):
         def wrapped_func(*args, **kwargs):
             key = f"{self.func.__name__}:{instance}:{json.dumps(args)}:{json.dumps(kwargs)}"
+            logging.info(f"key: {key}")
             value = cache.get(key)
             if value is None:
                 value = self.func(instance, *args, **kwargs)
