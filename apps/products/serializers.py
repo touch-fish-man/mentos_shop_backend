@@ -260,3 +260,14 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
         if not product_collections:
             CustomValidationError("产品系列不能为空,请在shopify中添加后重新同步")
         return product_collections
+    def validate(self, attrs):
+
+        variants = attrs.get('variants')
+        is_active =False
+        if variants:
+            for variant in variants:
+                if variant.get('active')== True:
+                    is_active = True
+                    break
+        attrs['active'] = is_active
+        return attrs
