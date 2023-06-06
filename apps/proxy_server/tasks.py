@@ -1,9 +1,11 @@
 import datetime
 import logging
+import os
+import threading
 
 from django.utils import timezone
 
-from apps.proxy_server.models import Server
+from apps.proxy_server.models import Server, ProxyStock
 import json
 import time
 
@@ -15,6 +17,7 @@ from celery import shared_task
 
 from apps.utils.kaxy_handler import KaxyClient
 
+
 @shared_task(name='check_server_status')
 def check_server_status():
     """
@@ -24,7 +27,7 @@ def check_server_status():
     for server in servers:
         kaxy_client = KaxyClient(server.ip)
         try:
-            resp=kaxy_client.get_server_info()
+            resp = kaxy_client.get_server_info()
             if resp.status_code == 200:
                 server.server_status = 1
                 server.faild_count = 0
@@ -48,7 +51,7 @@ def reset_proxy_fn(order_id, username, server_ip):
     delete_proxy_list = []
     kaxy_client = KaxyClient(server_ip)
     kaxy_client.del_user(username)
-    re_create_ret,ret_proxy_list = create_proxy_by_id(order_id)
+    re_create_ret, ret_proxy_list = create_proxy_by_id(order_id)
     if re_create_ret:
         new_proxy = Proxy.objects.filter(username=username).all()
         for p in new_proxy:
@@ -70,6 +73,39 @@ def reset_proxy_fn(order_id, username, server_ip):
         ret_json['data']['order_id'] = order_id
         logging.info("==========create_proxy_by_id faild==========")
         return ret_json
+
+
+@shared_task(name='delete_proxy_by_id')
+def delete_proxy_by_id(id):
+    pass
+
+
+lock = threading.Lock()
+
+
+@shared_task(name='delete_user_from_server')
+def delete_user_from_server(server_ip, username, subnet, ip_stock_id):
+    if not os.path.exists('/tmp/delete_proxy_thread_' + username):
+        os.mknod('/tmp/delete_proxy_thread_' + username)
+        if Proxy.objects.filter(username=username).count() == 0:
+            kax_client = KaxyClient(server_ip)
+            kax_client.del_user(username)
+            kax_client.del_acl(username)
+            with lock:
+                stock = ProxyStock.objects.filter(id=ip_stock_id).first()
+                # 归还子网,归还库存
+                if stock:
+                    if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).all().count() == 0:
+                        stock.return_subnet(subnet)
+                        stock.return_stock()
+                        from apps.products.models import Variant
+                        # 更新库存
+                        variant = Variant.objects.filter(id=stock.variant_id).first()
+                        if variant:
+                            variant.save()
+            time.sleep(60)
+            os.remove('/tmp/delete_proxy_thread_' + username)
+
 
 def create_proxy_task(order_id, username, server_ip):
     # 创建一次性celery任务，立即执行，执行完毕后删除

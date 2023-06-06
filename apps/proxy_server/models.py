@@ -314,17 +314,6 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
     """
     删除代理, 60秒后删除,防止重复删除
     """
-    # 归还子网,归还库存
-    with lock:
-        stock = ProxyStock.objects.filter(id=ip_stock_id).first()
-        if stock:
-            stock.return_subnet(subnet)
-            stock.return_stock()
-            from apps.products.models import Variant
-            # 更新库存
-            variant = Variant.objects.filter(id=stock.variant_id).first()
-            if variant:
-                variant.save()
     time.sleep(randint(20, 60))
     if not os.path.exists('/tmp/delete_proxy_thread_' + username):
         os.mknod('/tmp/delete_proxy_thread_' + username)
@@ -332,6 +321,18 @@ def delete_proxy(server_ip, username, subnet, ip_stock_id):
             kax_client = KaxyClient(server_ip)
             kax_client.del_user(username)
             kax_client.del_acl(username)
+            with lock:
+                stock = ProxyStock.objects.filter(id=ip_stock_id).first()
+                # 归还子网,归还库存
+                if stock:
+                    if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).all().count() == 0:
+                        stock.return_subnet(subnet)
+                        stock.return_stock()
+                        from apps.products.models import Variant
+                        # 更新库存
+                        variant = Variant.objects.filter(id=stock.variant_id).first()
+                        if variant:
+                            variant.save()
             time.sleep(60)
             os.remove('/tmp/delete_proxy_thread_' + username)
 
