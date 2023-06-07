@@ -32,14 +32,13 @@ def fix_stock():
             # print(xxx.available_subnets)
             if xxx.cart_stock!=cart_stock:
                 print(xxx.cart_stock,cart_stock,xxx.id)
-                print(xxx.cart_stock*xxx.cart_step,cart_stock*xxx.cart_step)
                 xxx.cart_stock=cart_stock
                 xxx.available_subnets=",".join(subnets)
                 xxx.ip_stock=cart_stock*xxx.cart_step
                 xxx.save()
     for x in Variant.objects.all():
         x.save()
-# fix_stock()
+
 # 删除多余库存数据
 def delete_stock():
     for xxx in ProxyStock.objects.all():
@@ -132,3 +131,45 @@ def classify_stock():
             # 删除多余库存
             ProxyStock.objects.filter(id=id).delete()
             print("删除多余库存",id)
+def find_repeat():
+    # 查找重复发货代理
+    cnt=0
+    xxx={}
+    order_id=set()
+    order_=set()
+    for ppp in Proxy.objects.all():
+        key="-".join((str(ppp.ip),str(ppp.ip_stock_id)))
+        if key in xxx:
+            print(ppp.id,ppp.subnet,ppp.ip_stock_id,ppp.order_id,xxx[key])
+            order_.add((ppp.order_id,xxx[key]))
+            order_id.add(ppp.order_id)
+            cnt+=1
+        else:
+            xxx[key]=ppp.order_id
+    print(cnt)
+    order_=list(order_)
+    #根据第二个元素排序
+    order_.sort(key=lambda x:x[1])
+    for xi in order_:
+        print(xi)
+# find_repeat()
+def proxy_compare_order():
+    # 比较发货代理和订单
+    cnt=0
+    xxx={}
+    order_id=set()
+    order_=set()
+    for ppp in Proxy.objects.all():
+        if ppp.order_id in xxx:
+            xxx[ppp.order_id]+=1
+        else:
+            xxx[ppp.order_id]=1
+    for ooo in Orders.objects.all():
+        if ooo.id in xxx:
+            if xxx[ooo.id]!=ooo.proxy_num:
+                print(ooo.id,ooo.proxy_num,xxx[ooo.id])
+# proxy_compare_order()
+# for ix in Proxy.objects.filter(order_id=952).all():
+#     ix.delete()
+fix_stock()
+find_repeat()

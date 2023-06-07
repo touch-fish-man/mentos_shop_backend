@@ -1,16 +1,14 @@
 import logging
-import threading
 import time
 
 from django.core.cache import cache
 
-LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+LOCK_EXPIRE = 120 * 10  # Lock expires in 10 minutes
 
 class memcache_lock:
     def __init__(self, lock_id, oid):
         self.lock_id = lock_id
         self.oid = oid
-        self.condition = threading.Condition()
 
     def __enter__(self):
         self.acquire()
@@ -25,16 +23,8 @@ class memcache_lock:
             acquired = cache.add(self.lock_id, self.oid, LOCK_EXPIRE)
             if not acquired:
                 # wait for the lock to be released
-                logging.info("Waiting for lock %s", self.lock_id)
-                self.condition.acquire()
-                self.condition.wait(timeout - time.monotonic())
-                self.condition.release()
-        if not acquired:
-            raise Exception("Failed to acquire lock")
+                time.sleep(0.5)
 
     def release(self):
         if cache.get(self.lock_id) == self.oid:
             cache.delete(self.lock_id)
-            self.condition.acquire()
-            self.condition.notify_all()
-            self.condition.release()
