@@ -6,10 +6,12 @@ from faker import Faker
 import os
 import sys
 import time
+
+
 from init_env import *
 from rich.console import Console
 import ipaddress
-
+from apps.core.cache_lock import memcache_lock
 console = Console()
 from apps.proxy_server.tasks import create_proxy_task
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
@@ -38,7 +40,6 @@ def fix_stock():
                 xxx.save()
     for x in Variant.objects.all():
         x.save()
-
 # 删除多余库存数据
 def delete_stock():
     for xxx in ProxyStock.objects.all():
@@ -171,5 +172,12 @@ def proxy_compare_order():
 # proxy_compare_order()
 # for ix in Proxy.objects.filter(order_id=952).all():
 #     ix.delete()
-fix_stock()
-find_repeat()
+# fix_stock()
+# find_repeat()
+with memcache_lock('lock_id', 'oid') as acquired:
+    if acquired:
+        # do something
+        print('do something')
+    else:
+        # dosomething else
+        pass
