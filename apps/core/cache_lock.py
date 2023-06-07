@@ -21,6 +21,7 @@ class memcache_lock:
         acquired = False
         while not acquired and time.monotonic() < timeout:
             acquired = cache.add(self.lock_id, self.oid, LOCK_EXPIRE)
+            acquired = cache.add(self.lock_id, self.oid, LOCK_EXPIRE)
             print(acquired)
             if not acquired:
                 # wait for the lock to be released
