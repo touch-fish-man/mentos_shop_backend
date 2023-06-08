@@ -253,7 +253,7 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
         model = Product
         fields = (
             'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
-            'variants',
+            'variants','active',
             'variant_options')
 
     def validate_product_collections(self, product_collections):
