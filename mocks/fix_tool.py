@@ -169,15 +169,8 @@ def proxy_compare_order():
         if ooo.id in xxx:
             if xxx[ooo.id]!=ooo.proxy_num:
                 print(ooo.id,ooo.proxy_num,xxx[ooo.id])
-# proxy_compare_order()
+proxy_compare_order()
 # for ix in Proxy.objects.filter(order_id=952).all():
 #     ix.delete()
-# fix_stock()
-# find_repeat()
-with memcache_lock('lock_id', 'oid') as acquired:
-    if acquired:
-        # do something
-        print('do something')
-    else:
-        # dosomething else
-        pass
+fix_stock()
+find_repeat()
