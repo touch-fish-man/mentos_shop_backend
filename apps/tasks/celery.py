@@ -60,14 +60,22 @@ app.conf.beat_schedule = {
     },
     '删除api请求记录': {
         'task': 'delete_api_logs',
-        'schedule': crontab(hour=2, minute=0), # 每天凌晨1点执行
+        'schedule': crontab(hour=2, minute=0), # 每天凌晨2点执行
     },
     '删除过期订单': {
         'task': 'delete_expired_order',
-        'schedule': crontab(hour=1, minute=0, day_of_week=1), # 每周1凌晨1点执行
+        'schedule': crontab(hour=1, minute=30, day_of_week=1), # 每周1凌晨1点执行
     },
     '库存回收': {
         'task': 'update_product_stock',
         'schedule': 6000.0, # 每小时执行一次
+    },
+    '清理过期验证码': {
+        'task': 'clean_captcha',
+        'schedule': crontab(hour=3, minute=0), # 每天凌晨3点执行
+    },
+    '清理过期邮箱验证码': {
+        'task': 'clean_email_code',
+        'schedule': crontab(hour=2, minute=0), # 每天凌晨2点执行
     },
 }

@@ -340,6 +340,7 @@ def create_proxy_by_id(id):
 
     order_obj = Orders.objects.filter(id=id, pay_status=1).first()
     ret_proxy_list = []
+    msg = ''
 
 
     logging.info('重置订单:{}'.format(id))
@@ -350,7 +351,8 @@ def create_proxy_by_id(id):
             # 订单过期
             if order_obj.expired_at < datetime.datetime.now(timezone.utc):
                 logging.info('订单过期')
-                return False,ret_proxy_list
+                msg = 'order expired'
+                return False,ret_proxy_list,msg
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
             user_email = order_user_obj.email
@@ -362,7 +364,8 @@ def create_proxy_by_id(id):
                 if variant_obj.variant_stock < order_obj.product_quantity:
                     # 库存不足
                     logging.info('库存不足')
-                    return False,ret_proxy_list
+                    msg = 'stock not enough'
+                    return False,ret_proxy_list,msg
                 server_group = variant_obj.server_group
                 acl_group = variant_obj.acl_group
                 cart_step = variant_obj.cart_step  # 购物车步长
@@ -406,7 +409,6 @@ def create_proxy_by_id(id):
                                         Stock.cart_stock -= 1
                                         Stock.ip_stock -= len(proxy_info["proxy"])
                                         cart_stock -= 1
-
                                     Stock.save()
                                 logging.info("cart stock:{}".format(Stock.cart_stock))
                             else:
@@ -414,8 +416,6 @@ def create_proxy_by_id(id):
                             if len(proxy_list) >= order_obj.product_quantity:
                                 # 代理数量已经够了
                                 break
-                # logging.info(proxy_list)
-
                 if proxy_list:
                     for idx, proxy in enumerate(proxy_list):
                         ip, port, user, password = proxy.split(":")
@@ -444,10 +444,12 @@ def create_proxy_by_id(id):
                     return True,ret_proxy_list
             else:
                 logging.info('套餐不存在')
-                return False,ret_proxy_list
+                msg = 'variant not exist'
+                return False,ret_proxy_list,msg
     else:
         logging.info('订单不存在')
-    return False,ret_proxy_list
+        msg = 'order not exist'
+    return False,ret_proxy_list,msg
 
 
 def renew_proxy_by_order(order_id):

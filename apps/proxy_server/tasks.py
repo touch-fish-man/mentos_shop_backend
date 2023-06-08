@@ -47,18 +47,22 @@ def check_server_status():
 @shared_task(name='reset_proxy')
 def reset_proxy_fn(order_id, username, server_ip):
     ret_json = {}
-    logging.info("==========create_proxy_by_id==========")
+    logging.info("==========create_proxy_by_id {}==========".format(order_id))
     delete_proxy_list = []
     kaxy_client = KaxyClient(server_ip)
     kaxy_client.del_user(username)
-    re_create_ret, ret_proxy_list = create_proxy_by_id(order_id)
+    re_create_ret, ret_proxy_list,msg = create_proxy_by_id(order_id)
     if re_create_ret:
         new_proxy = Proxy.objects.filter(username=username).all()
         for p in new_proxy:
             if p.id not in ret_proxy_list and len(ret_proxy_list) > 0:
                 p.delete()
+        #创建库存回收任务
+        from apps.tasks import celery_app
+        # 更新产品库存
+        celery_app.send_task('update_product_stock', name='重置代理回收库存')
         ret_json['code'] = 200
-        ret_json['message'] = '重置成功'
+        ret_json['message'] = 'success'
         ret_json['data'] = {}
         ret_json['data']['delete_proxy_list'] = delete_proxy_list
         ret_json['data']['order_id'] = order_id
@@ -67,7 +71,7 @@ def reset_proxy_fn(order_id, username, server_ip):
         return ret_json
     else:
         ret_json['code'] = 500
-        ret_json['message'] = '重置失败'
+        ret_json['message'] = msg
         ret_json['data'] = {}
         ret_json['data']['re_create'] = re_create_ret
         ret_json['data']['order_id'] = order_id
@@ -85,26 +89,22 @@ lock = threading.Lock()
 
 @shared_task(name='delete_user_from_server')
 def delete_user_from_server(server_ip, username, subnet, ip_stock_id):
-    if not os.path.exists('/tmp/delete_proxy_thread_' + username):
-        os.mknod('/tmp/delete_proxy_thread_' + username)
-        if Proxy.objects.filter(username=username).count() == 0:
-            kax_client = KaxyClient(server_ip)
-            kax_client.del_user(username)
-            kax_client.del_acl(username)
-            with lock:
-                stock = ProxyStock.objects.filter(id=ip_stock_id).first()
-                # 归还子网,归还库存
-                if stock:
-                    if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).all().count() == 0:
-                        stock.return_subnet(subnet)
-                        stock.return_stock()
-                        from apps.products.models import Variant
-                        # 更新库存
-                        variant = Variant.objects.filter(id=stock.variant_id).first()
-                        if variant:
-                            variant.save()
-            time.sleep(60)
-            os.remove('/tmp/delete_proxy_thread_' + username)
+    if Proxy.objects.filter(username=username).count() == 0:
+        kax_client = KaxyClient(server_ip)
+        kax_client.del_user(username)
+        kax_client.del_acl(username)
+        with lock:
+            stock = ProxyStock.objects.filter(id=ip_stock_id).first()
+            # 归还子网,归还库存
+            if stock:
+                if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).all().count() == 0:
+                    stock.return_subnet(subnet)
+                    stock.return_stock()
+                    from apps.products.models import Variant
+                    # 更新库存
+                    variant = Variant.objects.filter(id=stock.variant_id).first()
+                    if variant:
+                        variant.save()
 
 
 def create_proxy_task(order_id, username, server_ip):

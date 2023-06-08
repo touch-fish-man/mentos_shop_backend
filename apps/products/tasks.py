@@ -9,6 +9,7 @@ def update_product_stock(*args, **kwargs):
     """
     更新商品库存
     """
+    data={}
 
     for xxx in ProxyStock.objects.all():
         ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()
@@ -25,8 +26,10 @@ def update_product_stock(*args, **kwargs):
                 xxx.available_subnets = ",".join(subnets)
                 xxx.ip_stock = cart_stock * xxx.cart_step
                 xxx.save()
+                data[xxx.id] = xxx.ip_stock
     for x in Variant.objects.all():
         x.save()
+    return data
 
 
 def update_product_from_shopify():
