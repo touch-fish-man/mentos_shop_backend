@@ -162,8 +162,6 @@ class Product(BaseModel):
         return Option.objects.filter(product_id=self.id)
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        if self.id:
-            self.active = self.is_active
         super().save(force_insert=False, force_update=False, using=None,
                      update_fields=None)
 
