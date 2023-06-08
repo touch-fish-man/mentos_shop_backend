@@ -215,6 +215,7 @@ class ProxyStock(BaseModel):
         available_subnets = self.available_subnets.split(',')
         if available_subnets:
             return available_subnets[0]
+
     def remove_available_subnet(self, subnet):
         """
         更新可用子网
@@ -225,8 +226,9 @@ class ProxyStock(BaseModel):
             available_subnets.remove(subnet)
             self.available_subnets = ','.join(available_subnets)
             self.save()
+
     def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
+            self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         if self.available_subnets:
             available_subnets = self.available_subnets.split(',')
@@ -234,8 +236,6 @@ class ProxyStock(BaseModel):
             available_subnets = [x for x in available_subnets if x]
             self.available_subnets = ','.join(available_subnets)
         super().save(force_insert, force_update, using, update_fields)
-
-
 
     def return_subnet(self, subnet):
         """
@@ -303,40 +303,23 @@ class Proxy(BaseModel):
             return False
 
 
-lock= threading.Lock()
+lock = threading.Lock()
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
-    if instance.server_ip:
-        create_delete_thread(instance.server_ip, instance.username, instance.subnet,instance.ip_stock_id)
-
-
-def delete_proxy(server_ip, username, subnet, ip_stock_id):
-    """
-    删除代理, 60秒后删除,防止重复删除
-    """
-    time.sleep(randint(20, 60))
-    if not os.path.exists('/tmp/delete_proxy_thread_' + username):
-        os.mknod('/tmp/delete_proxy_thread_' + username)
-        if Proxy.objects.filter(username=username).count() == 0:
-            kax_client = KaxyClient(server_ip)
-            kax_client.del_user(username)
-            kax_client.del_acl(username)
-            with lock:
-                stock = ProxyStock.objects.filter(id=ip_stock_id).first()
-                # 归还子网,归还库存
-                if stock:
-                    if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).all().count() == 0:
-                        stock.return_subnet(subnet)
-                        stock.return_stock()
-                        from apps.products.models import Variant
-                        # 更新库存
-                        variant = Variant.objects.filter(id=stock.variant_id).first()
-                        if variant:
-                            variant.save()
-            time.sleep(60)
-            os.remove('/tmp/delete_proxy_thread_' + username)
-
-
-def create_delete_thread(server_ip, username, subnet, ip_stock_id):
-    delete_thread = threading.Thread(target=delete_proxy, args=(server_ip, username, subnet, ip_stock_id))
-    delete_thread.start()
+    # 当最后一个代理被删除时,删除用户
+    if Proxy.objects.filter(username=instance.username).count() == 0:
+        kax_client = KaxyClient(instance.server_ip)
+        kax_client.del_user(instance.username)
+        kax_client.del_acl(instance.username)
+        with lock:
+            stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
+            # 归还子网,归还库存
+            if stock:
+                if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).all().count() == 0:
+                    stock.return_subnet(instance.subnet)
+                    stock.return_stock()
+                    from apps.products.models import Variant
+                    # 更新库存
+                    variant = Variant.objects.filter(id=stock.variant_id).first()
+                    if variant:
+                        variant.save()
