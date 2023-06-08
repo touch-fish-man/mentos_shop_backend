@@ -5,9 +5,12 @@ import time
 from collections import OrderedDict
 from pprint import pprint
 from pyquery import PyQuery
+import logging
 
 import django
 import shopify
+logger=logging.getLogger('pyactiveresource.connection')
+logger.setLevel(logging.ERROR)
 
 if os.environ.get('DJANGO_ENV'):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

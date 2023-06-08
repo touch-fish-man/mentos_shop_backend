@@ -8,7 +8,7 @@ class CustomLimitOffsetPagination(_LimitOffsetPagination):
     重写LimitOffsetPagination类,修改返回数据格式
     """
     default_limit = 10
-    max_limit = 50
+    max_limit = 150
     limit_query_description = "每页数量"
     offset_query_description = "偏移量"
 
