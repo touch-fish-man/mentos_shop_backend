@@ -251,7 +251,6 @@ class KaxyClient:
                     user = self.random_username()
         if proxy_info["num_of_ips"] > 0:
             if acl_str:
-                logging.info(acl_str)
                 self.add_user_acl(user, acl_str)
 
         return proxy_info
