@@ -44,4 +44,11 @@ class SocialSettingsApi(APIView):
         ret_dict["discord"] = data.get("support_discord")
         ret_dict["twitter"] = data.get("support_twitter")
         return SuccessResponse(data=ret_dict, msg=("获取成功"))
-
+class ServerLog(APIView):
+    def get(self, request):
+        BASE_DIR = settings.BASE_DIR
+        # 获取日志
+        if request.user.is_superuser:
+            celery_logs = open(os.path.join(BASE_DIR, "logs", "celery_worker.log"), "r").read()
+            django_logs = open(os.path.join(BASE_DIR, "logs", "server.log"), "r").read()
+            return SuccessResponse(data={"celery_logs": celery_logs, "django_logs": django_logs}, msg=("获取成功"))
