@@ -240,8 +240,11 @@ def reset_proxy_by_order(order_id):
     根据订单创建代理
     """
     order_obj = Orders.objects.filter(order_id=order_id, pay_status=1).first()
+
     if order_obj:
-        oid = 'create_proxy_by_id_{}'.format(id)
+        order_pk = order_obj.id
+        oid = 'create_proxy_by_id_{}'.format(order_pk)
+        logging.info("开始重置订单{}的代理".format(order_pk))
         with memcache_lock(lock_id, oid) as acquired:
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
