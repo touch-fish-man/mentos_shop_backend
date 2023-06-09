@@ -250,7 +250,8 @@ class KaxyClient:
                 if "Bad format for user." in resp.text:
                     user = self.random_username()
         if proxy_info["num_of_ips"] > 0:
-            self.add_user_acl(user, acl_str)
+            if acl_str:
+                self.add_user_acl(user, acl_str)
 
         return proxy_info
 
