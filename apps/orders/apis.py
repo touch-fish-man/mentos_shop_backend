@@ -186,7 +186,7 @@ class OrdersApi(ComModelViewSet):
 
         if not Variant.objects.filter(id=order.local_variant_id).first():
             return ErrorResponse(data={}, msg="The product does not exist, please place a new order.")  # 产品不存在，请下新订单
-        checkout_url, order_id = get_renew_checkout_link(order_id=order_id)
+        checkout_url, order_id = get_renew_checkout_link(order_id=order_id,request=request)
         return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="get checkout url success")
     @action(methods=['post'], detail=False, url_path='one_key_reset', url_name='one_key_reset')
     def one_key_reset(self, request, *args, **kwargs):

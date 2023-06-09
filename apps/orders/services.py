@@ -39,7 +39,7 @@ def shopify_order(data):
     for discount in data["discount_codes"]:
         discount_codes.append(discount["code"])
     return_data = {
-        "order_id": str(data["id"]),
+        "shopify_order_id": str(data["id"]),
         "order": {
             "created_at": data["created_at"],
             "total_price": data["total_price"],  # 总价
@@ -117,11 +117,18 @@ def get_checkout_link(request):
         return None, None
 
 
-def get_renew_checkout_link(order_id):
+def get_renew_checkout_link(order_id,request):
+    user = request.user
+    user_level = user.level
+    level_code_obj = LevelCode.objects.filter(level=user_level).first()
+
     order_obj = Orders.objects.filter(order_id=order_id).first()
     if order_obj:
         checkout_link = order_obj.checkout_url
         renew_checkot_url = re.sub(r'attributes\[renewal\]=\d', 'attributes[renewal]=1', checkout_link)
+        if level_code_obj:
+            code = level_code_obj.code
+            renew_checkot_url = re.sub(r'discount=\w+', 'discount={}'.format(code), renew_checkot_url)
         order_obj.shopify_order_number = None
         order_obj.save()
         return renew_checkot_url, order_id
@@ -501,7 +508,7 @@ def webhook_handle(request):
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
         if financial_status == 'paid':
-            shpify_order_id = order_info.get('order_id')
+            shpify_order_id = order_info.get('shopify_order_id')
             shopify_order_number = shopify_order_info.get('order_number')
             pay_amount = shopify_order_info.get('total_price')
             discount_codes = order_info.get('discount_codes')
@@ -512,53 +519,54 @@ def webhook_handle(request):
             if order:
                 if renewal_status == "1":
                     order.pay_amount = float(order.pay_amount) + float(pay_amount)
+                    order.renew_status = 1
                 order.pay_amount = float(pay_amount)  # 支付金额
                 order.pay_status = 1  # 已支付
                 order.shopify_order_id = shpify_order_id  # shopify订单id
                 order.shopify_order_number = shopify_order_number  # shopify订单号
                 order.save()
-            # 生成代理，修改订单状态
-            if renewal_status == "1":
-                order.renew_status = 1
-                order.save()
-                # 续费
-                order_process_ret = renew_proxy_by_order(order_id)
-            else:
-                # 新订
-                order_process_ret = create_proxy_by_order(order_id)
-            if order_process_ret:
-                # 修改优惠券状态
-                for discount_code in discount_codes:
-                    coupon = CouponCode.objects.filter(code=discount_code).first()
-                    if coupon:
-                        coupon.used_code()
-                # 增加邀请人奖励积分
-                order_user = User.objects.filter(id=order.uid).first()
-                if order_user:
-                    invite_log = InviteLog.objects.filter(uid=order.uid).first()
-                    if invite_log:
-                        # 查询邀请人
-                        inviter_user = User.objects.filter(id=invite_log.inviter_user_id).first()
-                        if inviter_user:
-                            inviter_user.reward_points += int(
-                                float(order.pay_amount) * float(settings.INVITE_REBATE_RATE))  # 奖励积分
-                            inviter_user.save()
-                            # 创建积分变动记录
-                            PointRecord.objects.create(uid=inviter_user.id, point=int(
-                                float(order.pay_amount) * float(settings.INVITE_REBATE_RATE)),
-                                                       reason=PointRecord.REASON_DICT["invite_buy"])
-                            logging.info("invite user reward points success")
-                # 增加用户等级积分
-                order_user.level_points += int(float(order.pay_amount) * float(settings.BILLING_RATE))  # 等级积分
-                order_user.save()
-                # 更新用户等级
-                order_user.update_level()
-                # fixme 发送邮件
-                # send_order_email(order_id)
+                # 生成代理，修改订单状态
+                if renewal_status == "1":
+                    # 续费
+                    order_process_ret = renew_proxy_by_order(order_id)
+                else:
+                    # 新订
+                    order_process_ret = create_proxy_by_order(order_id)
+                if order_process_ret:
+                    # 修改优惠券状态
+                    for discount_code in discount_codes:
+                        coupon = CouponCode.objects.filter(code=discount_code).first()
+                        if coupon:
+                            coupon.used_code()
+                    # 增加邀请人奖励积分
+                    order_user = User.objects.filter(id=order.uid).first()
+                    if order_user:
+                        invite_log = InviteLog.objects.filter(uid=order.uid).first()
+                        if invite_log:
+                            # 查询邀请人
+                            inviter_user = User.objects.filter(id=invite_log.inviter_user_id).first()
+                            if inviter_user:
+                                inviter_user.reward_points += int(
+                                    float(order.pay_amount) * float(settings.INVITE_REBATE_RATE))  # 奖励积分
+                                inviter_user.save()
+                                # 创建积分变动记录
+                                PointRecord.objects.create(uid=inviter_user.id, point=int(
+                                    float(order.pay_amount) * float(settings.INVITE_REBATE_RATE)),
+                                                           reason=PointRecord.REASON_DICT["invite_buy"])
+                                logging.info("invite user reward points success")
+                    # 增加用户等级积分
+                    order_user.level_points += int(float(order.pay_amount) * float(settings.BILLING_RATE))  # 等级积分
+                    order_user.save()
+                    # 更新用户等级
+                    order_user.update_level()
+                    # fixme 发送邮件
+                    # send_order_email(order_id)
 
+                else:
+                    # fixme 发送邮件
+                    # send_order_email(order_id)
+                    pass
             else:
-                # fixme 发送邮件
-                # send_order_email(order_id)
-                pass
+                logging.info("order not exist")
     except Exception as e:
         logging.exception(e)
