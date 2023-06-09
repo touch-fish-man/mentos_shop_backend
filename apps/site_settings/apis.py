@@ -59,4 +59,4 @@ class ServerLog(APIView):
             django_logs = django_logs[:200]
             celery_logs= "\n".join(celery_logs)
             django_logs = "\n".join(django_logs)
-            return SuccessResponse(data={"celery_logs": celery_logs, "django_logs": django_logs}, msg=("获取成功"))
+            return SuccessResponse(data={"task_logs": celery_logs, "server_logs": django_logs}, msg=("获取成功"))
