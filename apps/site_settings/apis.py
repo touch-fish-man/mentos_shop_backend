@@ -51,4 +51,4 @@ class ServerLog(APIView):
         if request.user.is_superuser:
             celery_logs = open(os.path.join(BASE_DIR, "logs", "celery_worker.log"), "r").read()
             django_logs = open(os.path.join(BASE_DIR, "logs", "server.log"), "r").read()
-            return SuccessResponse(data={"celery_logs": celery_logs, "django_logs": django_logs}, msg=("获取成功"))
+            return SuccessResponse(data={"task_log": celery_logs, "server_log": django_logs}, msg=("获取成功"))
