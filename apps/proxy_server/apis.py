@@ -98,7 +98,6 @@ class ProxyServerApi(ComModelViewSet):
             return ErrorResponse('参数错误')
         acl_value = AclGroup.objects.get(id=acl_group).acl_value
         kaxy_client = KaxyClient(ip)
-        acl_str_o = acl_value.split('\n')
         # acl_str = "\n".join([username + " " + i for i in acl_str_o])
         create_resp = kaxy_client.create_user_acl_by_prefix(username, prefix, acl_str_o)
         return SuccessResponse(data=create_resp)
