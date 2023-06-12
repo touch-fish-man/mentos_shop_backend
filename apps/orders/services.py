@@ -178,11 +178,10 @@ def create_proxy_by_order(order_id):
                         # todo 合并cidr 为了减少循环次数
                         for cidr in cidr_info:
                             Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
-
                             if Stock:
                                 cart_stock = Stock.cart_stock
                                 while cart_stock > 0 and Stock.available_subnets:
-                                    logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
+                                    # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                     if len(proxy_list) >= order_obj.product_quantity:
                                         # 代理数量已经够了
                                         break
@@ -202,7 +201,7 @@ def create_proxy_by_order(order_id):
                                         cart_stock -= 1
 
                                     Stock.save()
-                                logging.info("cart stock:{}".format(Stock.cart_stock))
+                                # logging.info("cart stock:{}".format(Stock.cart_stock))
                             else:
                                 logging.info("no stock")
                             if len(proxy_list) >= order_obj.product_quantity:

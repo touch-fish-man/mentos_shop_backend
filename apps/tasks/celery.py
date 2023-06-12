@@ -78,4 +78,8 @@ app.conf.beat_schedule = {
         'task': 'clean_email_code',
         'schedule': crontab(hour=2, minute=0), # 每天凌晨2点执行
     },
+    '清理过期session': {
+        'task': 'cleanup_sessions',
+        'schedule': crontab(day_of_week=1, hour=4, minute=0), # 每周一凌晨4点执行
+    },
 }
