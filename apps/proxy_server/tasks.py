@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from django.utils import timezone
 
@@ -121,3 +122,11 @@ def create_proxy_task(order_id, username, server_ip):
         one_off=True,
         expires=timezone.now() + datetime.timedelta(seconds=70)
     )
+@shared_task(name='check_proxy_status')
+def check_proxy_status():
+    """
+    检查代理状态,每4个小时检查一次
+    """
+    proxies = Proxy.objects.all()
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = executor.map(lambda p: (p, p.check_valid()), proxies)

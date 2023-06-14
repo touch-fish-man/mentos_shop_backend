@@ -13,7 +13,7 @@ from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
-
+import requests
 
 # Create your models here.
 class AclGroup(BaseModel):
@@ -286,11 +286,20 @@ class Proxy(BaseModel):
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, blank=True, null=True, verbose_name='用户')
     subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='subnet')  # 用于存储所所属子网
     ip_stock_id = models.IntegerField(blank=True, null=True, verbose_name='IP库存ID')
+    status = models.BooleanField(default=False, verbose_name='状态') # 用于判断是否有效
 
     class Meta:
         db_table = 'proxy'
         verbose_name = '代理列表'
         verbose_name_plural = '代理列表'
+    def __str__(self):
+        return f"{self.username}:{self.password}@{self.ip}:{self.port}"
+
+    def check_valid(self):
+        is_valid = check_proxy(self)
+        self.status = is_valid
+        self.save()
+        return is_valid
 
     def judge_expired(self):
         """
@@ -301,7 +310,19 @@ class Proxy(BaseModel):
             return self.expired_at < datetime.datetime.now()
         else:
             return False
-
+def check_proxy(proxy):
+    try:
+        proxies = {
+            'http': f'http://{proxy}',
+            'https': f'http://{proxy}'
+        }
+        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+    except Exception as e:
+        return False
 
 lock = threading.Lock()
 @receiver(post_delete, sender=Proxy)

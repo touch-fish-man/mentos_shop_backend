@@ -5,8 +5,9 @@ import string
 from faker import Faker
 import os
 import sys
+import requests
 import time
-
+from concurrent.futures import ThreadPoolExecutor
 
 from init_env import *
 from rich.console import Console
@@ -169,8 +170,44 @@ def proxy_compare_order():
         if ooo.id in xxx:
             if xxx[ooo.id]!=ooo.proxy_num:
                 print(ooo.id,ooo.proxy_num,xxx[ooo.id])
-proxy_compare_order()
-# for ix in Proxy.objects.filter(order_id=952).all():
-#     ix.delete()
-fix_stock()
-find_repeat()
+                for i in Proxy.objects.filter(order_id=ooo.id).all():
+                    # 检测代理是否可用
+                    proxy_str=f"{i.username}:{i.password}@{i.ip}:{i.port}"
+                    if not check_proxy(proxy_str):
+                        print("代理不可用",i.id,i.subnet,i.ip_stock_id,i.order_id)
+                        i.delete()
+                    
+def check_proxy(proxy):
+    try:
+        proxies = {
+            'http': f'http://{proxy}',
+            'https': f'http://{proxy}'
+        }
+        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+    except Exception as e:
+        print(e)
+        return False
+
+def check_all_proxy():
+    # 检测所有代理是否可用
+    proxies=[]
+    for i in Proxy.objects.all():
+        # 检测代理是否可用
+        proxy_str=f"{i.username}:{i.password}@{i.ip}:{i.port}"
+        proxies.append(proxy_str)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        results = executor.map(check_proxy, proxies)
+    invalid_proxy=[proxy for proxy, result in zip(proxies, results) if result]
+    with open("invalid_proxy.txt","w") as f:
+        f.write("\n".join(invalid_proxy))
+if __name__ == '__main__':
+    # fix_product()
+    # classify_stock()
+    # proxy_compare_order()
+    # fix_stock()
+    # find_repeat()
+    check_all_proxy()
