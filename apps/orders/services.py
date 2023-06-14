@@ -450,7 +450,7 @@ def create_proxy_by_id(id):
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
                     logging.info("delivery success")
-                    return True,ret_proxy_list
+                    return True,ret_proxy_list,''
             else:
                 logging.info('套餐不存在')
                 msg = 'variant not exist'
