@@ -82,4 +82,8 @@ app.conf.beat_schedule = {
         'task': 'cleanup_sessions',
         'schedule': crontab(day_of_week=1, hour=4, minute=0), # 每周一凌晨4点执行
     },
+    '代理有效性检查': {
+        'task': 'check_proxy_status',
+        'schedule': crontab(hour=1, minute=0), # 每四个小时执行一次
+    },
 }
