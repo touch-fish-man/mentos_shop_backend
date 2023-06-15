@@ -540,3 +540,5 @@ if __name__ == '__main__':
     # print(syncclient.sync_product_tags())
     # print(syncclient.get_customers())
     # syncclient.update_customer_tags_by_email('test@test.com', 'vip10')
+    from apps.proxy_server.tasks import check_proxy_status
+    check_proxy_status.delay()
