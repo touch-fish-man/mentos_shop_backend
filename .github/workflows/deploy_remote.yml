@@ -20,58 +20,17 @@ jobs:
           git reset --hard origin/main 
           git pull
           sh redeploy.sh
-    - name: send dingtalk message
-      uses: leafney/dingtalk-action@v1
-      if: success()
-      env:
-        DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
-        DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
-      with:
-        msgtype: link
-        title: 'github自动化部署通知'
-        text: '正式环境部署成功'
-        msg_url: 'https://www.mentosproxy.com'
-    - name: send dingtalk message
-      uses: leafney/dingtalk-action@v1
-      if: success()
-      env:
-        DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
-        DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
-      with:
-        msgtype: link
-        title: 'github自动化部署通知'
-        text: '测试环境部署成功'
-        msg_url: 'https://test.mentosproxy.com'
-    - name: executing remote ssh on dev server
-      uses: appleboy/ssh-action@v0.1.8
-      if: "contains(github.event.head_commit.message, '[build dev]')"
-      with:
-        host: ${{ secrets.SSH_HOST_DEV }}
-        username: ${{ secrets.SSH_USERNAME }}
-        password: ${{ secrets.SSH_PWD_DEV }}
-        port: ${{ secrets.SSH_PORT }}
-        script: |
-          cd /root/dev1/mentos_shop_backend
-          git fetch --all
-          git reset --hard origin/main 
-          git pull
-          sh deploy_dev.sh
-    - name: send dingtalk message
-      uses: leafney/dingtalk-action@v1
-      if: success()
-      env:
-        DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
-        DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
-      with:
-        msgtype: link
-        title: 'github自动化部署通知'
-        text: '开发环境swagger部署成功'
-        msg_url: 'http://18.219.70.192:4000/api/'
-    - name: send dingtalk message
-      uses: leafney/dingtalk-action@v1
-      if: failure()
-      env:
-          DINGTALK_ACCESS_TOKEN: ${{ secrets.DINGTALK_ACCESS_TOKEN }}
-          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
-      with:
-          text: '部署失败'
+    # - name: executing remote ssh on dev server
+    #   uses: appleboy/ssh-action@v0.1.8
+    #   if: "contains(github.event.head_commit.message, '[build dev]')"
+    #   with:
+    #     host: ${{ secrets.SSH_HOST_DEV }}
+    #     username: ${{ secrets.SSH_USERNAME }}
+    #     password: ${{ secrets.SSH_PWD_DEV }}
+    #     port: ${{ secrets.SSH_PORT }}
+    #     script: |
+    #       cd /root/dev1/mentos_shop_backend
+    #       git fetch --all
+    #       git reset --hard origin/main 
+    #       git pull
+    #       sh deploy_dev.sh
