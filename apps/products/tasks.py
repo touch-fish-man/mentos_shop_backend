@@ -10,8 +10,11 @@ def update_product_stock(*args, **kwargs):
     更新商品库存
     """
     data={}
-
-    for xxx in ProxyStock.objects.all():
+    if kwargs.get("ip_stock_id"):
+        stocks=ProxyStock.objects.filter(id=kwargs.get("ip_stock_id")).all()
+    else:
+        stocks=ProxyStock.objects.all()
+    for xxx in stocks:
         ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()
         if xxx.subnets:
             subnets = xxx.subnets.split(",")

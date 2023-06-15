@@ -8,7 +8,7 @@ from celery import shared_task
 
 
 @shared_task(name='update_user_level')
-def update_user_level():
+def update_user_level(*args, **kwargs):
     """
     定时任务，更新用户等级积分和等级，每月1号凌晨1点执行
     """
@@ -16,6 +16,20 @@ def update_user_level():
     for user in users:
         user.level_points_decay()
     return 'update user level success'
+
+
+@shared_task(name='update_user_level_to_shopify')
+def update_user_level_to_shopify(email, level):
+    """
+    定时任务，更新用户等级积分和等级到shopify，每月1号凌晨1点执行
+    """
+    shop_url = settings.SHOPIFY_SHOP_URL
+    api_key = settings.SHOPIFY_API_KEY
+    api_scert = settings.SHOPIFY_API_SECRET
+    private_app_password = settings.SHOPIFY_APP_KEY
+    shopify_sync_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
+    tags = "vip" + str(level)
+    shopify_sync_client.update_customer_tags_by_email(email, tags)
 
 
 @shared_task(name='sync_user_to_shopify')
@@ -37,6 +51,7 @@ def clean_captcha():
     定时任务，清理过期的验证码，每天凌晨1点执行
     """
     CaptchaStore.remove_expired()
+
 
 @shared_task(name='clean_email_code')
 def clean_expired_email_code():

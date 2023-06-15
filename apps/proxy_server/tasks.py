@@ -59,9 +59,9 @@ def reset_proxy_fn(order_id, username, server_ip):
             if p.id not in ret_proxy_list and len(ret_proxy_list) > 0:
                 p.delete()
         #创建库存回收任务
-        from apps.tasks import celery_app
+        from apps.products.tasks import update_product_stock
         # 更新产品库存
-        celery_app.send_task('update_product_stock', name='重置代理回收库存')
+        update_product_stock.delay()
         ret_json['code'] = 200
         ret_json['message'] = 'success'
         ret_json['data'] = {}

@@ -413,6 +413,7 @@ class SyncClient(ShopifyClient):
 
     def update_customer_tags_by_email(self, email, tags):
         # 更新顾客标签
+        email = str(email).lower()
         try:
             customer = shopify.Customer.find(email=email)[0]
         except:
@@ -539,5 +540,3 @@ if __name__ == '__main__':
     # print(syncclient.sync_product_tags())
     # print(syncclient.get_customers())
     # syncclient.update_customer_tags_by_email('test@test.com', 'vip10')
-    from apps.users.tasks import update_user_level
-    update_user_level.delay('')

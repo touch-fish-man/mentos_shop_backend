@@ -66,7 +66,11 @@ class User(AbstractUser, BaseModel):
         """
         更新用户等级
         """
+        original_level = self.level
         self.level = self.get_level()
+        if original_level != self.level:
+            from tasks import update_user_level_to_shopify
+            update_user_level_to_shopify.delay(self.email, self.level)
         self.save()
 
     def get_level(self):
