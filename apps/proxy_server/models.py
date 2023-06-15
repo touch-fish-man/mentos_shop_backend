@@ -286,7 +286,7 @@ class Proxy(BaseModel):
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, blank=True, null=True, verbose_name='用户')
     subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='subnet')  # 用于存储所所属子网
     ip_stock_id = models.IntegerField(blank=True, null=True, verbose_name='IP库存ID')
-    status = models.BooleanField(default=False, verbose_name='状态') # 用于判断是否有效
+    status = models.BooleanField(default=True, verbose_name='状态') # 用于判断是否有效
 
     class Meta:
         db_table = 'proxy'
