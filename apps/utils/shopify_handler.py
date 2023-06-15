@@ -9,7 +9,8 @@ import logging
 
 import django
 import shopify
-logger=logging.getLogger('pyactiveresource.connection')
+
+logger = logging.getLogger('pyactiveresource.connection')
 logger.setLevel(logging.ERROR)
 
 if os.environ.get('DJANGO_ENV'):
@@ -19,16 +20,16 @@ if os.environ.get('DJANGO_ENV'):
     else:
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
 else:
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.prod")
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 django.setup()
 from apps.products.models import *
 
-
-#redis lrucache 装饰器
+# redis lrucache 装饰器
 import json
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
+
 
 class LruCache:
     def __init__(self, timeout=DEFAULT_TIMEOUT):
@@ -47,7 +48,9 @@ class LruCache:
                 value = self.func(instance, *args, **kwargs)
                 cache.set(key, value, timeout=self.timeout)
             return value
+
         return wrapped_func
+
 
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -58,7 +61,7 @@ class LruCache:
 
 
 class ShopifyClient:
-    def __init__(self, shop_url=None, api_key=None, api_scert=None, access_token=None,api_version=None):
+    def __init__(self, shop_url=None, api_key=None, api_scert=None, access_token=None, api_version=None):
         self.shop_url = shop_url
         self.api_version = api_version if api_version else '2023-01'
         self.api_key = api_key
@@ -86,6 +89,7 @@ class ShopifyClient:
         if not self.session:
             self.__get_session()
         yield self.session
+
     @LruCache()
     def get_products(self, format=False):
         product_list = []
@@ -139,12 +143,12 @@ class ShopifyClient:
                 values.append({
                     "option_value": 'Default' if v == 'Default Title' else v,
                 })
-            if 'time' in o.get('name',""):
+            if 'time' in o.get('name', ""):
                 option_type = 1
             else:
                 option_type = 0
             options.append({
-                "option_name": "Default Option" if o.get('name')=="Title" else o.get('name'),
+                "option_name": "Default Option" if o.get('name') == "Title" else o.get('name'),
                 "option_values": values,
                 "shopify_option_id": o.get('id'),
                 "option_type": option_type
@@ -153,6 +157,7 @@ class ShopifyClient:
         product_info["variant_options"] = options
         product_info["variants"] = [self.format_variant_info(x) for x in product['variants']]
         return product_info
+
     def format_collection_info(self, collection):
         collection_list = []
         for x in collection:
@@ -165,6 +170,7 @@ class ShopifyClient:
                 collection_info["collection_desc"] = ""
             collection_list.append(collection_info)
         return collection_list
+
     @LruCache()
     def get_product_collections(self):
         # 获取产品系列
@@ -183,13 +189,14 @@ class ShopifyClient:
     def get_product_tags(self):
         # 获取产品标签
         tag_list = []
-        products=self.get_products()
+        products = self.get_products()
         for product in products:
             tags = [x.strip() for x in product['tags'].strip().split(',')]
             for tag in tags:
                 if tag not in tag_list:
                     tag_list.append(tag)
         return tag_list
+
     def get_product_variants(self, product_id, format=False):
         variant = shopify.Variant.find(product_id=product_id)
         variant_list = []
@@ -205,6 +212,7 @@ class ShopifyClient:
         for discount in shopify.DiscountCode.find():
             discount_list.append(discount.to_dict())
         return discount_list
+
     def list_gift_cards(self):
         # 获取所有礼品卡
         # 需要开通shopify plus
@@ -224,19 +232,12 @@ class ShopifyClient:
 
     def list_orders(self):
         # 获取所有订单
-        orders = shopify.Order.find(status='any', fields="id,note,email,financial_status,order_number", order="created_at DESC")
+        orders = shopify.Order.find(status='any', fields="id,note,email,financial_status,order_number",
+                                    order="created_at DESC")
         order_list = []
         for order in orders:
             order_list.append(order.to_dict())
         return order_list
-
-    def list_customers(self):
-        # 获取所有顾客
-        customers = shopify.Customer.find()
-        customer_list = []
-        for customer in customers:
-            customer_list.append(customer.to_dict())
-        return customer_list
 
     def list_products(self):
         # 获取所有产品
@@ -261,6 +262,7 @@ class ShopifyClient:
             return order[0].to_dict()
         else:
             return None
+
     @staticmethod
     def get_checkout_link(shop_url, data):
         base_url = shop_url + "cart/"
@@ -272,8 +274,8 @@ class ShopifyClient:
         ref_str = "&ref=" + data.get("ref") if data.get("ref") else ""
         access_token_str = "&access_token=" + data.get("access_token") if data.get("access_token") else ""
         attributes_str = ""
-        for attr_name,attr_value in data.get("attributes").items():
-            attributes_str+="&attributes[{}]={}".format(attr_name,attr_value)
+        for attr_name, attr_value in data.get("attributes").items():
+            attributes_str += "&attributes[{}]={}".format(attr_name, attr_value)
 
         # 将cart_id和quantity分别存储在两个列表中
         cart_ids = []
@@ -286,14 +288,28 @@ class ShopifyClient:
         # 将多个cart_id和quantity拼接成字符串，用逗号隔开
         cart_quantity_str = ",".join([cart_ids[i] + ":" + quantities[i] for i in range(len(cart_ids))])
 
-        url = base_url + cart_quantity_str + "?"+email_str+note_str+attributes_str + discount_str + ref_str+access_token_str
+        url = base_url + cart_quantity_str + "?" + email_str + note_str + attributes_str + discount_str + ref_str + access_token_str
         return url
 
-    def get_customers(self):
-        customers = shopify.Customer.find()
+    def get_customers(self, args):
+        customers = shopify.Customer.find(**args)
         customer_list = []
         for customer in customers:
             customer_list.append(customer.to_dict())
+        return customer_list
+
+    def list_customers(self):
+        # 获取所有顾客
+        args = {"limit": 250, "fields": "id,email,tags", "since_id": 0}
+        customer_list = []
+        while True:
+            customers = self.get_customers(args)
+            if customers:
+                customer_list.extend(customers)
+                args['since_id'] = customers[-1]['id']
+            else:
+                break
+        customer_list = dict([(i['email'], i) for i in customer_list])
         return customer_list
 
     def create_customer(self, customer_info):
@@ -317,6 +333,12 @@ class ShopifyClient:
             }
         ]
         customer.note = "mentosproxy_web"
+        return customer.save()
+
+    def update_customer_tags(self, customer_info):
+        # 更新顾客标签
+        customer = shopify.Customer.find(customer_info['id'])
+        customer.tags = customer_info['tags']
         return customer.save()
 
     def create_product(self, product_info):
@@ -359,7 +381,6 @@ class SyncClient(ShopifyClient):
     def __init__(self, *args, **kwargs):
         super(SyncClient, self).__init__(*args, **kwargs)
 
-
     def sync_customers(self):
         # 同步客户信息
         # 1. 获取本地所有客户
@@ -367,21 +388,39 @@ class SyncClient(ShopifyClient):
         # 3. 更新客户等级
         from apps.users.models import User
         all_users = User.objects.all()
-        shopify_users=self.get_customers()
-        shopify_users_email_dict=dict([(i['email'],i) for i in shopify_users])
+        shopify_users = self.list_customers()
         for user in all_users:
-            if not (user.email in shopify_users_email_dict and "vip"+str(user.level)==shopify_users_email_dict[user.email]['tags']):
+            email = str(user.email).lower()
+            if email in shopify_users:
+                if "vip" + str(user.level) != shopify_users[email]['tags']:
+                    # 更新用户等级
+                    shopify_users[email]['tags'] = "vip" + str(user.level)
+                    logging.info("update customer {} tags to {}".format(email, shopify_users[email]['tags']))
+                    self.update_customer_tags(shopify_users[email])
+                    time.sleep(0.5)
+            else:
                 # 创建用户
                 customer_info = {
                     "first_name": user.username,
                     "last_name": user.username,
-                    "email": user.email,
-                    "tags": "vip"+str(user.level)
+                    "email": email,
+                    "tags": "vip" + str(user.level)
                 }
                 self.create_customer(customer_info)
+                logging.info("create customer {}".format(email))
                 # 增加请求频率限制
-                time.sleep(1)
-    def add_user_to_customer(self,email):
+                time.sleep(0.5)
+
+    def update_customer_tags_by_email(self, email, tags):
+        # 更新顾客标签
+        try:
+            customer = shopify.Customer.find(email=email)[0]
+        except:
+            return
+        customer.tags = tags
+        return customer.save()
+
+    def add_user_to_customer(self, email):
         from apps.users.models import User
         user = User.objects.filter(email=email).first()
         if user:
@@ -390,7 +429,7 @@ class SyncClient(ShopifyClient):
                 "first_name": user.username,
                 "last_name": user.username,
                 "email": user.email,
-                "tags": "vip"+str(user.level)
+                "tags": "vip" + str(user.level)
             }
             self.create_customer(customer_info)
 
@@ -409,16 +448,19 @@ class SyncClient(ShopifyClient):
     def sync_product_variants(self):
         # 同步产品变体
         pass
+
     def sync_product_collections(self):
-        collection_list=self.get_product_collections()
+        collection_list = self.get_product_collections()
         for i in collection_list:
             if ProductCollection.objects.filter(collection_name=i['title']).exists():
                 ProductCollection.objects.filter(collection_name=i['title']).update(collection_desc=i['desc'])
                 ProductCollection.objects.filter(collection_name=i['title']).update(soft_delete=False)
             else:
-                ProductCollection.objects.create(collection_name=i['title'],collection_desc=i['desc'],shopify_collection_id=i['id'])
+                ProductCollection.objects.create(collection_name=i['title'], collection_desc=i['desc'],
+                                                 shopify_collection_id=i['id'])
         # 删除本地数据库中不存在的标签
-        for collection in ProductCollection.objects.filter(soft_delete=True).exclude(collection_name__in=[i['title'] for i in collection_list]).all():
+        for collection in ProductCollection.objects.filter(soft_delete=True).exclude(
+                collection_name__in=[i['title'] for i in collection_list]).all():
             if ProductCollectionRelation.objects.filter(product_collection=collection.id).exists():
                 # 如果标签被产品使用，则不删除
                 continue
@@ -428,11 +470,11 @@ class SyncClient(ShopifyClient):
     def sync_product_tags(self):
         # 同步产品标签
         # 从shopify获取所有产品，插入到本地数据库
-        tag_list=self.get_product_tags()
+        tag_list = self.get_product_tags()
         for tag in tag_list:
-            query_ret=ProductTag.objects.filter(tag_name=tag).first()
+            query_ret = ProductTag.objects.filter(tag_name=tag).first()
             if query_ret:
-                query_ret.soft_delete=False
+                query_ret.soft_delete = False
                 query_ret.save()
             else:
                 ProductTag.objects.create(tag_name=tag)
@@ -443,14 +485,14 @@ class SyncClient(ShopifyClient):
                 continue
             tag.delete()
         return True
-    def sync_shopify(self,customers=False,products=True):
+
+    def sync_shopify(self, customers=False, products=True):
         # 同步shopify
         if customers:
             self.sync_customers()
         if products:
             self.sync_product_collections()
             self.sync_product_tags()
-
 
     def sync_promotions(self):
         # 同步促销
@@ -496,5 +538,6 @@ if __name__ == '__main__':
     # print(syncclient.sync_product_collections())
     # print(syncclient.sync_product_tags())
     # print(syncclient.get_customers())
-    pprint(syncclient.list_orders())
-    
+    # syncclient.update_customer_tags_by_email('test@test.com', 'vip10')
+    from apps.users.tasks import update_user_level
+    update_user_level.delay('')
