@@ -21,7 +21,7 @@ if os.environ.get('DJANGO_ENV'):
         os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.local")
 else:
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.django.prod")
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 django.setup()
 from apps.products.models import *
 

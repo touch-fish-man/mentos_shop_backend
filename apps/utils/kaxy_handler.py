@@ -121,7 +121,7 @@ class KaxyClient:
 
     def get_user(self, user):
         # 获取用户信息
-        resp = self.__send_request("post", "/api/view-user", json={"username": user})
+        resp = self.__send_request("post", "/api/view-user", json={"user": user})
         return resp
 
     def del_user(self, user):

@@ -19,7 +19,12 @@ from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, Acl
     ServerGroupThrough, Cidr
 from apps.orders.models import Orders
 from apps.products.models import Variant, ProductTag, ProductTagRelation
-import ipaddress
+from apps.utils.kaxy_handler import KaxyClient
+
+def is_ip_in_network(ip_str, network_str):
+    ip = ipaddress.ip_address(ip_str)
+    network = ipaddress.ip_network(network_str)
+    return ip in network
 # 库存修复
 def fix_stock():
     for xxx in ProxyStock.objects.all():
@@ -166,17 +171,21 @@ def proxy_compare_order():
             xxx[ppp.order_id]+=1
         else:
             xxx[ppp.order_id]=1
-    for ooo in Orders.objects.all():
-        if ooo.id in xxx:
-            if xxx[ooo.id]!=ooo.proxy_num:
-                print(ooo.id,ooo.proxy_num,xxx[ooo.id])
-                for i in Proxy.objects.filter(order_id=ooo.id).all():
-                    # 检测代理是否可用
-                    proxy_str=f"{i.username}:{i.password}@{i.ip}:{i.port}"
-                    if not check_proxy(proxy_str):
-                        print("代理不可用",i.id,i.subnet,i.ip_stock_id,i.order_id)
-                        i.delete()
+        if not ppp.subnet:
+            for s in ProxyStock.objects.filter(id=ppp.ip_stock_id).first().gen_subnets():
+                if is_ip_in_network(ppp.ip,s):
+                    ppp.subnet=s
+                    ppp.save()
+                    break
+    # for ooo in Orders.objects.all():
+    #     if ooo.id in xxx:
+    #         if xxx[ooo.id]!=ooo.proxy_num:
+    #             ppp=Proxy.objects.filter(order_id=ooo.id).first()
+    #             username=ppp.username
+    #             server_ip=ppp.server_ip
                     
+
+                 
 def check_proxy(proxy):
     try:
         proxies = {
@@ -207,7 +216,6 @@ def check_all_proxy():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    # proxy_compare_order()
+    proxy_compare_order()
     # fix_stock()
     # find_repeat()
-    check_all_proxy()
