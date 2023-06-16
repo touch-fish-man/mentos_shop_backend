@@ -14,7 +14,7 @@ class SiteSettingsApi(APIView, LoginRequiredMixin):
 
     def post(self, request):
         BASE_DIR = settings.BASE_DIR
-        if request.data.get("geofeed"):
+        if request.data.get("geofeed") is not None:
             os.makedirs("/opt/mentos_shop_backend/geofeed", exist_ok=True)
             with open("/opt/mentos_shop_backend/geofeed/geofeed.csv", "w") as f:
                 f.write(request.data.get("geofeed"))
