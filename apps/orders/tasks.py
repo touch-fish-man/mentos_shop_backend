@@ -67,19 +67,10 @@ def delete_proxy_expired():
     """
     删除过期代理,每天检查一次
     """
-    del_user_dict = {}
     all_proxy=Proxy.objects.filter().all()
     for proxy in all_proxy:
         if proxy.expired_at < datetime.datetime.now().astimezone(pytz.utc):
-            if proxy.server_ip not in del_user_dict:
-                del_user_dict[proxy.server_ip] = set()
-            del_user_dict[proxy.server_ip].add(proxy.username)
             proxy.delete()
-    for s_ip,users in del_user_dict.items():
-        for user in users:
-            client=KaxyClient(s_ip)
-            client.del_user(user)
-    return json.dumps({'status': 1})
 
 @shared_task(name='delete_timeout_order')
 def delete_timeout_order():

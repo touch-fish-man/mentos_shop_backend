@@ -39,7 +39,7 @@ app.conf.beat_schedule = {
     },
     '删除过期代理': {
         'task': 'delete_proxy_expired',
-        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+        'schedule': 6000.0, # 每小时执行一次
     },
     '过期订单提醒': {
         'task': 'precheck_order_expired',

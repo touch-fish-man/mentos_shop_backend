@@ -213,9 +213,10 @@ def check_all_proxy():
     invalid_proxy=[proxy for proxy, result in zip(proxies, results) if result]
     with open("invalid_proxy.txt","w") as f:
         f.write("\n".join(invalid_proxy))
+
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
     proxy_compare_order()
-    # fix_stock()
-    # find_repeat()
+    fix_stock()
+    find_repeat()
