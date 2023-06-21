@@ -29,10 +29,10 @@ urlpatterns = [
     path("orders/", include("apps.orders.urls")),
     path("rewards/", include("apps.rewards.urls")),
     path("products/", include("apps.products.urls")),
-    path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('json/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
-    re_path(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework"))
+    # path('', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    # path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # path('json/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    # re_path(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework"))
     # path("errors/", include("apps.errors.urls")),
     # 获取Token的接口
     ]

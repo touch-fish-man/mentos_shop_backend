@@ -103,7 +103,7 @@ TEMPLATES = [
 ]
 os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 DRF_API_LOGGER_DATABASE = True
-DRF_API_LOGGER_SKIP_URL_NAME = ['get_status']
+DRF_API_LOGGER_SKIP_URL_NAME = ['orders-get_status','productcollection-list',"socialsettings",'producttag-list']
 WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases

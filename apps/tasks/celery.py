@@ -60,7 +60,7 @@ app.conf.beat_schedule = {
     },
     '删除api请求记录': {
         'task': 'delete_api_logs',
-        'schedule': crontab(hour=2, minute=0), # 每天凌晨2点执行
+        'schedule': crontab(hour=10, minute=0, day_of_week=1), # 每周1,10点执行
     },
     '删除过期订单': {
         'task': 'delete_expired_order',
