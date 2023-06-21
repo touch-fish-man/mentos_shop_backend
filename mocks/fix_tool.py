@@ -217,6 +217,18 @@ def check_all_proxy():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    proxy_compare_order()
-    fix_stock()
-    find_repeat()
+    kc=KaxyClient("112.75.252.6")
+    user_dict={}
+    for x in Proxy.objects.filter(server_ip="112.75.252.6",status=0).all():
+        if x.username not in user_dict:
+            user_dict[x.username]=set()
+        user_dict[x.username].add(x.subnet)
+    for u,sub_ in user_dict.items():
+        for s in sub_:
+            resp=kc.create_user_by_prefix(u,s)
+            resp_json = resp.json()
+            for proxy_i in resp_json["data"]["proxy_str"]:
+                ip, port, user, password = proxy_i.split(":")
+                # 更新代理密码
+                Proxy.objects.filter(username=u,ip=ip).update(password=password,status=1)
+                print("更新代理密码",u,ip,password)
