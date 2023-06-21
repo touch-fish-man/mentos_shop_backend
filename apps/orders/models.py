@@ -30,8 +30,7 @@ class Orders(BaseModel):
     # 变体id
     variant_id = models.CharField(max_length=255, verbose_name='变体id')  # shopify的变体id
     local_variant_id = models.IntegerField(verbose_name='本地变体id')  # 本地的变体id
-    # 变体名称
-    variant_name = models.CharField(max_length=255, verbose_name='变体名称', null=True, blank=True)
+
     # 产品价格
     product_price = models.FloatField(verbose_name='产品价格')
     # 产品数量
@@ -72,6 +71,8 @@ class Orders(BaseModel):
     delivery_status = models.IntegerField(verbose_name='发货状态', default=0)
     delivery_num = models.IntegerField(verbose_name='发货数量', default=0)
     reset_time = models.DateTimeField(verbose_name='重置时间', null=True, blank=True)
+    # 变体名称
+    variant_name = models.CharField(max_length=255, verbose_name='变体名称', null=True, blank=True)
 
     class Meta:
         db_table = 'orders'
@@ -79,5 +80,5 @@ class Orders(BaseModel):
         verbose_name_plural = verbose_name
         ordering = ['-id']
 
-    def get_variant_name(self):
+    def get_variant_name_value(self):
         return Variant.objects.get(id=self.local_variant_id).variant_name
