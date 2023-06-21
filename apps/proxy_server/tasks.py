@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
-
+from django.core import management
 from django.utils import timezone
 
 from apps.proxy_server.models import Server, ProxyStock
@@ -130,3 +130,15 @@ def check_proxy_status():
     proxies = Proxy.objects.all()
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = executor.map(lambda p: (p, p.check_valid()), proxies)
+@shared_task(name="cleanup_sessions")
+def cleanup():
+    """Cleanup expired sessions by using Django management command."""
+    management.call_command("clearsessions", verbosity=0)
+@shared_task(name='flush_access_log')
+def clear_access_log():
+    """
+    清理访问日志,每天凌晨1点清理
+    """
+    for s in Server.objects.all():
+        s_c = KaxyClient(s.ip)
+        print(s_c.flush_access_log().text)

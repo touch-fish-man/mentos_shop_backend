@@ -308,36 +308,6 @@ if __name__ == "__main__":
     # pprint(client.add_user_acl(add_user,add_acl_str))
     # pprint(client.paser_api_acl())
     # pprint(client.get_server_info().json())
-    servers="""38.88.88.4
-107.165.196.95
-38.88.88.11
-202.226.25.183
-12.41.2.39
-12.41.2.58
-107.165.196.97
-112.75.252.6
-202.226.25.180
-112.75.192.2
-112.75.252.5
-12.41.2.45
-12.41.2.36
-12.41.2.61
-112.75.252.2
-202.226.25.179
-202.226.25.181
-107.165.196.93
-202.226.25.184
-208.215.21.203
-208.215.21.204
-38.88.88.3"""
-    for s in servers.split("\n"):
-        client = KaxyClient(s, token)
-        new_acl = []
-        origin_acl_dict = client.paser_api_acl()
-        for k, acl in origin_acl_dict.items():
-            new_acl.extend(acl.split("\n"))
-        print(len(new_acl))
-        new_acl_str = "\n".join(sorted(new_acl))
-        client.add_acl(new_acl_str)
+    print(client.list_user_acl().text)
 
 

@@ -213,24 +213,30 @@ def check_all_proxy():
     invalid_proxy=[proxy for proxy, result in zip(proxies, results) if result]
     with open("invalid_proxy.txt","w") as f:
         f.write("\n".join(invalid_proxy))
+def change_proxy():
+    # 修改代理
+    kc = KaxyClient("112.75.252.6")
+    user_dict = {}
+    for x in Proxy.objects.filter(server_ip="112.75.252.6", status=0).all():
+        if x.username not in user_dict:
+            user_dict[x.username] = set()
+        user_dict[x.username].add(x.subnet)
+    for u, sub_ in user_dict.items():
+        need_update = set()
+        for s in sub_:
+            resp = kc.create_user_by_prefix(u, s)
+            resp_json = resp.json()
+            for proxy_i in resp_json["data"]["proxy_str"]:
+                ip, port, user, password = proxy_i.split(":")
+                need_update.add((ip, user, password))
+        for ip, user, password in need_update:
+            Proxy.objects.filter(username=user, ip=ip).update(password=password, status=1)
+            print(ip, user, password)
 
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    kc=KaxyClient("112.75.252.6")
-    user_dict={}
-    for x in Proxy.objects.filter(server_ip="112.75.252.6",status=0).all():
-        if x.username not in user_dict:
-            user_dict[x.username]=set()
-        user_dict[x.username].add(x.subnet)
-    for u,sub_ in user_dict.items():
-        need_update = set()
-        for s in sub_:
-            resp=kc.create_user_by_prefix(u,s)
-            resp_json = resp.json()
-            print(len(resp_json["data"]["proxy_str"]))
-            for proxy_i in resp_json["data"]["proxy_str"]:
-                ip, port, user, password = proxy_i.split(":")
-                need_update.add((ip,user,password))
-        for ip,user,password in need_update:
-            Proxy.objects.filter(username=u,ip=ip).update(password=password,status=1)
+    for s in Server.objects.all():
+        s_c=KaxyClient(s.ip)
+        print(s_c.flush_access_log().text)
+

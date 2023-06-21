@@ -86,4 +86,10 @@ app.conf.beat_schedule = {
         'task': 'check_proxy_status',
         'schedule': crontab(hour=1, minute=0), # 每四个小时执行一次
     },
+    '清理代理访问日志':
+    {
+        'task': 'flush_access_log',
+        # 每两天执行一次
+        'schedule': crontab(hour=4, minute=10, day_of_week="1,3,5"),
+    },
 }

@@ -169,6 +169,34 @@ class ProxyServerApi(ComModelViewSet):
             request_data.append([order_id,username, server_ip])
             create_proxy_task(order_id,username, server_ip)
         return SuccessResponse(data={"message": "reset success","request_data":request_data})
+    @action(methods=['post'], detail=True, url_path='list_acl', url_name='list_acl')
+    def list_acl(self, request, *args, **kwargs):
+        """
+        获取ACL列表
+        """
+        proxy_server = self.get_object()
+        ip = proxy_server.ip
+        kaxy_client = KaxyClient(ip)
+        acl_list = kaxy_client.list_user_acl()
+        try:
+            acl_list = acl_list.json()
+        except:
+            acl_list = {}
+        return SuccessResponse(data=acl_list)
+    @action(methods=['post'], detail=True, url_path='flush_access_log', url_name='flush_access_log')
+    def flush_access_log(self, request, *args, **kwargs):
+        """
+        清理日志
+        """
+        proxy_server = self.get_object()
+        ip = proxy_server.ip
+        kaxy_client = KaxyClient(ip)
+        clean_resp = kaxy_client.flush_access_log()
+        try:
+            clean_resp = clean_resp.json()
+        except:
+            clean_resp = {}
+        return SuccessResponse(data=clean_resp)
 
 
 class AclGroupApi(ComModelViewSet):
