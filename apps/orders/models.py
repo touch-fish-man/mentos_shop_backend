@@ -81,4 +81,7 @@ class Orders(BaseModel):
         ordering = ['-id']
 
     def get_variant_name_value(self):
-        return Variant.objects.get(id=self.local_variant_id).variant_name
+        try:
+            return Variant.objects.get(id=self.local_variant_id).variant_name
+        except:
+            return ''

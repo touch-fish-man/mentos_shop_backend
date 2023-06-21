@@ -236,7 +236,7 @@ def change_proxy():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    for s in Server.objects.all():
-        s_c=KaxyClient(s.ip)
-        print(s_c.flush_access_log().text)
+    for oi in Orders.objects.all():
+        oi.variant_name=oi.get_variant_name_value()
+        oi.save()
 

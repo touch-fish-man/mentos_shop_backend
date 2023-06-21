@@ -192,6 +192,7 @@ def create_proxy_by_order(order_id):
                                     proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
                                                                                        acl_value)
                                     if proxy_info["proxy"]:
+                                        logging.info("创建代理成功:{}".format(len(proxy_info["proxy"])))
                                         proxy_list.extend(proxy_info["proxy"])
                                         server_list.extend([server.ip] * len(proxy_info["proxy"]))
                                         stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
