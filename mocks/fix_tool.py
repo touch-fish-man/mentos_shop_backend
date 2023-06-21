@@ -224,11 +224,13 @@ if __name__ == '__main__':
             user_dict[x.username]=set()
         user_dict[x.username].add(x.subnet)
     for u,sub_ in user_dict.items():
+        need_update = set()
         for s in sub_:
             resp=kc.create_user_by_prefix(u,s)
             resp_json = resp.json()
+            print(len(resp_json["data"]["proxy_str"]))
             for proxy_i in resp_json["data"]["proxy_str"]:
                 ip, port, user, password = proxy_i.split(":")
-                # 更新代理密码
-                Proxy.objects.filter(username=u,ip=ip).update(password=password,status=1)
-                print("更新代理密码",u,ip,password)
+                need_update.add((ip,user,password))
+        for ip,user,password in need_update:
+            Proxy.objects.filter(username=u,ip=ip).update(password=password,status=1)

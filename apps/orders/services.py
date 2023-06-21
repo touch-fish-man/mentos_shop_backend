@@ -293,6 +293,7 @@ def reset_proxy_by_order(order_id):
                                                                                        acl_value)
                                     if proxy_info["proxy"]:
                                         proxy_list.extend(proxy_info["proxy"])
+                                        logging.info("len proxy_list:{}".format(len(proxy_list)))
                                         server_list.extend([server.ip] * len(proxy_info["proxy"]))
                                         stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
                                         subnet_list.extend([prefix] * len(proxy_info["proxy"]))
