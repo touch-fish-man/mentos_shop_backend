@@ -179,7 +179,7 @@ class ProxyServerApi(ComModelViewSet):
         kaxy_client = KaxyClient(ip)
         acl_list = kaxy_client.list_user_acl()
         try:
-            acl_list = acl_list.json()
+            acl_list = acl_list.text
         except:
             acl_list = {}
         return SuccessResponse(data=acl_list)
