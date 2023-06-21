@@ -22,7 +22,7 @@ class KaxyClient:
         }
         url = self.url + path
         resp = {}
-        if "write-user-acl" not in path:
+        if "write-user-acl" not in path and "view-server-info" not in path:
             logging.info("请求: {}-->{}".format(url, kwargs))
         try:
             resp = requests.request(method, url, headers=headers, **kwargs)
