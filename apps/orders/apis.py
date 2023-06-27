@@ -202,7 +202,7 @@ class OrdersApi(ComModelViewSet):
             order = Orders.objects.filter(id=order_id)
             if order.exists():
                 order = order.first()
-                order_id = order.order_id
+                order_id = order.id
                 # 删除代理
                 for t in threading.enumerate():
                     if t.name == "reset_{}".format(order_id):
