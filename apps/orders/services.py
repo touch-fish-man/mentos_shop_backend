@@ -228,7 +228,7 @@ def create_proxy_by_order(order_id):
                     html_message = email_template.get('html').replace('{{order_id}}', str(order_pk)).replace('{{proxy_number}}',str(len(proxy_list))).replace('{{product}}',str(product_name)).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
-                    logging.info("delivery success")
+                    logging.info("order_id:{} delivery success".format(order_pk))
                     return True
             else:
                 logging.info('套餐不存在')
@@ -305,7 +305,7 @@ def reset_proxy_by_order(order_id):
                                         cart_stock -= 1
 
                                     Stock.save()
-                                logging.info("cart stock:{}".format(Stock.cart_stock))
+                                # logging.info("cart stock:{}".format(Stock.cart_stock))
                             else:
                                 logging.info("no stock")
                             if len(proxy_list) >= order_obj.product_quantity:
@@ -334,7 +334,8 @@ def reset_proxy_by_order(order_id):
                         '{{proxy_expired_at}}', proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
-                    logging.info("delivery success")
+                    logging.info("order_id:{} delivery success".format(order_pk))
+                    logging.info("-"*50)
                     return True
             else:
                 logging.info('套餐不存在')
@@ -422,7 +423,7 @@ def create_proxy_by_id(id):
                                         Stock.ip_stock -= len(proxy_info["proxy"])
                                         cart_stock -= 1
                                     Stock.save()
-                                logging.info("cart stock:{}".format(Stock.cart_stock))
+                                # logging.info("cart stock:{}".format(Stock.cart_stock))
                             else:
                                 logging.info("no stock")
                             if len(proxy_list) >= order_obj.product_quantity:
@@ -452,7 +453,8 @@ def create_proxy_by_id(id):
                                                                   proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
-                    logging.info("delivery success")
+                    logging.info("order_id:{} delivery success".format(id))
+                    logging.info("-"*50)
                     return True,ret_proxy_list,''
             else:
                 logging.info('套餐不存在')
