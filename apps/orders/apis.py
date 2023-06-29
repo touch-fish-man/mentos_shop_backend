@@ -17,7 +17,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
 from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, \
-    reset_proxy_by_order
+    reset_proxy_by_order, create_proxy_by_id
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -200,17 +200,15 @@ class OrdersApi(ComModelViewSet):
         except Exception as e:
             return ErrorResponse(data={}, msg="订单id格式错误")
         for order_id in order_ids:
-            order = Orders.objects.filter(id=order_id)
-            if order.exists():
-                order = order.first()
-                order_id = order.id
+            order = Orders.objects.filter(id=order_id).first()
+            if order:
                 # 删除代理
                 for t in threading.enumerate():
                     if t.name == "reset_{}".format(order_id):
                         return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
                 Proxy.objects.filter(order_id=order_id).all().delete()
                 # 重新创建代理
-                t1 = threading.Thread(target=reset_proxy_by_order, args=(order_id,), name="reset_{}".format(order_id)).start()
+                t1 = threading.Thread(target=create_proxy_by_id, args=(order_id,), name="reset_{}".format(order_id)).start()
             else:
                 return ErrorResponse(data={}, msg="订单不存在")
 
