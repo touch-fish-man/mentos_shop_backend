@@ -332,14 +332,15 @@ def _mymodel_delete(sender, instance, **kwargs):
     # 当最后一个代理被删除时,删除用户
     # delete_user_from_server.delay(instance.server_ip, instance.username,instance.subnet,instance.ip_stock_id)
     if Proxy.objects.filter(username=instance.username).count() == 0:
+        logging.info('删除用户{}'.format(instance.username))
         server_obj= Server.objects.filter(ip=instance.server_ip).first()
         if server_obj:
             if server_obj.server_status == 0:
+                logging.info('服务器{}已经下线,不需要删除用户'.format(instance.server_ip))
                 cache.set(cache_key, 1, timeout=30)
         kax_client = KaxyClient(instance.server_ip)
         try:
             if not cache.get(cache_key):
-                logging.info('删除用户{}'.format(instance.username))
                 resp = kax_client.del_user(instance.username)
                 try:
                     if resp.json().get('status')==200:
