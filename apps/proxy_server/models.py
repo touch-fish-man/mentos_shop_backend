@@ -331,8 +331,23 @@ def _mymodel_delete(sender, instance, **kwargs):
     if Proxy.objects.filter(username=instance.username).count() == 0:
         logging.info('删除用户{}'.format(instance.username))
         kax_client = KaxyClient(instance.server_ip)
-        kax_client.del_user(instance.username)
-        kax_client.del_acl(instance.username)
+        try:
+            from django.core.cache import cache
+            cache_key = 'del_user_{}_{}'.format(instance.username,instance.server_ip)
+            if not cache.get(cache_key):
+                resp = kax_client.del_user(instance.username)
+                try:
+                    if resp.json().get('status')==200:
+                        kax_client.del_acl(instance.username)
+                        cache.set(cache_key, 1, timeout=30)
+                    elif "User does not exist." in resp.json().get('message'):
+                        kax_client.del_acl(instance.username)
+                        cache.set(cache_key, 1, timeout=30)
+                except Exception as e:
+                    logging.info('删除用户失败')
+        except Exception as e:
+            logging.info('删除用户失败,可能服务器挂了')
+
         with lock:
             stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
             # 归还子网,归还库存
