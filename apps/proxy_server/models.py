@@ -10,6 +10,8 @@ from random import randint
 
 from apps.core.models import BaseModel
 from django.db import models
+
+from apps.proxy_server.tasks import delete_user_from_server
 from apps.utils.kaxy_handler import KaxyClient
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
@@ -327,12 +329,17 @@ def check_proxy(proxy):
 lock = threading.Lock()
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
+    from django.core.cache import cache
+    cache_key = 'del_user_{}_{}'.format(instance.username, instance.server_ip)
     # 当最后一个代理被删除时,删除用户
+    # delete_user_from_server.delay(instance.server_ip, instance.username,instance.subnet,instance.ip_stock_id)
     if Proxy.objects.filter(username=instance.username).count() == 0:
+        server_obj= Server.objects.filter(ip=instance.server_ip).first()
+        if server_obj:
+            if server_obj.status == 0:
+                cache.set(cache_key, 1, timeout=30)
         kax_client = KaxyClient(instance.server_ip)
         try:
-            from django.core.cache import cache
-            cache_key = 'del_user_{}_{}'.format(instance.username,instance.server_ip)
             if not cache.get(cache_key):
                 logging.info('删除用户{}'.format(instance.username))
                 resp = kax_client.del_user(instance.username)
@@ -346,6 +353,7 @@ def _mymodel_delete(sender, instance, **kwargs):
                 except Exception as e:
                     logging.info('删除用户失败')
         except Exception as e:
+            cache.set(cache_key, 1, timeout=30)
             logging.info('删除用户失败,可能服务器挂了')
 
         with lock:
