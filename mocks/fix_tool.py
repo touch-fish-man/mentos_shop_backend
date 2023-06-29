@@ -238,7 +238,7 @@ def change_proxy():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    order_ids="2268,2188".split(",")
+    order_ids="458,490,500,609,633,678".split(",")
     for order_id in order_ids:
         order = Orders.objects.filter(id=order_id).first()
         if order:
