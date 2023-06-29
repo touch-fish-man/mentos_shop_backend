@@ -51,8 +51,7 @@ app.conf.beat_schedule = {
     },
     '服务器状态检查': {
         'task': 'check_server_status',
-        
-        'schedule': 6000.0, # 每小时执行一次
+        'schedule': 6000.0,# 每小时执行一次
     },
     '删除超时订单': {
         'task': 'delete_timeout_order',
@@ -84,7 +83,8 @@ app.conf.beat_schedule = {
     },
     '代理有效性检查': {
         'task': 'check_proxy_status',
-        'schedule': crontab(hour=1, minute=0), # 每四个小时执行一次
+        # 每四个小时执行一次
+        'schedule': crontab(hour='*/4'),
     },
     '清理代理访问日志':
     {

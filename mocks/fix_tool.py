@@ -236,3 +236,4 @@ def change_proxy():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
+    fix_stock()
