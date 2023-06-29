@@ -20,6 +20,7 @@ from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, Acl
 from apps.orders.models import Orders
 from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
+from apps.orders.services import create_proxy_by_id
 
 def is_ip_in_network(ip_str, network_str):
     ip = ipaddress.ip_address(ip_str)
@@ -233,7 +234,14 @@ def change_proxy():
             Proxy.objects.filter(username=user, ip=ip).update(password=password, status=1)
             print(ip, user, password)
 
+
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    fix_stock()
+    order_ids="830,832,852,859,861,862,871,877,880,883,892,898,904,908,756,1061,1136,1138,1140,1152,1159,1161,1163,1173,1174,1191,1199,1203,1233,1234,1249,1281,1290,1304,1317,1320,1341,1342,1345,1365,1372,1373,1377,1385,1407,1412,1415,1416,1425,1486,1497,1500,1509,1520,1528,1530,1691,1692,1731,1744,1746,1755,1761,1767,1775,1790,1800,1804,1816,1827,1864,1871,1875,1879,1891,1423,1950,1952,1970,1977,1990,1997,2001,2002,2012,2015,2018,2021,2022,2028,2030,2045,2047,2051,2053,2054,2057,2076,2100,2120,2128,2141,529,2204,2213,2224,1230,2237,2248,2255,2287,2295,2302,2310,2322,715,755,758,770,827,848,874,1144,1720,844".split(",")
+    for order_id in order_ids:
+        order = Orders.objects.filter(id=order_id).first()
+        if order:
+            for p_i in Proxy.objects.filter(order_id=order_id).all():
+                p_i.delete()
+            create_proxy_by_id(order_id)
