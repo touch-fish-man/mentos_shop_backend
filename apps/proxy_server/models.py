@@ -334,7 +334,7 @@ def _mymodel_delete(sender, instance, **kwargs):
     if Proxy.objects.filter(username=instance.username).count() == 0:
         server_obj= Server.objects.filter(ip=instance.server_ip).first()
         if server_obj:
-            if server_obj.status == 0:
+            if server_obj.server_status == 0:
                 cache.set(cache_key, 1, timeout=30)
         kax_client = KaxyClient(instance.server_ip)
         try:
