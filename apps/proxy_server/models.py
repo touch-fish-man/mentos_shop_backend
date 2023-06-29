@@ -10,8 +10,6 @@ from random import randint
 
 from apps.core.models import BaseModel
 from django.db import models
-
-from apps.proxy_server.tasks import delete_user_from_server
 from apps.utils.kaxy_handler import KaxyClient
 from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
