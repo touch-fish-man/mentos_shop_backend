@@ -28,6 +28,7 @@ class KaxyClient:
             resp = requests.request(method, url, headers=headers, **kwargs, timeout=10)
         except requests.exceptions.ConnectionError as e:
             logging.exception(e)
+            return resp
         if resp.status_code != 200:
             if "write-user-acl" not in path:
                 logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
