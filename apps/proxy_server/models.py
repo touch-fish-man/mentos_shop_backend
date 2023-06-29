@@ -329,12 +329,12 @@ lock = threading.Lock()
 def _mymodel_delete(sender, instance, **kwargs):
     # 当最后一个代理被删除时,删除用户
     if Proxy.objects.filter(username=instance.username).count() == 0:
-        logging.info('删除用户{}'.format(instance.username))
         kax_client = KaxyClient(instance.server_ip)
         try:
             from django.core.cache import cache
             cache_key = 'del_user_{}_{}'.format(instance.username,instance.server_ip)
             if not cache.get(cache_key):
+                logging.info('删除用户{}'.format(instance.username))
                 resp = kax_client.del_user(instance.username)
                 try:
                     if resp.json().get('status')==200:
