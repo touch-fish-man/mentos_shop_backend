@@ -13,7 +13,7 @@ services:
       - /opt/mentos_shop_backend/config/nginx/:/etc/nginx/conf.d/
       - /opt/mentos_shop_backend/config/nginx/cert:/etc/nginx/cert
       - /opt/mentos_shop_backend/dist:/opt/dist
-      - /opt/geofeed:/opt/mentos_shop_backend/geofeed
+      - /opt/geofeed:/opt/geofeed
     privileged: true
     networks:
       network:
