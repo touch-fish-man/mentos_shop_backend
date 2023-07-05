@@ -3,6 +3,8 @@ import logging
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
+
+import requests
 from django.core import management
 from django.utils import timezone
 
@@ -122,14 +124,41 @@ def create_proxy_task(order_id, username, server_ip):
         one_off=True,
         expires=timezone.now() + datetime.timedelta(seconds=70)
     )
+
+def check_proxy(proxy, id):
+    status = True
+    try:
+        proxies = {
+            'http': f'http://{proxy}',
+            'https': f'http://{proxy}'
+        }
+        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
+        if response.status_code == 200:
+            status = True
+        else:
+            status = False
+    except Exception as e:
+        status = False
+    proxy_obj = Proxy.objects.filter(id=id).first()
+    if proxy_obj:
+        proxy_obj.status = status
+        proxy_obj.save()
+    return status
 @shared_task(name='check_proxy_status')
 def check_proxy_status():
     """
     检查代理状态,每4个小时检查一次
     """
     proxies = Proxy.objects.all()
+    ids = []
+    proxy_strs = []
+    for p in proxies:
+        ids.append(p.id)
+        proxy_strs.append(p.get_proxy_str())
+
     with ThreadPoolExecutor(max_workers=10) as executor:
-        results = executor.map(lambda p: (p, p.check_valid()), proxies)
+        results = executor.map(lambda x: check_proxy(x[0], x[1]), zip(proxy_strs, ids))
+
 @shared_task(name="cleanup_sessions")
 def cleanup():
     """Cleanup expired sessions by using Django management command."""

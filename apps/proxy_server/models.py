@@ -294,13 +294,8 @@ class Proxy(BaseModel):
         verbose_name_plural = '代理列表'
     def __str__(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
-
-    def check_valid(self):
-        is_valid = check_proxy(self)
-        self.status = is_valid
-        self.save()
-        return is_valid
-
+    def get_proxy_str(self):
+        return f"{self.username}:{self.password}@{self.ip}:{self.port}"
     def judge_expired(self):
         """
         判断是否过期
@@ -310,19 +305,7 @@ class Proxy(BaseModel):
             return self.expired_at < datetime.datetime.now()
         else:
             return False
-def check_proxy(proxy):
-    try:
-        proxies = {
-            'http': f'http://{proxy}',
-            'https': f'http://{proxy}'
-        }
-        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
-        if response.status_code == 200:
-            return True
-        else:
-            return False
-    except Exception as e:
-        return False
+
 
 lock = threading.Lock()
 @receiver(post_delete, sender=Proxy)
@@ -331,7 +314,7 @@ def _mymodel_delete(sender, instance, **kwargs):
     cache_key = 'del_user_{}_{}'.format(instance.username, instance.server_ip)
     # 当最后一个代理被删除时,删除用户
     # delete_user_from_server.delay(instance.server_ip, instance.username,instance.subnet,instance.ip_stock_id)
-    if Proxy.objects.filter(username=instance.username).count() == 0:
+    if Proxy.objects.filter(username=instance.username,server_ip=instance.server_ip).count() == 0:
         logging.info('删除用户{}'.format(instance.username))
         server_obj= Server.objects.filter(ip=instance.server_ip).first()
         if server_obj:
@@ -359,7 +342,7 @@ def _mymodel_delete(sender, instance, **kwargs):
             stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
             # 归还子网,归还库存
             if stock:
-                if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).all().count() == 0:
+                if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
                     stock.return_subnet(instance.subnet)
                     stock.return_stock()
                     from apps.products.models import Variant

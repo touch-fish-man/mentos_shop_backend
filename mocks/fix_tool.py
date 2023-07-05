@@ -178,12 +178,13 @@ def proxy_compare_order():
                     ppp.subnet=s
                     ppp.save()
                     break
-    # for ooo in Orders.objects.all():
-    #     if ooo.id in xxx:
-    #         if xxx[ooo.id]!=ooo.proxy_num:
-    #             ppp=Proxy.objects.filter(order_id=ooo.id).first()
-    #             username=ppp.username
-    #             server_ip=ppp.server_ip
+    for ooo in Orders.objects.all():
+        if ooo.id in xxx:
+            if xxx[ooo.id]!=ooo.proxy_num:
+                ppp=Proxy.objects.filter(order_id=ooo.id).first()
+                username=ppp.username
+                server_ip=ppp.server_ip
+                print(ooo.id,ooo.proxy_num,xxx[ooo.id],username,server_ip)
                     
 
                  
@@ -238,10 +239,4 @@ def change_proxy():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    order_ids="458,490,500,609,633,678".split(",")
-    for order_id in order_ids:
-        order = Orders.objects.filter(id=order_id).first()
-        if order:
-            for p_i in Proxy.objects.filter(order_id=order_id).all():
-                p_i.delete()
-            create_proxy_by_id(order_id)
+    proxy_compare_order()

@@ -291,10 +291,10 @@ if not os.path.exists(os.path.join(BASE_DIR, "logs")):
 # 格式:[2020-04-22 23:33:01][micoservice.apps.ready():16] [INFO] 这是一条日志:
 # 格式:[日期][模块.函数名称():行号] [级别] 信息
 STANDARD_LOG_FORMAT = (
-    "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] %(message)s"
+    "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] [%(threadName)s] %(message)s"
 )
 CONSOLE_LOG_FORMAT = (
-    "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] %(message)s"
+    "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] [%(threadName)s] %(message)s"
 )
 
 LOGGING = {
