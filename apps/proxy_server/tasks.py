@@ -21,7 +21,7 @@ from celery import shared_task
 from apps.utils.kaxy_handler import KaxyClient
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
+from django.core.cache import cache
 @shared_task(name='check_server_status')
 def check_server_status():
     """
@@ -89,15 +89,42 @@ lock = threading.Lock()
 
 @shared_task(name='delete_user_from_server')
 def delete_user_from_server(server_ip, username, subnet, ip_stock_id):
-    if Proxy.objects.filter(username=username).count() == 0:
+    cache_key = 'del_user_{}_{}'.format(username, server_ip)
+    if Proxy.objects.filter(username=username,server_ip=server_ip).count() == 0:
+        logging.info('删除用户{}'.format(username))
+        server_obj= Server.objects.filter(ip=server_ip).first()
+        if server_obj:
+            if server_obj.server_status == 0:
+                logging.info('服务器{}已经下线,不需要删除用户'.format(server_ip))
+                cache.set(cache_key, 1, timeout=30)
         kax_client = KaxyClient(server_ip)
-        kax_client.del_user(username)
-        kax_client.del_acl(username)
-        with lock:
-            stock = ProxyStock.objects.filter(id=ip_stock_id).first()
-            # 归还子网,归还库存
-            if stock:
-                if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).all().count() == 0:
+        try:
+            if not cache.get(cache_key):
+                resp = kax_client.del_user(username)
+                try:
+                    if resp.json().get('status')==200:
+                        kax_client.del_acl(username)
+                        cache.set(cache_key, 1, timeout=30)
+                    elif "User does not exist." in resp.json().get('message'):
+                        kax_client.del_acl(username)
+                        cache.set(cache_key, 1, timeout=30)
+                except Exception as e:
+                    logging.info('删除用户失败')
+        except Exception as e:
+            cache.set(cache_key, 1, timeout=30)
+            logging.info('删除用户失败,可能服务器挂了')
+    stock = ProxyStock.objects.filter(id=ip_stock_id).first()
+    redis_key='stock_opt_{}'.format(ip_stock_id)
+    oid = 'stock_opt_{}'.format(subnet)
+    # 归还子网,归还库存
+    if stock:
+        if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).count() == 0:
+            from apps.core.cache_lock import memcache_lock
+            cache_key = 'return_stock_opt_{}_{}'.format(subnet, ip_stock_id)
+            if not cache.get(cache_key):
+                cache.set(cache_key, 1, timeout=30)
+                with memcache_lock(redis_key, redis_key) as acquired:
+                    logging.info('归还子网{},归还库存{}'.format(subnet, ip_stock_id))
                     stock.return_subnet(subnet)
                     stock.return_stock()
                     from apps.products.models import Variant

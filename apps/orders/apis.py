@@ -152,6 +152,7 @@ class OrdersApi(ComModelViewSet):
                     return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
             for p_i in Proxy.objects.filter(order_id=order_pk).all():
                 p_i.delete()
+
             # 重新创建代理
             t1=threading.Thread(target=reset_proxy_by_order, args=(order_id,),name="reset_{}".format(order_id)).start()
 
