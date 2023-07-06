@@ -166,6 +166,13 @@ def check_proxy_status():
     ids = []
     proxy_strs = []
     for p in proxies:
+        server_ip = p.server_ip
+        if Server.objects.filter(ip=server_ip,server_status=0).count() > 0:
+            try:
+                Proxy.objects.filter(id=p.id).update(status=False)
+            except Exception as e:
+                pass
+            continue
         ids.append(p.id)
         proxy_strs.append(p.get_proxy_str())
 
