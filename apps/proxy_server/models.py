@@ -307,7 +307,6 @@ class Proxy(BaseModel):
             return False
 
 
-lock = threading.Lock()
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     from django.core.cache import cache
@@ -337,17 +336,19 @@ def _mymodel_delete(sender, instance, **kwargs):
         except Exception as e:
             cache.set(cache_key, 1, timeout=30)
             logging.info('删除用户失败,可能服务器挂了')
-
-        with lock:
-            stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
-            # 归还子网,归还库存
-            if stock:
+    stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
+    redis_key='stock_opt_{}'.format(instance.ip_stock_id)
+    oid = 'stock_opt_{}'.format(instance.subnet)
+    # 归还子网,归还库存
+    if stock:
+        if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
+            from apps.core.cache_lock import memcache_lock
+            with memcache_lock(redis_key, redis_key) as acquired:
                 logging.info('归还子网{},归还库存{}'.format(instance.subnet, instance.ip_stock_id))
-                if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
-                    stock.return_subnet(instance.subnet)
-                    stock.return_stock()
-                    from apps.products.models import Variant
-                    # 更新库存
-                    variant = Variant.objects.filter(id=stock.variant_id).first()
-                    if variant:
-                        variant.save()
+                stock.return_subnet(instance.subnet)
+                stock.return_stock()
+                from apps.products.models import Variant
+                # 更新库存
+                variant = Variant.objects.filter(id=stock.variant_id).first()
+                if variant:
+                    variant.save()

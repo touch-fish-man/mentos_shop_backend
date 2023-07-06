@@ -167,7 +167,10 @@ class ProxyServerApi(ComModelViewSet):
         request_data=[]
         for username, order_id in need_reset_user_list.items():
             request_data.append([order_id,username, server_ip])
-            create_proxy_task(order_id,username, server_ip)
+            from .tasks import reset_proxy_fn
+            reset_proxy_fn.delay(order_id,username, server_ip)
+
+            # create_proxy_task(order_id,username, server_ip)
         return SuccessResponse(data={"message": "reset success","request_data":request_data})
     @action(methods=['post'], detail=True, url_path='list_acl', url_name='list_acl')
     def list_acl(self, request, *args, **kwargs):

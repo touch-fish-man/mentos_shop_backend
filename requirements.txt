@@ -29,3 +29,4 @@ pyquery
 drf-writable-nested
 discord
 drf_api_logger
+click

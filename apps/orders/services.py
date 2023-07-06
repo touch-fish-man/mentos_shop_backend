@@ -400,35 +400,36 @@ def create_proxy_by_id(id):
                         # todo 合并cidr 为了减少循环次数
                         for cidr in cidr_info:
                             Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
-
-                            if Stock:
-                                cart_stock = Stock.cart_stock
-                                while cart_stock > 0 and Stock.available_subnets:
-                                    # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
-                                    if len(proxy_list) >= order_obj.product_quantity:
-                                        # 代理数量已经够了
-                                        break
-                                    # for i in range(order_obj.product_quantity // cart_step):
-                                    kaxy_client = KaxyClient(server.ip)
-                                    prefix = Stock.get_next_subnet()
-                                    proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
-                                                                                       acl_value)
-                                    if proxy_info["proxy"]:
-                                        proxy_list.extend(proxy_info["proxy"])
-                                        server_list.extend([server.ip] * len(proxy_info["proxy"]))
-                                        stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
-                                        subnet_list.extend([prefix] * len(proxy_info["proxy"]))
-                                        Stock.remove_available_subnet(prefix)
-                                        Stock.cart_stock -= 1
-                                        Stock.ip_stock -= len(proxy_info["proxy"])
-                                        cart_stock -= 1
-                                    Stock.save()
-                                # logging.info("cart stock:{}".format(Stock.cart_stock))
-                            else:
-                                logging.info("no stock")
-                            if len(proxy_list) >= order_obj.product_quantity:
-                                # 代理数量已经够了
-                                break
+                            redis_key = 'stock_opt_{}'.format(Stock.id)
+                            with memcache_lock(redis_key, redis_key):
+                                if Stock:
+                                    cart_stock = Stock.cart_stock
+                                    while cart_stock > 0 and Stock.available_subnets:
+                                        # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
+                                        if len(proxy_list) >= order_obj.product_quantity:
+                                            # 代理数量已经够了
+                                            break
+                                        # for i in range(order_obj.product_quantity // cart_step):
+                                        kaxy_client = KaxyClient(server.ip)
+                                        prefix = Stock.get_next_subnet()
+                                        proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
+                                                                                           acl_value)
+                                        if proxy_info["proxy"]:
+                                            proxy_list.extend(proxy_info["proxy"])
+                                            server_list.extend([server.ip] * len(proxy_info["proxy"]))
+                                            stock_list.extend([Stock.id] * len(proxy_info["proxy"]))
+                                            subnet_list.extend([prefix] * len(proxy_info["proxy"]))
+                                            Stock.remove_available_subnet(prefix)
+                                            Stock.cart_stock -= 1
+                                            Stock.ip_stock -= len(proxy_info["proxy"])
+                                            cart_stock -= 1
+                                        Stock.save()
+                                    # logging.info("cart stock:{}".format(Stock.cart_stock))
+                                else:
+                                    logging.info("no stock")
+                                if len(proxy_list) >= order_obj.product_quantity:
+                                    # 代理数量已经够了
+                                    break
                 if proxy_list:
                     for idx, proxy in enumerate(proxy_list):
                         ip, port, user, password = proxy.split(":")

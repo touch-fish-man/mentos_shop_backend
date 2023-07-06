@@ -60,10 +60,6 @@ def reset_proxy_fn(order_id, username, server_ip):
         for p in new_proxy:
             if p.id not in ret_proxy_list and len(ret_proxy_list) > 0:
                 p.delete()
-        #创建库存回收任务
-        from apps.products.tasks import update_product_stock
-        # 更新产品库存
-        update_product_stock.delay()
         ret_json['code'] = 200
         ret_json['message'] = 'success'
         ret_json['data'] = {}
