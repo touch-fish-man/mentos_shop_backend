@@ -19,7 +19,8 @@ from apps.proxy_server.models import Proxy
 from celery import shared_task
 
 from apps.utils.kaxy_handler import KaxyClient
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 @shared_task(name='check_server_status')
 def check_server_status():
