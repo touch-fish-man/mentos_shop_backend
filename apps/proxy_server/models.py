@@ -342,6 +342,7 @@ def _mymodel_delete(sender, instance, **kwargs):
             stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
             # 归还子网,归还库存
             if stock:
+                logging.info('归还子网{},归还库存{}'.format(instance.subnet, instance.ip_stock_id))
                 if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
                     stock.return_subnet(instance.subnet)
                     stock.return_stock()

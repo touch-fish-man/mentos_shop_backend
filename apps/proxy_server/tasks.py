@@ -132,13 +132,26 @@ def check_proxy(proxy, id):
             'http': f'http://{proxy}',
             'https': f'http://{proxy}'
         }
-        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
+        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5, verify=False)
         if response.status_code == 200:
             status = True
         else:
             status = False
     except Exception as e:
         status = False
+    if not status:
+        try:
+            proxies = {
+                'http': f'http://{proxy}',
+                'https': f'http://{proxy}'
+            }
+            response = requests.get('https://www.bing.com', proxies=proxies, timeout=5, verify=False)
+            if response.status_code == 200:
+                status = True
+            else:
+                status = False
+        except Exception as e:
+            status = False
     proxy_obj = Proxy.objects.filter(id=id).first()
     if proxy_obj:
         proxy_obj.status = status
@@ -169,5 +182,8 @@ def clear_access_log():
     清理访问日志,每天凌晨1点清理
     """
     for s in Server.objects.all():
-        s_c = KaxyClient(s.ip)
-        print(s_c.flush_access_log().text)
+        try:
+            s_c = KaxyClient(s.ip)
+            print(s_c.flush_access_log().text)
+        except Exception as e:
+            pass
