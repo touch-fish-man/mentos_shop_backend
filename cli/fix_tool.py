@@ -71,7 +71,6 @@ def clean_stock():
     for va in Variant.objects.all():
         va.get_stock()
         used_stock_ids.extend(va.stock_ids)
-    print(used_stock_ids)
     for xxx in ProxyStock.objects.all():
         ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()  # 没有发货数据
         if not ppp and not used_stock_ids.__contains__(xxx.id):
