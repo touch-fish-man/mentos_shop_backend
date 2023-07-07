@@ -75,7 +75,7 @@ def clean_stock():
         ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()  # 没有发货数据
         if not ppp and not used_stock_ids.__contains__(xxx.id):
             print(xxx.id)
-            # xxx.delete()
+            xxx.delete()
 
 
 def get_cidr(server_group):
