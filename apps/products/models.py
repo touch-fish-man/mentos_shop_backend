@@ -65,6 +65,7 @@ class Variant(BaseModel):
         (512, 512),
         (1024, 1024)
     )
+    stock_ids=[]
 
     shopify_variant_id = models.CharField(max_length=255, verbose_name='shopify变体id')
     variant_name = models.CharField(max_length=255, verbose_name='变体名')
@@ -93,6 +94,7 @@ class Variant(BaseModel):
         for idx,cidr_id in enumerate(cidr_ids):
             stock_obj=ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group).first()
             if stock_obj:
+                self.stock_ids.append(stock_obj.id)
                 variant_stock += stock_obj.ip_stock
             else:
                 # 不存在则创建
@@ -103,6 +105,7 @@ class Variant(BaseModel):
                 porxy_stock.available_subnets = porxy_stock.subnets
                 porxy_stock.save()
                 variant_stock += ip_count[idx]
+                self.stock_ids.append(porxy_stock.id)
         return variant_stock
 
     def get_cidr(self, server_group):

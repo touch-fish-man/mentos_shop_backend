@@ -67,12 +67,15 @@ def clean_stock():
     """
     清理无效库存
     """
+    used_stock_ids = []
+    for va in Variant.objects.all():
+        va.get_stock()
+        used_stock_ids.extend(va.stock_ids)
     for xxx in ProxyStock.objects.all():
         ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()  # 没有发货数据
-        va = Variant.objects.filter(id=xxx.variant_id).first()  # 没有商品数据
-        if not ppp and not va:
+        if not ppp and not used_stock_ids.__contains__(xxx.id):
             print(xxx.id)
-            xxx.delete()
+            # xxx.delete()
 
 
 def get_cidr(server_group):
@@ -216,7 +219,7 @@ def check_proxy(proxy):
         print(e)
         return False
 
-
+@cli.command()
 def check_all_proxy():
     proxies = []
     for i in Proxy.objects.all():
