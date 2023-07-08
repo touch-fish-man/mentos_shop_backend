@@ -55,7 +55,7 @@ app.conf.beat_schedule = {
     },
     '删除超时订单': {
         'task': 'delete_timeout_order',
-        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+        'schedule': crontab(hour=1, minute=50), # 每天凌晨1点执行
     },
     '删除api请求记录': {
         'task': 'delete_api_logs',

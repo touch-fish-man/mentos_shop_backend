@@ -30,7 +30,13 @@ def verify_webhook(request):
     computed_hmac = base64.b64encode(digest)
     return hmac.compare_digest(computed_hmac, shopify_hmac_header.encode("utf-8"))
 
-
+def change_shopify_order_info(order_info):
+    shop_url = settings.SHOPIFY_SHOP_URL
+    api_key = settings.SHOPIFY_API_KEY
+    api_scert = settings.SHOPIFY_API_SECRET
+    private_app_password = settings.SHOPIFY_APP_KEY
+    shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
+    shopify_client.update_order(order_info)
 def shopify_order(data):
     """
     Format the order data to be sent to the client
@@ -141,6 +147,7 @@ def create_proxy_by_order(order_id):
     """
     根据订单创建代理
     """
+    msg = ""
     order_obj = Orders.objects.filter(order_id=order_id, pay_status=1).first()
     if order_obj:
         oid = 'create_proxy_by_id_{}'.format(id)
@@ -157,7 +164,8 @@ def create_proxy_by_order(order_id):
                 if variant_obj.variant_stock < order_obj.product_quantity:
                     # 库存不足
                     logging.info('库存不足')
-                    return False
+                    msg = '库存不足'
+                    return False, msg
                 server_group = variant_obj.server_group
                 acl_group = variant_obj.acl_group
                 cart_step = variant_obj.cart_step  # 购物车步长
@@ -205,6 +213,7 @@ def create_proxy_by_order(order_id):
                                     Stock.save()
                                 # logging.info("cart stock:{}".format(Stock.cart_stock))
                             else:
+
                                 logging.info("no stock")
                             if len(proxy_list) >= order_obj.product_quantity:
                                 # 代理数量已经够了
@@ -229,13 +238,15 @@ def create_proxy_by_order(order_id):
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
                     logging.info("order_id:{} delivery success".format(order_pk))
-                    return True
+                    return True, '创建代理成功'
             else:
                 logging.info('套餐不存在')
-                return False
+                msg = '套餐不存在'
+                return False, msg
     else:
         logging.info('订单不存在')
-    return False
+        msg = '订单不存在'
+    return False, msg
 def reset_proxy_by_order(order_id):
     """
     根据订单创建代理
@@ -480,8 +491,8 @@ def renew_proxy_by_order(order_id):
         order_obj.expired_at += datetime.timedelta(days=order_obj.proxy_time)
         order_obj.renew_status = 0
         order_obj.save()
-        return True
-    return False
+        return True, ''
+    return False, '订单不存在无法续费'
 
 
 def change_order_proxy(order_id):
@@ -536,11 +547,13 @@ def webhook_handle(request):
                 # 生成代理，修改订单状态
                 if renewal_status == "1":
                     # 续费
-                    order_process_ret = renew_proxy_by_order(order_id)
+                    order_process_ret,msg = renew_proxy_by_order(order_id)
                 else:
                     # 新订
-                    order_process_ret = create_proxy_by_order(order_id)
+                    order_process_ret,msg = create_proxy_by_order(order_id)
                 if order_process_ret:
+                    order_info={"id":shpify_order_id,"tags": "delivered"}
+                    t1=threading.Thread(target=change_shopify_order_info,args=(order_info,)).start()
                     # 修改优惠券状态
                     for discount_code in discount_codes:
                         coupon = CouponCode.objects.filter(code=discount_code).first()
@@ -569,13 +582,17 @@ def webhook_handle(request):
                     order_user.update_level()
                     # fixme 发送邮件
                     # send_order_email(order_id)
-
                 else:
                     # fixme 发送邮件
                     # send_order_email(order_id)
-                    pass
+                    logging.info("order process fail")
+                    order_info = {"id": shpify_order_id, "tags": "delivery_fail", "note": msg}
+                    t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
+
             else:
                 logging.info("order not exist")
+                order_info = {"id": shpify_order_id, "tags": "delivery_fail", "note": "订单不存在"}
+                t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,))
     except Exception as e:
         logging.exception(e)
 def delete_proxy_by_order_pk(order_id):

@@ -29,6 +29,7 @@ from apps.products.models import *
 import json
 from django.core.cache import cache
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from apps.orders.models import Orders
 
 
 class LruCache:
@@ -371,10 +372,14 @@ class ShopifyClient:
         return product.to_dict()
 
     def update_order(self, order_info):
-        order = shopify.Order.find(order_info['id'])
-        order.note = order_info['note']
-        order.save()
-        return order.to_dict()
+        order = shopify.Order.find(status='any', ids=order_info['id'])
+        for i in order:
+            i.tags = order_info['tags']
+            i.save()
+        if order_info.get('note'):
+            order[0].note.append(order_info['note'])
+            order[0].save()
+
 
 
 class SyncClient(ShopifyClient):
@@ -536,7 +541,11 @@ if __name__ == '__main__':
     # pprint(shopify_client.get_customers())
 
     syncclient = SyncClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
-    # print(syncclient.sync_product_collections())
-    # print(syncclient.sync_product_tags())
-    # print(syncclient.get_customers())
-    # syncclient.update_customer_tags_by_email('test@test.com', 'vip10')
+    for o in Orders.objects.all():
+        if o.shopify_order_id:
+            order_info = {
+                "id": o.shopify_order_id,
+                "tags": "delivered"
+            }
+            print(order_info)
+            syncclient.update_order(order_info)

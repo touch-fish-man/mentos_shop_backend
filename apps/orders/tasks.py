@@ -87,7 +87,7 @@ def delete_timeout_order():
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
     orders = Orders.objects.filter(pay_status=0, order_status=0).all()
     for order_obj_item in orders:
-        if order_obj_item.created_at + datetime.timedelta(hours=1) <= utc_now:
+        if order_obj_item.created_at + datetime.timedelta(hours=24) <= utc_now:
             order_obj_item.delete()
 
 

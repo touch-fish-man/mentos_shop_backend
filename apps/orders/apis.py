@@ -64,7 +64,8 @@ class OrdersApi(ComModelViewSet):
     def destroy(self, request, *args, **kwargs):
         # 后台删除订单,处理删除超时的问题
         instance = self.get_object()
-        t1 = threading.Thread(target=self.perform_destroy, args=(instance,))
+        t1 = threading.Thread(target=self.perform_destroy, args=(instance,)).start()
+
         return SuccessResponse(data={}, msg="删除成功")
 
     @action(methods=['get'], detail=False, url_path='get_status', url_name='get_status')
