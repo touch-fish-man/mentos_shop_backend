@@ -103,7 +103,7 @@ TEMPLATES = [
 ]
 os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 DRF_API_LOGGER_DATABASE = True
-DRF_API_LOGGER_SKIP_URL_NAME = ['orders-get_status','productcollection-list',"socialsettings",'producttag-list']
+DRF_API_LOGGER_SKIP_URL_NAME = ['orders-get_status', 'productcollection-list', "socialsettings", 'producttag-list']
 WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -348,6 +348,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "django": {
+            "handlers": ["console", "error", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
         # 数据库相关日志
         "django.db.backends": {
             "handlers": [],
@@ -360,6 +365,12 @@ LOGGING = {
         #     "handlers": ["console", "error", "file"],
         #     'propagate': False,
         # },
+        'gunicorn.access': {
+            'level': 'INFO',
+            'handlers': ["console", "error", "file"],
+            'propagate': False,
+        },
+
     },
 }
 # ---------需要动态配置的配置项----------------
