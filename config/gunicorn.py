@@ -11,7 +11,7 @@ bind = '0.0.0.0:8000'
 # 设置守护进程,将进程交给第三方管理
 daemon = 'false'
 # 工作模式协程，默认的是sync模式,推荐使用 gevent，此处使用与uvicorn配合使用 uvicorn.workers.UvicornWorker
-worker_class = 'uvicorn.workers.UvicornWorker'
+worker_class = 'gevent'
 # 设置最大并发量（每个worker处理请求的工作线程数，正整数，默认为1）
 worker_connections = 10000
 # 最大客户端并发数量，默认情况下这个值为1000。此设置将影响gevent和eventlet工作模式
