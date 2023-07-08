@@ -367,7 +367,7 @@ LOGGING = {
         # },
         'gunicorn.access': {
             'level': 'INFO',
-            'handlers': ["console", "error", "file"],
+            'handlers': ["error", "file"],
             'propagate': False,
         },
 
