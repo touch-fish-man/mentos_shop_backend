@@ -578,3 +578,10 @@ def webhook_handle(request):
                 logging.info("order not exist")
     except Exception as e:
         logging.exception(e)
+def delete_proxy_by_order_pk(order_id):
+    """
+    删除订单所有代理
+    """
+    for p in Proxy.objects.filter(order_id=order_id).all():
+        p.delete()
+    return True

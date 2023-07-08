@@ -17,7 +17,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
 from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, \
-    reset_proxy_by_order, create_proxy_by_id
+    reset_proxy_by_order, create_proxy_by_id, delete_proxy_by_order_pk
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -25,6 +25,7 @@ from apps.orders.services import create_proxy_by_order
 
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.models import Product, Variant
+
 
 class OrdersApi(ComModelViewSet):
     """
@@ -44,7 +45,7 @@ class OrdersApi(ComModelViewSet):
     serializer_class = OrdersSerializer
     update_serializer_class = OrdersUpdateSerializer
     get_status_serializer_class = OrdersStatusSerializer
-    search_fields = ('id','order_id','shopify_order_number', 'username', 'uid', 'product_name', 'product_type')
+    search_fields = ('id', 'order_id', 'shopify_order_number', 'username', 'uid', 'product_name', 'product_type')
     filterset_fields = ('order_id', 'username', 'uid', 'product_name', 'product_type')
     permission_classes = [IsAuthenticated]
 
@@ -57,14 +58,20 @@ class OrdersApi(ComModelViewSet):
     #                      query_serializer=OrdersStatusSerializer)
     def list(self, request, *args, **kwargs):
         if not request.user.is_superuser:
-            self.queryset=self.queryset.filter(pay_status=1, uid=str(request.user.id))
+            self.queryset = self.queryset.filter(pay_status=1, uid=str(request.user.id))
         return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # 后台删除订单,处理删除超时的问题
+        instance = self.get_object()
+        t1 = threading.Thread(target=self.perform_destroy, args=(instance,))
+        return SuccessResponse(data={}, msg="删除成功")
 
     @action(methods=['get'], detail=False, url_path='get_status', url_name='get_status')
     def get_status(self, request):
         # 用于前端轮询订单状态
         request_data = request.query_params.dict()
-        order_id= request_data.get('order_id', None)
+        order_id = request_data.get('order_id', None)
         if not order_id:
             return ErrorResponse(data={}, msg="订单号不能为空")
         order = Orders.objects.filter(order_id=order_id)
@@ -120,7 +127,7 @@ class OrdersApi(ComModelViewSet):
             expired_at = datetime.datetime.fromtimestamp(int(expired_at) // 1000).replace(tzinfo=datetime.timezone.utc)
         except Exception as e:
             return ErrorResponse(data={}, msg="过期时间格式错误")
-        if expired_at < datetime.datetime.now(datetime.timezone.utc)+datetime.timedelta(hours=8):
+        if expired_at < datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8):
             return ErrorResponse(data={}, msg="过期时间不能小于当前时间")
         order = Orders.objects.filter(id=order_id)
         if order.exists():
@@ -154,7 +161,8 @@ class OrdersApi(ComModelViewSet):
                 p_i.delete()
 
             # 重新创建代理
-            t1=threading.Thread(target=reset_proxy_by_order, args=(order_id,),name="reset_{}".format(order_id)).start()
+            t1 = threading.Thread(target=reset_proxy_by_order, args=(order_id,),
+                                  name="reset_{}".format(order_id)).start()
 
         else:
             return ErrorResponse(data={}, msg="订单不存在")
@@ -173,6 +181,13 @@ class OrdersApi(ComModelViewSet):
         serializer = self.get_serializer(instance)
         return SuccessResponse(data={"order": serializer.data, "proxy_list": proxy_list}, msg="获取成功")
 
+    @action(methods=['post'], detail=True, url_path='delete_proxy', url_name='delete_proxy')
+    def delete_proxy(self, request, *args, **kwargs):
+        order_id = kwargs.get('pk')
+        # 异步删除代理
+        t1 = threading.Thread(target=delete_proxy_by_order_pk, args=(order_id,)).start()
+        return SuccessResponse(data={}, msg="删除成功")
+
     @action(methods=['post'], detail=True, url_path='order-renew-checkout', url_name='order-renew-checkout')
     def order_renew_checkout(self, request, *args, **kwargs):
         order_pk = kwargs.get('pk')
@@ -188,12 +203,14 @@ class OrdersApi(ComModelViewSet):
 
         if not Variant.objects.filter(id=order.local_variant_id).first():
             return ErrorResponse(data={}, msg="The product does not exist, please place a new order.")  # 产品不存在，请下新订单
-        checkout_url, order_id = get_renew_checkout_link(order_id=order_id,request=request)
-        return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id}, msg="get checkout url success")
+        checkout_url, order_id = get_renew_checkout_link(order_id=order_id, request=request)
+        return SuccessResponse(data={"checkout_url": checkout_url, "order_id": order_id},
+                               msg="get checkout url success")
+
     @action(methods=['post'], detail=False, url_path='one_key_reset', url_name='one_key_reset')
     def one_key_reset(self, request, *args, **kwargs):
         # 重置所有代理
-        order_ids= request.data.get('order_ids', None)
+        order_ids = request.data.get('order_ids', None)
         if not order_ids:
             return ErrorResponse(data={}, msg="订单id不能为空")
         try:
@@ -209,10 +226,10 @@ class OrdersApi(ComModelViewSet):
                         return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
                 Proxy.objects.filter(order_id=order_id).all().delete()
                 # 重新创建代理
-                t1 = threading.Thread(target=create_proxy_by_id, args=(order_id,), name="reset_{}".format(order_id)).start()
+                t1 = threading.Thread(target=create_proxy_by_id, args=(order_id,),
+                                      name="reset_{}".format(order_id)).start()
             else:
                 return ErrorResponse(data={}, msg="订单不存在")
-
 
 
 class OrderCallbackApi(APIView):
@@ -244,9 +261,9 @@ class ShopifyWebhookApi(APIView):
         logging.info("shopify订单回调信息:{}".format(order_info))
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
-        order_id = order_info.get('order_id',"")
+        order_id = order_info.get('order_id', "")
         if financial_status == 'paid':
-            webhook_handle_thread(request,order_id)
+            webhook_handle_thread(request, order_id)
         else:
             logging.error("订单未支付", order_info)
 
