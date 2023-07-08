@@ -43,4 +43,4 @@ limit_request_fields = 101
 # 值是一个整数或者0，当该值为0时，表示将对请求头大小不做限制
 limit_request_field_size = 0
 # 记录到标准输出
-accesslog = '/opt/mentos_shop_backend/logs/gunicorn_access.log'
+accesslog = '-'

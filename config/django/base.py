@@ -285,6 +285,7 @@ CACHES = {
 # 配置日志
 SERVER_LOGS_FILE = os.path.join(BASE_DIR, "logs", "django.log")
 ERROR_LOGS_FILE = os.path.join(BASE_DIR, "logs", "error.log")
+ACCESS_LOGS_FILE = os.path.join(BASE_DIR, "logs", "access.log")
 if not os.path.exists(os.path.join(BASE_DIR, "logs")):
     os.makedirs(os.path.join(BASE_DIR, "logs"))
 
@@ -335,6 +336,15 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "console",
         },
+        "access": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": ACCESS_LOGS_FILE,
+            "maxBytes": 1024 * 1024 * 100,  # 100 MB
+            "backupCount": 3,  # 最多备份3个
+            "formatter": "standard",
+            "encoding": "utf-8",
+        },
     },
     "loggers": {
         # default日志
@@ -367,7 +377,7 @@ LOGGING = {
         # },
         'gunicorn.access': {
             'level': 'INFO',
-            'handlers': ["error", "file"],
+            'handlers': ["access"],
             'propagate': False,
         },
 
