@@ -248,6 +248,8 @@ class KaxyClient:
                         proxy_info["proxy"].append(proxy_i)
                 break
             except Exception as e:
+                if resp=={}:
+                    raise Exception("服务器无响应")
                 if "Bad format for user." in resp.text:
                     user = self.random_username()
         if proxy_info["num_of_ips"] > 0:
