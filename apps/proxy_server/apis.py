@@ -1,6 +1,5 @@
 import ipaddress
 
-from rest_framework.views import APIView
 from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
@@ -12,9 +11,8 @@ from rest_framework.decorators import action
 from apps.core.permissions import IsSuperUser
 from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
-from apps.orders.services import create_proxy_by_order,create_proxy_by_id
-from apps.proxy_server.tasks import create_proxy_task
 from django.conf import settings
+from django.core.cache import cache
 import logging
 
 class AclsApi(ComModelViewSet):
@@ -149,7 +147,7 @@ class ProxyServerApi(ComModelViewSet):
         # 更新用户代理
         cidr_whitelist = request.data.get('cidrs', [])
         if len(cidr_whitelist) == 0:
-            return ErrorResponse('参数错误')
+            return ErrorResponse(data={"message": "cidrs不能为空"})
         proxy=Proxy.objects.filter(server_ip=server_ip).all()
         need_reset_user_list = {}
         need_delete_proxy_list = []
@@ -165,12 +163,23 @@ class ProxyServerApi(ComModelViewSet):
                 need_reset_user_list[p.username] = p.order_id
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
         request_data=[]
+        redis_key = "proxy:reset_tasks:{}".format(server_ip)
+        if cache.get(redis_key):
+            tasks_ids = cache.lrange(redis_key, 0, -1)
+            from celery.result import AsyncResult
+            for tasks_id in tasks_ids:
+                task = AsyncResult(tasks_id)
+                if task.status not in ["SUCCESS", "FAILURE"]:
+                    return ErrorResponse(data={"message": "代理服务器正在重置中，请稍后再试"})
+        tasks_ids_list = []
         for username, order_id in need_reset_user_list.items():
             request_data.append([order_id,username, server_ip])
             from .tasks import reset_proxy_fn
-            reset_proxy_fn.delay(order_id,username, server_ip)
-
-            # create_proxy_task(order_id,username, server_ip)
+            task_i=reset_proxy_fn.delay(order_id,username, server_ip)
+            tasks_ids_list.append(task_i.id)
+        if len(tasks_ids_list) > 0:
+            cache.rpush(redis_key, *tasks_ids_list)
+            cache.expire(redis_key, 60 * 60 * 1)
         return SuccessResponse(data={"message": "reset success","request_data":request_data})
     @action(methods=['post'], detail=True, url_path='list_acl', url_name='list_acl')
     def list_acl(self, request, *args, **kwargs):
