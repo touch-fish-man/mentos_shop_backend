@@ -28,6 +28,7 @@ def check_server_status():
     检查服务器状态,每10分钟检查一次
     """
     servers = Server.objects.filter(faild_count__lt=5).all()
+    faild_list = []
     for server in servers:
         kaxy_client = KaxyClient(server.ip)
         try:
@@ -38,14 +39,20 @@ def check_server_status():
             else:
                 server.server_status = 0
                 server.faild_count += 1
+                faild_list.append(server.ip)
         except Exception as e:
             server.server_status = 0
             server.faild_count += 1
+            faild_list.append(server.ip)
         server.save()
         if server.faild_count >= 5:
             # 服务器连续5次检查失败
             pass
-    print('check_server_status done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    data = {
+        "faild_list": faild_list,
+        "status": 1
+    }
+    return json.dumps(data)
 
 
 @shared_task(name='reset_proxy')
