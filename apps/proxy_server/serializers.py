@@ -1,3 +1,5 @@
+import ipaddress
+
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
@@ -145,9 +147,17 @@ class ServerCreateSerializer(CommonSerializer):
             server_cidrs = c_client.get_cidr()
         except Exception as e:
             raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
-        for cidr in attrs['cidrs']:
-            if cidr['cidr'] not in server_cidrs:
-                raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
+        cidrs = attrs['cidrs']
+        check_cidr_cnt = 0
+        for cidr in cidrs:
+            for s_cidr in server_cidrs:
+                update_i = ipaddress.ip_network(cidr['cidr'])
+                server_i = ipaddress.ip_network(s_cidr)
+                if update_i.subnet_of(server_i):
+                    check_cidr_cnt += 1
+                    break
+        if check_cidr_cnt != len(cidrs):
+            raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
         return attrs
 
     def create(self, validated_data):
@@ -176,9 +186,30 @@ class ServerUpdateSerializer(CommonSerializer):
         'id': {'read_only': True},
         'created_at': {'read_only': True},
         'updated_at': {'read_only': True}}
+    def validate(self, attrs):
+        # 检查cidr是否在代理服务器的cidr范围内
+        cidrs = attrs['cidrs']
+        try:
+            c_client = KaxyClient(attrs['ip'])
+            server_cidrs = c_client.get_cidr()
+        except Exception as e:
+            raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
+        check_cidr_cnt=0
+        for cidr in cidrs:
+            for s_cidr in server_cidrs:
+                update_i=ipaddress.ip_network(cidr['cidr'])
+                server_i=ipaddress.ip_network(s_cidr)
+                if update_i.subnet_of(server_i):
+                    check_cidr_cnt+=1
+                    break
+        if check_cidr_cnt != len(cidrs):
+            raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
 
     def update(self, instance, validated_data):
         cidrs = validated_data.pop('cidrs')
+        instance.fail_count = 0
+        instance.server_status = 1 # 重置状态
+
         instance.cidrs.clear()
         for cidr in cidrs:
             cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
