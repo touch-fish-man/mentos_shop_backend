@@ -33,6 +33,9 @@ class KaxyClient:
             if "write-user-acl" not in path:
                 logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
         return resp
+    def request(self, method, path, **kwargs):
+        resp = self.__send_request(method, path, **kwargs)
+        return resp
 
     # 服务器管理
     def get_server_info(self):

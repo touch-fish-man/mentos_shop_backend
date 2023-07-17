@@ -22,10 +22,12 @@ def precheck_order_expired(ceheck_days=3, send_email=True):
     """
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
     utc_today = utc_now.date()
+    expire_list = []
     orders = Orders.objects.filter(order_status=4).values('expired_at', 'order_id', 'uid', 'id')
     for order in orders:
         precheck_day = (order['expired_at'] - datetime.timedelta(days=ceheck_days)).date()
         if utc_today == precheck_day:
+            expire_list.append(order['id'])
             email = User.objects.get(id=order['uid']).email
             email_template = settings.EMAIL_TEMPLATES.get('notification')
             subject = email_template.get('subject')
@@ -37,7 +39,12 @@ def precheck_order_expired(ceheck_days=3, send_email=True):
                 send_email_via_mailgun(email, subject, from_email, html_message)
             else:
                 send_mail(subject, "", from_email, [email], html_message=html_message)
-    print('precheck_order_expired done at %s' % datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    data={
+        "expire_list":expire_list,
+        "status":1
+    }
+    return json.dumps(data)
+
 
 
 @shared_task(name='check_order_expired')
@@ -73,10 +80,17 @@ def delete_proxy_expired():
     """
     删除过期代理,每天检查一次
     """
+    delete_list= []
     all_proxy = Proxy.objects.filter().all()
     for proxy in all_proxy:
         if proxy.expired_at < datetime.datetime.now().astimezone(pytz.utc):
+            delete_list.append(proxy.id, proxy.ip, proxy.username)
             proxy.delete()
+    data = {
+        'proxies': delete_list,
+        'status': 1
+    }
+    return json.dumps(data)
 
 
 @shared_task(name='delete_timeout_order')
@@ -84,11 +98,18 @@ def delete_timeout_order():
     """
     删除超时订单,每天检查一次
     """
+    delete_list = []
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
     orders = Orders.objects.filter(pay_status=0, order_status=0).all()
     for order_obj_item in orders:
         if order_obj_item.created_at + datetime.timedelta(hours=24) <= utc_now:
+            delete_list.append(order_obj_item.id)
             order_obj_item.delete()
+    data = {
+        'orders': delete_list,
+        'status': 1
+    }
+    return json.dumps(data)
 
 
 @shared_task(name='delete_expired_order')

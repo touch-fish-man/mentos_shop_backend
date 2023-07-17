@@ -209,6 +209,26 @@ class ProxyServerApi(ComModelViewSet):
         except:
             clean_resp = {}
         return SuccessResponse(data=clean_resp)
+    @action(methods=['post'], detail=True, url_path='request_api', url_name='request_api')
+    def request_api(self, request, *args, **kwargs):
+        """
+        请求接口
+        """
+        proxy_server = self.get_object()
+        ip = proxy_server.ip
+        kaxy_client = KaxyClient(ip)
+        json_input = request.data.get('json_input')
+        json_input = json.loads(json_input)
+        api_ur = request.data.get('uri')
+        api = request.data.get('api')
+        if not api:
+            return ErrorResponse('参数错误')
+        try:
+            api_resp = kaxy_client.request("post", api_ur, json=json_input)
+            api_resp = api_resp.json()
+        except:
+            api_resp = {"message": "请求失败"}
+        return SuccessResponse(data=api_resp)
 
 
 class AclGroupApi(ComModelViewSet):
