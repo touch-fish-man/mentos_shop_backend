@@ -8,6 +8,7 @@ import requests
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+
 from init_env import *
 from rich.console import Console
 from rich.progress import track
@@ -23,7 +24,7 @@ from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
 from apps.orders.services import create_proxy_by_id
 import click
-
+from apps.orders.tasks import delete_proxy_expired
 
 @click.group()
 def cli():
@@ -313,6 +314,12 @@ def flush_access_cache():
             print(s_c.flush_access_log().text)
         except Exception as e:
             pass
+@cli.command()
+def delete_expired():
+    """
+    删除过期代理
+    """
+    delete_proxy_expired()
 
 
 cli_all = click.CommandCollection(sources=[cli])
