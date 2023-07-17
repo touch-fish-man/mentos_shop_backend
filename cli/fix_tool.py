@@ -2,7 +2,6 @@ import datetime
 import random
 import string
 
-from faker import Faker
 import os
 import sys
 import requests
@@ -11,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from init_env import *
 from rich.console import Console
+from rich.progress import track
 import ipaddress
 from apps.core.cache_lock import memcache_lock
 
@@ -65,7 +65,7 @@ def fix_stock():
 @cli.command()
 def clean_stock():
     """
-    清理无效库存
+    清理无效库存条目
     """
     used_stock_ids = []
     for va in Variant.objects.all():
@@ -201,10 +201,21 @@ def proxy_compare_order():
                 ppp = Proxy.objects.filter(order_id=ooo.id).first()
                 username = ppp.username
                 server_ip = ppp.server_ip
-                print(ooo.id, ooo.proxy_num, xxx[ooo.id], username, server_ip)
+                # print(ooo.id, ooo.proxy_num, xxx[ooo.id], username, server_ip)
+                print("订单id:{} 应发货代理数量:{} 实际发货代理数量:{} 用户名:{} 服务器ip:{}".format(ooo.id,
+                                                                                                     ooo.proxy_num,
+                                                                                                     xxx[ooo.id],
+                                                                                                     username,
+                                                                                                     server_ip))
 
 
+@cli.command()
+@click.option('-p', '--proxy', help='代理，格式：username:password@ip:port')
 def check_proxy(proxy):
+    """
+    检测代理是否可用 代理格式：username:password@ip:port
+    """
+    status = False
     try:
         proxies = {
             'http': f'http://{proxy}',
@@ -212,12 +223,18 @@ def check_proxy(proxy):
         }
         response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
         if response.status_code == 200:
-            return True
+            status = True
         else:
-            return False
+            status = False
     except Exception as e:
         print(e)
-        return False
+        status = False
+    if status:
+        print(f"{proxy} 可用")
+    else:
+        print(f"{proxy} 不可用")
+    return status
+
 
 @cli.command()
 def check_all_proxy():
@@ -228,9 +245,13 @@ def check_all_proxy():
         proxies.append(proxy_str)
     with ThreadPoolExecutor(max_workers=10) as executor:
         results = executor.map(check_proxy, proxies)
-    invalid_proxy = [proxy for proxy, result in zip(proxies, results) if result]
-    with open("invalid_proxy.txt", "w") as f:
+    invalid_proxy = []
+    for proxy, result in track(zip(proxies, results), description="检测代理中...", total=len(proxies)):
+        if not result:
+            invalid_proxy.append(proxy)
+    with open("/opt/mentos_shop_backend/logs/invalid_proxy.txt", "w") as f:
         f.write("\n".join(invalid_proxy))
+    print("检测完成: 无效代理已保存到 /opt/mentos_shop_backend/logs/invalid_proxy.txt")
 
 
 @cli.command()
@@ -241,21 +262,35 @@ def change_proxy(server_ip):
     """
     kc = KaxyClient(server_ip)
     user_dict = {}
-    for x in Proxy.objects.filter(server_ip=server_ip, status=0).all():
-        if x.username not in user_dict:
-            user_dict[x.username] = set()
-        user_dict[x.username].add(x.subnet)
-    for u, sub_ in user_dict.items():
-        need_update = set()
-        for s in sub_:
-            resp = kc.create_user_by_prefix(u, s)
-            resp_json = resp.json()
-            for proxy_i in resp_json["data"]["proxy_str"]:
-                ip, port, user, password = proxy_i.split(":")
-                need_update.add((ip, user, password))
-        for ip, user, password in need_update:
-            Proxy.objects.filter(username=user, ip=ip).update(password=password, status=1)
-            print(ip, user, password)
+    with console.status("[bold green]修改代理中...", spinner="monkey"):
+        for x in Proxy.objects.filter(server_ip=server_ip, status=0).all():
+            if x.username not in user_dict:
+                user_dict[x.username] = set()
+            user_dict[x.username].add(x.subnet)
+        for u, sub_ in user_dict.items():
+            need_update = set()
+            for s in sub_:
+                resp = kc.create_user_by_prefix(u, s)
+                resp_json = resp.json()
+                for proxy_i in resp_json["data"]["proxy_str"]:
+                    ip, port, user, password = proxy_i.split(":")
+                    need_update.add((ip, user, password))
+            for ip, user, password in need_update:
+                Proxy.objects.filter(username=user, ip=ip).update(password=password, status=1)
+                print(ip, user, password)
+
+
+@cli.command()
+def flush_access_cache():
+    """
+    清理访问日志
+    """
+    for s in track(Server.objects.all(), description="清理访问日志中..."):
+        try:
+            s_c = KaxyClient(s.ip)
+            print(s_c.flush_access_log().text)
+        except Exception as e:
+            pass
 
 
 cli_all = click.CommandCollection(sources=[cli])

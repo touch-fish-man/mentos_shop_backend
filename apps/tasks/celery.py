@@ -89,7 +89,7 @@ app.conf.beat_schedule = {
     '清理代理访问日志':
     {
         'task': 'flush_access_log',
-        # 每两天执行一次
-        'schedule': crontab(hour=4, minute=10, day_of_week="1,3,5"),
+        # 每天执行一次
+        'schedule': crontab(hour=12, minute=30),
     },
 }
