@@ -261,6 +261,9 @@ def check_proxy_fn(proxy):
 
 @cli.command()
 def check_all_proxy():
+    """
+    检测所有代理是否可用，无效代理保存到 /opt/mentos_shop_backend/logs/invalid_proxy.txt
+    """
     proxies = []
     for i in Proxy.objects.all():
         # 检测代理是否可用
