@@ -234,7 +234,29 @@ def check_proxy(proxy):
     else:
         print(f"{proxy} 不可用")
     return status
-
+def check_proxy_fn(proxy):
+    """
+    检测代理是否可用 代理格式：username:password@ip:port
+    """
+    status = False
+    try:
+        proxies = {
+            'http': f'http://{proxy}',
+            'https': f'http://{proxy}'
+        }
+        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
+        if response.status_code == 200:
+            status = True
+        else:
+            status = False
+    except Exception as e:
+        print(e)
+        status = False
+    if status:
+        print(f"{proxy} 可用")
+    else:
+        print(f"{proxy} 不可用")
+    return status
 
 @cli.command()
 def check_all_proxy():
@@ -244,7 +266,7 @@ def check_all_proxy():
         proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
         proxies.append(proxy_str)
     with ThreadPoolExecutor(max_workers=10) as executor:
-        results = executor.map(check_proxy, proxies)
+        results = executor.map(check_proxy_fn, proxies)
     invalid_proxy = []
     for proxy, result in track(zip(proxies, results), description="检测代理中...", total=len(proxies)):
         if not result:
