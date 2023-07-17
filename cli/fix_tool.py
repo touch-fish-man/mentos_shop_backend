@@ -54,7 +54,7 @@ def fix_stock():
             xxx.available_subnets = ",".join(subnets)
             # print(xxx.available_subnets)
             if xxx.cart_stock != cart_stock:
-                print(xxx.cart_stock, cart_stock, xxx.id)
+                print("id: {} fix stock: {} -> {}".format(xxx.id, xxx.cart_stock, cart_stock))
                 xxx.cart_stock = cart_stock
                 xxx.available_subnets = ",".join(subnets)
                 xxx.ip_stock = cart_stock * xxx.cart_step
