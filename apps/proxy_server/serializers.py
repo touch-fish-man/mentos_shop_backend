@@ -204,6 +204,7 @@ class ServerUpdateSerializer(CommonSerializer):
                     break
         if check_cidr_cnt != len(cidrs):
             raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
+        return attrs
 
     def update(self, instance, validated_data):
         cidrs = validated_data.pop('cidrs')
