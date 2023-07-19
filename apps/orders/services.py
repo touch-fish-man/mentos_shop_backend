@@ -512,22 +512,21 @@ def change_order_proxy(order_id):
 
 
 # 创建发货线程
-def webhook_handle_thread(request,order_id):
+def webhook_handle_thread(order_info,order_id):
     # 因调用kaxy接口时间较长，所以使用线程处理,指定线程名称，如果有相同名称的线程，不会创建新的线程
     thred_name = 'webhook_handle'+str(order_id)
     threads = threading.enumerate()
     for thread in threads:
         if thread.name == thred_name:
             return False
-    t = threading.Thread(target=webhook_handle, args=(request,), name=thred_name)
+    t = threading.Thread(target=webhook_handle, args=(order_info,), name=thred_name)
     t.start()
     return True
 
 
-def webhook_handle(request):
+def webhook_handle(order_info):
     # shopify订单回调
     try:
-        order_info = shopify_order(request.data)
         shopify_order_info = order_info.get("order")
         financial_status = shopify_order_info.get('financial_status')
         if financial_status == 'paid':
@@ -555,8 +554,11 @@ def webhook_handle(request):
                 else:
                     # 新订
                     order_process_ret,msg = create_proxy_by_order(order_id)
+                Orders.objects.filter(order_id=order_id).update(shopify_order_number=shopify_order_number)
                 if order_process_ret:
                     order_info={"id":shpify_order_id,"tags": "delivered"}
+                    if renewal_status == "1":
+                        order_info["tags"] += ",renew"
                     t1=threading.Thread(target=change_shopify_order_info,args=(order_info,)).start()
                     # 修改优惠券状态
                     for discount_code in discount_codes:
