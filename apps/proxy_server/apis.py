@@ -178,7 +178,7 @@ class ProxyServerApi(ComModelViewSet):
             task_i=reset_proxy_fn.delay(order_id,username, server_ip)
             tasks_ids_list.append(task_i.id)
         if len(tasks_ids_list) > 0:
-            cache.rpush(redis_key, *tasks_ids_list)
+            cache.lpush(redis_key, *tasks_ids_list)
             cache.expire(redis_key, 60 * 60 * 1)
         return SuccessResponse(data={"message": "reset success","request_data":request_data})
     @action(methods=['post'], detail=True, url_path='list_acl', url_name='list_acl')
