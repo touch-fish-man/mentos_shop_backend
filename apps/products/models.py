@@ -98,6 +98,7 @@ class Variant(BaseModel):
                 variant_stock += stock_obj.ip_stock
             else:
                 # 不存在则创建
+                logging.info(self.id)
                 logging.info(cidr_ids)
                 logging.info(ip_count)
                 logging.info(idx)
