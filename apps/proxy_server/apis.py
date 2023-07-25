@@ -141,6 +141,8 @@ class ProxyServerApi(ComModelViewSet):
         """
         重置所有用户
         """
+        from django_redis import get_redis_connection
+        redis_conn = get_redis_connection("default")
         proxy_server = self.get_object()
         server_ip = proxy_server.ip
         # 查询所有用户
@@ -164,8 +166,8 @@ class ProxyServerApi(ComModelViewSet):
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
         request_data=[]
         redis_key = "proxy:reset_tasks:{}".format(server_ip)
-        if cache.get(redis_key):
-            tasks_ids = cache.lrange(redis_key, 0, -1)
+        if redis_conn.get(redis_key):
+            tasks_ids = redis_conn.lrange(redis_key, 0, -1)
             from celery.result import AsyncResult
             for tasks_id in tasks_ids:
                 task = AsyncResult(tasks_id)
@@ -178,8 +180,8 @@ class ProxyServerApi(ComModelViewSet):
             task_i=reset_proxy_fn.delay(order_id,username, server_ip)
             tasks_ids_list.append(task_i.id)
         if len(tasks_ids_list) > 0:
-            cache.lpush(redis_key, *tasks_ids_list)
-            cache.expire(redis_key, 60 * 60 * 1)
+            redis_conn.rpush(redis_key, *tasks_ids_list)
+            redis_conn.expire(redis_key, 60 * 60 * 1)
         return SuccessResponse(data={"message": "reset success","request_data":request_data})
     @action(methods=['post'], detail=True, url_path='list_acl', url_name='list_acl')
     def list_acl(self, request, *args, **kwargs):
