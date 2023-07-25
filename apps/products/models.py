@@ -119,7 +119,7 @@ class Variant(BaseModel):
             server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
                                                                                                         flat=True)
             cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
-            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count,id')
+            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('id','ip_count')
             ip_count_dict = dict(ip_count)
             ip_count = [ip_count_dict.get(cidr_id) for cidr_id in cidr_ids]
 
