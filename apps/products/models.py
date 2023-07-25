@@ -98,6 +98,9 @@ class Variant(BaseModel):
                 variant_stock += stock_obj.ip_stock
             else:
                 # 不存在则创建
+                logging.info(cidr_ids)
+                logging.info(ip_count)
+                logging.info(idx)
                 cart_stock =ip_count[idx] // cart_step
                 porxy_stock=ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group, ip_stock=ip_count[idx], cart_stock=cart_stock)
                 subnets = porxy_stock.gen_subnets()
