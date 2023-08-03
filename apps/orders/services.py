@@ -429,6 +429,7 @@ def create_proxy_by_id(id):
                                         prefix = Stock.get_next_subnet()
                                         proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
                                                                                            acl_value)
+                                        logging.info("new_proxy_num:{}".format(len(proxy_info["proxy"])))
                                         if proxy_info["proxy"]:
                                             proxy_list.extend(proxy_info["proxy"])
                                             server_list.extend([server.ip] * len(proxy_info["proxy"]))
