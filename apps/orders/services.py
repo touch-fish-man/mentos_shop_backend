@@ -229,7 +229,7 @@ def create_proxy_by_order(order_id):
                         ip, port, user, password = proxy.split(":")
                         server_ip = server_list[idx]
                         Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
-                                             order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,ip_stock_id=stock_list[idx],subnet=subnet_list[idx])
+                                             order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,ip_stock_id=stock_list[idx],subnet=subnet_list[idx]).save()
                     # 更新订单状态
                     order_obj.order_status = 4
                     order_obj.delivery_status = 1
@@ -334,7 +334,8 @@ def reset_proxy_by_order(order_id):
                         server_ip = server_list[idx]
                         Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
                                              order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
-                                             ip_stock_id=stock_list[idx], subnet=subnet_list[idx])
+                                             ip_stock_id=stock_list[idx], subnet=subnet_list[idx]).save()
+
                     # 更新订单状态
                     order_obj.order_status = 4
                     order_obj.delivery_status = 1
@@ -453,6 +454,7 @@ def create_proxy_by_id(id):
                         p_obj=Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
                                              order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
                                              ip_stock_id=stock_list[idx], subnet=subnet_list[idx])
+                        p_obj.save()
                         ret_proxy_list.append(p_obj.id)
 
                     # 更新订单状态
