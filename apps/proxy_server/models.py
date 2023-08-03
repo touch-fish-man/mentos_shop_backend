@@ -134,6 +134,8 @@ class Cidr(BaseModel):
         db_table = 'cidr'
         verbose_name = 'CIDR'
         verbose_name_plural = 'CIDR'
+    def __str__(self):
+        return self.cidr
 
 
 def fix_network_by_ip(cidr_str):

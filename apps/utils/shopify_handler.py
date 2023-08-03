@@ -377,7 +377,7 @@ class ShopifyClient:
             i.tags = order_info['tags']
             i.save()
         if order_info.get('note'):
-            order[0].note.append(order_info['note'])
+            order[0].note=order_info['note']
             order[0].save()
 
 

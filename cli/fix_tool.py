@@ -8,7 +8,6 @@ import requests
 import time
 from concurrent.futures import ThreadPoolExecutor
 
-
 from init_env import *
 from rich.console import Console
 from rich.progress import track
@@ -20,11 +19,12 @@ from apps.proxy_server.tasks import create_proxy_task
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
 from apps.orders.models import Orders
-from apps.products.models import Variant, ProductTag, ProductTagRelation
+from apps.products.models import Variant, ProductTag, ProductTagRelation, Product
 from apps.utils.kaxy_handler import KaxyClient
 from apps.orders.services import create_proxy_by_id
 import click
 from apps.orders.tasks import delete_proxy_expired
+
 
 @click.group()
 def cli():
@@ -235,6 +235,8 @@ def check_proxy(proxy):
     else:
         print(f"{proxy} 不可用")
     return status
+
+
 def check_proxy_fn(proxy):
     """
     检测代理是否可用 代理格式：username:password@ip:port
@@ -258,6 +260,7 @@ def check_proxy_fn(proxy):
     else:
         print(f"{proxy} 不可用")
     return status
+
 
 @cli.command()
 def check_all_proxy():
