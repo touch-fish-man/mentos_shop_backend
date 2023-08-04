@@ -10,7 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import datetime
-
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 from pathlib import Path
 import os
 import pymysql
@@ -427,6 +428,20 @@ DISCORD_BOT_TOKEN = env('DISCORD_BOT_TOKEN')
 DISCORD_BOT_CHANNELS = env('DISCORD_BOT_CHANNELS')
 POINTS_PER_MESSAGE = int(env('POINTS_PER_MESSAGE'))
 MAX_POINTS_PER_DAY = int(env('MAX_POINTS_PER_DAY'))
+sentry_sdk.init(
+  dsn="https://6f87b898f182a430c4608b3835109fb0@o4505645854621696.ingest.sentry.io/4505645869694976",
+  integrations=[DjangoIntegration()],
+
+  # Set traces_sample_rate to 1.0 to capture 100%
+  # of transactions for performance monitoring.
+  # We recommend adjusting this value in production.
+  traces_sample_rate=1.0,
+
+  # If you wish to associate users to errors (assuming you are using
+  # django.contrib.auth) you may enable sending PII data.
+  send_default_pii=True
+)
 # 导入邮件模板配置
 from .email_templates import *
 from .celery import *
+

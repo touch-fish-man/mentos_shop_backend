@@ -34,3 +34,4 @@ gevent
 uvicorn
 eventlet
 loguru
+sentry-sdk
