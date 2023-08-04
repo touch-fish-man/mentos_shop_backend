@@ -41,7 +41,7 @@ class OrdersApi(ComModelViewSet):
     order_renew_checkout:订单续费结账
     reset_proxy:重置代理
     """
-    queryset = Orders.objects.all()
+    queryset = Orders.objects.all().order_by('-updated_at')
     serializer_class = OrdersSerializer
     update_serializer_class = OrdersUpdateSerializer
     get_status_serializer_class = OrdersStatusSerializer
