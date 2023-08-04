@@ -315,7 +315,7 @@ LOGGING = {
     "handlers": {
         "file": {
             "level": "INFO",
-            "class": "apps.core.log.InterceptTimedRotatingFileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": SERVER_LOGS_FILE,
             "maxBytes": 1024 * 1024 * 100,  # 100 MB
             "backupCount": 5,  # 最多备份5个
@@ -324,7 +324,7 @@ LOGGING = {
         },
         "error": {
             "level": "ERROR",
-            "class": "apps.core.log.InterceptTimedRotatingFileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": ERROR_LOGS_FILE,
             "maxBytes": 1024 * 1024 * 100,  # 100 MB
             "backupCount": 3,  # 最多备份3个
@@ -338,7 +338,7 @@ LOGGING = {
         },
         "access": {
             "level": "INFO",
-            "class": "apps.core.log.InterceptTimedRotatingFileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": ACCESS_LOGS_FILE,
             "maxBytes": 1024 * 1024 * 100,  # 100 MB
             "backupCount": 3,  # 最多备份3个
