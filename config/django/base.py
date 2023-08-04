@@ -315,7 +315,7 @@ LOGGING = {
     "handlers": {
         "file": {
             "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
+            "class": "apps.core.log.InterceptTimedRotatingFileHandler",
             "filename": SERVER_LOGS_FILE,
             "maxBytes": 1024 * 1024 * 100,  # 100 MB
             "backupCount": 5,  # 最多备份5个
@@ -324,7 +324,7 @@ LOGGING = {
         },
         "error": {
             "level": "ERROR",
-            "class": "logging.handlers.RotatingFileHandler",
+            "class": "apps.core.log.InterceptTimedRotatingFileHandler",
             "filename": ERROR_LOGS_FILE,
             "maxBytes": 1024 * 1024 * 100,  # 100 MB
             "backupCount": 3,  # 最多备份3个
@@ -338,7 +338,7 @@ LOGGING = {
         },
         "access": {
             "level": "INFO",
-            "class": "logging.handlers.RotatingFileHandler",
+            "class": "apps.core.log.InterceptTimedRotatingFileHandler",
             "filename": ACCESS_LOGS_FILE,
             "maxBytes": 1024 * 1024 * 100,  # 100 MB
             "backupCount": 3,  # 最多备份3个
@@ -365,7 +365,7 @@ LOGGING = {
         },
         # 数据库相关日志
         "django.db.backends": {
-            "handlers": [],
+            "handlers": ["console", "error", "file"],
             "propagate": True,
             "level": "INFO",
         },

@@ -320,12 +320,36 @@ def flush_access_cache():
             print(s_c.flush_access_log().text)
         except Exception as e:
             pass
+
+
 @cli.command()
 def delete_expired():
     """
     删除过期代理
     """
     delete_proxy_expired()
+
+
+@cli.command()
+@click.option('--log_type', default="server",
+              help='日志类型 server:服务器日志 error:错误日志 access:访问日志 celery:celery日志')
+def logs(log_type="server"):
+    """
+    显示日志
+    """
+    if log_type == "server":
+        with open("logs/server.log", "r") as f:
+            data = f.readlines()
+    elif log_type == "error":
+        with open("logs/error.log", "r") as f:
+            data = f.readlines()
+    elif log_type == "access":
+        with open("logs/access.log", "r") as f:
+            data = f.readlines()
+    elif log_type == "celery":
+        with open("logs/celery_work.log", "r") as f:
+            data = f.readlines()
+    print("".join(data[-500:]))
 
 
 cli_all = click.CommandCollection(sources=[cli])

@@ -33,3 +33,4 @@ click
 gevent
 uvicorn
 eventlet
+loguru
