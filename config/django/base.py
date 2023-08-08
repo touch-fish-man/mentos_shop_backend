@@ -10,13 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import datetime
-import logging
-
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 from pathlib import Path
 import os
 import pymysql
 
-APPLICATION = "mentos_proxy"
 if os.environ.get('DJANGO_ENV') != 'prod' or os.environ.get('DJANGO_ENV') != 'test':
     pymysql.version_info = (1, 4, 6, "final", 0)
     pymysql.install_as_MySQLdb()
@@ -285,102 +284,106 @@ CACHES = {
     }
 }
 # 配置日志
-os.makedirs(os.path.join(BASE_DIR, "logs"), mode=0o775, exist_ok=True)
+SERVER_LOGS_FILE = os.path.join(BASE_DIR, "logs", "django.log")
+ERROR_LOGS_FILE = os.path.join(BASE_DIR, "logs", "error.log")
+ACCESS_LOGS_FILE = os.path.join(BASE_DIR, "logs", "access.log")
+if not os.path.exists(os.path.join(BASE_DIR, "logs")):
+    os.makedirs(os.path.join(BASE_DIR, "logs"))
 
-LOG_CLASS = "apps.core.log.LoguruBaseRotatingHandler"
-LOGFILTER = "apps.core.log.LevelFilter"
-# log file size
-max_bytes = 1024_000
-# log file count
-backup_count = 10
+# 格式:[2020-04-22 23:33:01][micoservice.apps.ready():16] [INFO] 这是一条日志:
+# 格式:[日期][模块.函数名称():行号] [级别] 信息
+STANDARD_LOG_FORMAT = (
+    "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] [%(threadName)s] %(message)s"
+)
+CONSOLE_LOG_FORMAT = (
+    "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] [%(threadName)s] %(message)s"
+)
+
 LOGGING = {
     "version": 1,
-    "disable_existing_loggers": False,
+    "disable_existing_loggers": True,
     "formatters": {
-        "generic": {
-            "format": "[%(process)d] [%(thread)d] [%(asctime)s] [%(name)s:%(lineno)d] [%(module)s:%(funcName)s] [%(levelname)s]- %(message)s",
-            # 打日志的格式
-            "datefmt": "%Y-%m-%d %H:%M:%S %z",  # 时间显示方法
-            # "class": "logging.Formatter"
+        "standard": {"format": STANDARD_LOG_FORMAT},
+        "console": {
+            "format": CONSOLE_LOG_FORMAT,
+            "datefmt": "%Y-%m-%d %H:%M:%S",
         },
-    },
-    "filters": {
-        "error_filter": {"()": LOGFILTER, "level": logging.ERROR},
-        "warn_filter": {"()": LOGFILTER, "level": logging.WARN},
-        "info_filter": {"()": LOGFILTER, "level": logging.INFO},
-        "debug_filter": {"()": LOGFILTER, "level": logging.DEBUG},
+        "file": {
+            "format": CONSOLE_LOG_FORMAT,
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        },
     },
     "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": SERVER_LOGS_FILE,
+            "maxBytes": 1024 * 1024 * 100,  # 100 MB
+            "backupCount": 5,  # 最多备份5个
+            "formatter": "standard",
+            "encoding": "utf-8",
+        },
         "error": {
             "level": "ERROR",
-            "class": LOG_CLASS,
-            "formatter": "generic",
-            "filters": ["error_filter"],
-            "filename": os.path.join(BASE_DIR, "logs/error.log"),
-            "maxBytes": max_bytes,
-            "backupCount": backup_count,
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": ERROR_LOGS_FILE,
+            "maxBytes": 1024 * 1024 * 100,  # 100 MB
+            "backupCount": 3,  # 最多备份3个
+            "formatter": "standard",
+            "encoding": "utf-8",
         },
-        "warn": {
-            "level": "WARNING",
-            "class": LOG_CLASS,
-            "formatter": "generic",
-            "filters": ["warn_filter"],
-            "filename": os.path.join(BASE_DIR, "logs/warn.log"),
-            "maxBytes": max_bytes,
-            "backupCount": backup_count,
-        },
-        "info": {
+        "console": {
             "level": "INFO",
-            "class": LOG_CLASS,
-            "formatter": "generic",
-            "filters": ["info_filter"],
-            "filename": os.path.join(BASE_DIR, "logs/info.log"),
-            "maxBytes": max_bytes,
-            "backupCount": backup_count,
+            "class": "logging.StreamHandler",
+            "formatter": "console",
         },
-        "debug": {
-            "level": "DEBUG",
-            "class": LOG_CLASS,
-            "formatter": "generic",
-            "filters": ["debug_filter"],
-            "filename": os.path.join(BASE_DIR, "logs/debug.log"),
-            "maxBytes": max_bytes,
-            "backupCount": backup_count,
+        "access": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": ACCESS_LOGS_FILE,
+            "maxBytes": 1024 * 1024 * 100,  # 100 MB
+            "backupCount": 3,  # 最多备份3个
+            "formatter": "standard",
+            "encoding": "utf-8",
         },
-        # 控制台输出
-        "console": {"level": "DEBUG", "class": "logging.StreamHandler", "formatter": "generic"},
     },
     "loggers": {
-        "gunicorn.error": {
-            "level": "ERROR",
-            "handlers": ["error"],
-            "propagate": True,
-            "qualname": "gunicorn.error",
-        },
-        "gunicorn.access": {
-            "level": "DEBUG",
-            "handlers": ["debug"],
+        # default日志
+        "": {
+            "handlers": ["console", "error", "file"],
+            "level": "INFO",
             "propagate": False,
-            "qualname": "gunicorn.access",
         },
-        "django": {"handlers": ["error", "warn", "info", "debug"], "level": "INFO", "propagate": True},
-        "gunicorn": {
-            "handlers": ["warn", "info", "debug", "error"],
+        "scripts": {
+            "handlers": ["console", "error", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["console", "error", "file"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        # 数据库相关日志
+        "django.db.backends": {
+            "handlers": ["console", "error", "file"],
             "propagate": True,
             "level": "INFO",
         },
-        "gunicorn.error": {"level": "ERROR", "handlers": ["error"], "propagate": True},
-        "gunicorn.access": {"handlers": ["info"], "level": "INFO", "propagate": False},
-        "celery.task": {"handlers": ["error", "warn", "info", "debug"], "level": "DEBUG", "propagate": True},
-        APPLICATION: {
-            "handlers": ["info", "error", "warn", "debug"],
-            "level": "DEBUG",
-            "propagate": True,
+        # # requests相关日志
+        # "django.request": {
+        #     "level": "INFO",
+        #     "handlers": ["console", "error", "file"],
+        #     'propagate': False,
+        # },
+        'gunicorn.access': {
+            'level': 'INFO',
+            'handlers': ["access"],
+            'propagate': False,
         },
+
     },
 }
-LOGGING_CONFIG = "apps.core.log.simple_log_injector"
-
 # ---------需要动态配置的配置项----------------
 # discord oauth2 配置
 DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
@@ -425,6 +428,20 @@ DISCORD_BOT_TOKEN = env('DISCORD_BOT_TOKEN')
 DISCORD_BOT_CHANNELS = env('DISCORD_BOT_CHANNELS')
 POINTS_PER_MESSAGE = int(env('POINTS_PER_MESSAGE'))
 MAX_POINTS_PER_DAY = int(env('MAX_POINTS_PER_DAY'))
+sentry_sdk.init(
+  dsn="https://6f87b898f182a430c4608b3835109fb0@o4505645854621696.ingest.sentry.io/4505645869694976",
+  integrations=[DjangoIntegration()],
+
+  # Set traces_sample_rate to 1.0 to capture 100%
+  # of transactions for performance monitoring.
+  # We recommend adjusting this value in production.
+  traces_sample_rate=1.0,
+
+  # If you wish to associate users to errors (assuming you are using
+  # django.contrib.auth) you may enable sending PII data.
+  send_default_pii=True
+)
 # 导入邮件模板配置
 from .email_templates import *
 from .celery import *
+
