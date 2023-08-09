@@ -91,8 +91,11 @@ class Variant(BaseModel):
         acl_group = self.acl_group
         server_group = self.server_group
         cidr_ids, ip_count = self.get_cidr(server_group)
+        stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, cart_step=cart_step, acl_group=acl_group)
+        stocks_dict = {stock.cidr_id: stock for stock in stocks}
+
         for idx,cidr_id in enumerate(cidr_ids):
-            stock_obj=ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group).first()
+            stock_obj = stocks_dict.get(cidr_id)
             if stock_obj:
                 self.stock_ids.append(stock_obj.id)
                 variant_stock += stock_obj.ip_stock

@@ -199,6 +199,12 @@ class ProxyStock(BaseModel):
         db_table = 'ip_stock'
         verbose_name = 'IP库存'
         verbose_name_plural = 'IP库存'
+        indexes = [
+            models.Index(fields=['id','cidr', 'acl_group','cart_step'], name='ip_stock_index'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['cidr', 'acl_group'], name='ip_stock_pk')
+        ]
 
     def gen_subnets(self):
         """
