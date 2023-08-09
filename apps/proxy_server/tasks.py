@@ -193,22 +193,28 @@ def check_proxy_status():
     """
     检查代理状态,每4个小时检查一次
     """
-    proxies = Proxy.objects.all()
-    ids = []
-    proxy_strs = []
-    for p in proxies:
-        server_ip = p.server_ip
-        if Server.objects.filter(ip=server_ip,server_status=0).count() > 0:
-            try:
-                Proxy.objects.filter(id=p.id).update(status=False)
-            except Exception as e:
-                pass
-            continue
-        ids.append(p.id)
-        proxy_strs.append(p.get_proxy_str())
+    # 获取所有代理
+    proxies = list(Proxy.objects.all())
+    # 获取所有状态为0的服务器IP
+    offline_server_ips = set(Server.objects.filter(server_status=0).values_list('ip', flat=True))
 
+    to_update_ids = []
+    proxy_data = []
+
+    for p in proxies:
+        if p.server_ip in offline_server_ips:
+            to_update_ids.append(p.id)
+        else:
+            proxy_data.append((p.get_proxy_str(), p.id))
+
+    # 批量更新代理状态为False
+    if to_update_ids:
+        Proxy.objects.filter(id__in=to_update_ids).update(status=False)
+
+    # 使用线程池并发检查代理状态
     with ThreadPoolExecutor(max_workers=10) as executor:
-        results = executor.map(lambda x: check_proxy(x[0], x[1]), zip(proxy_strs, ids))
+        results = executor.map(lambda x: check_proxy(x[0], x[1]), proxy_data)
+
 
 @shared_task(name="cleanup_sessions")
 def cleanup():
