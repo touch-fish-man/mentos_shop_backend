@@ -25,6 +25,7 @@ from apps.orders.services import create_proxy_by_order
 
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.models import Product, Variant
+from django.core.exceptions import ObjectDoesNotExist
 
 
 class OrdersApi(ComModelViewSet):
@@ -120,30 +121,29 @@ class OrdersApi(ComModelViewSet):
             permission_classes=[IsSuperUser])
     def update_proxy_expired_at(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
-        expired_at = request.data.get('expired_at', None)
-        if not expired_at:
-            return SuccessResponse(data={}, msg="过期时间不能为空")
-        # 时间戳转换
+        expired_at_timestamp = request.data.get('expired_at', None)
+
+        if not expired_at_timestamp:
+            return ErrorResponse(data={}, msg="过期时间不能为空")
+
         try:
-            expired_at = datetime.datetime.fromtimestamp(int(expired_at) // 1000).replace(tzinfo=datetime.timezone.utc)
-        except Exception as e:
+            expired_at = datetime.datetime.fromtimestamp(int(expired_at_timestamp) // 1000).replace(
+                tzinfo=datetime.timezone.utc)
+        except ValueError:
             return ErrorResponse(data={}, msg="过期时间格式错误")
+
         if expired_at < datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8):
             return ErrorResponse(data={}, msg="过期时间不能小于当前时间")
-        order = Orders.objects.filter(id=order_id)
-        if order.exists():
-            order = order.first()
-            proxy = Proxy.objects.filter(order_id=order_id)
-            if proxy.exists():
-                for p in proxy.all():
-                    # if p.expired_at > expired_at:
-                    #     return ErrorResponse(data={}, msg="代理过期时间不能小于当前时间")
-                    p.expired_at = expired_at
-                    p.save()
-            order.expired_at = expired_at
-            order.save()
-        else:
+
+        try:
+            order = Orders.objects.get(id=order_id)
+        except ObjectDoesNotExist:
             return ErrorResponse(data={}, msg="订单不存在")
+
+        Proxy.objects.filter(order_id=order.id).update(expired_at=expired_at)
+        order.expired_at = expired_at
+        order.save()
+
         return SuccessResponse(data={}, msg="代理过期时间更新成功")
 
     @action(methods=['post'], detail=True, url_path='reset_proxy', url_name='reset_proxy')
