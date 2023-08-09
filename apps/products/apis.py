@@ -20,7 +20,7 @@ class ProductViewSet(ComModelViewSet):
     destroy:删除
     get_recommend_product:获取推荐商品
     """
-    queryset = Product.objects.filter(soft_delete=False).all()
+    queryset = Product.objects.filter(soft_delete=False).all().prefetch_related('product_collections', 'product_tags', 'variants', 'variant_options')
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
     update_serializer_class = ProductUpdateSerializer
