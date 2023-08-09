@@ -517,7 +517,7 @@ def change_order_proxy(order_id):
 # 创建发货线程
 def webhook_handle_thread(order_info,order_id):
     # 因调用kaxy接口时间较长，所以使用线程处理,指定线程名称，如果有相同名称的线程，不会创建新的线程
-    thred_name = 'webhook_handle'+str(order_id)
+    thred_name = 'webhook_handle_'+str(order_id)
     threads = threading.enumerate()
     for thread in threads:
         if thread.name == thred_name:
