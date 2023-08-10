@@ -300,6 +300,11 @@ class Proxy(BaseModel):
         db_table = 'proxy'
         verbose_name = '代理列表'
         verbose_name_plural = '代理列表'
+        indexes = [
+            models.Index(fields=['username'], name='username_index'),
+            models.Index(fields=['order'], name='order_id_index'),
+            models.Index(fields=['expired_at'], name='expired_at_index'),
+        ]
     def __str__(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
     def get_proxy_str(self):

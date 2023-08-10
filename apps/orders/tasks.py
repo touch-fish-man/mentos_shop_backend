@@ -46,30 +46,33 @@ def precheck_order_expired(ceheck_days=3, send_email=True):
     return json.dumps(data)
 
 
-
 @shared_task(name='check_order_expired')
 def check_order_expired():
     """
     定时检查db中订单状态，如果订单过期，删除对应的proxy，每小时检查一次
     """
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
-    orders = Orders.objects.filter(pay_status=1, order_status=4).all()  # 已支付，已发货
-    ret_orders = []
-    for order_obj_item in orders:
-        if order_obj_item.expired_at <= utc_now:
-            ret_orders.append(order_obj_item.id)
-            proxy = Proxy.objects.filter(order_id=order_obj_item.id).first()
-            if proxy:
-                try:
-                    client = KaxyClient(proxy.server_ip)
-                    client.del_user(proxy.username)
-                except Exception as e:
-                    print(e)
-                proxy.delete()
-                order_obj_item.order_status = 3
-                order_obj_item.save()
+    expired_orders = Orders.objects.filter(pay_status=1, order_status=4, expired_at__lte=utc_now).all()
+    expired_order_ids = [order.id for order in expired_orders]
+
+    # 获取与这些订单关联的代理
+    proxies_to_delete = Proxy.objects.filter(order_id__in=expired_order_ids)
+    proxy_data = [(proxy.server_ip, proxy.username) for proxy in proxies_to_delete]
+
+    # 删除代理并更新关联的订单
+    for server_ip, username in proxy_data:
+        try:
+            client = KaxyClient(server_ip)
+            client.del_user(username)
+        except Exception as e:
+            print(e)
+
+    # 批量删除代理和更新订单状态
+    proxies_to_delete.delete()
+    Orders.objects.filter(id__in=expired_order_ids).update(order_status=3)
+
     data = {
-        'orders': ret_orders,
+        'orders': expired_order_ids,
         'status': 1
     }
     return json.dumps(data)
