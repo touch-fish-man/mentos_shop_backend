@@ -43,12 +43,13 @@ def update_product_stock(*args, **kwargs):
                 stock.cart_stock = available_count
                 stock.available_subnets = ",".join(available_subnets_list)
                 stock.ip_stock = available_count * stock.cart_step
-                stocks_to_update.append(stock)
+                stocks_to_update.append(stock.id)
                 stock_data[stock.id] = stock.ip_stock
+                stock.save()
 
-    # Bulk save updated objects
-    if stocks_to_update:
-        ProxyStock.objects.bulk_update(stocks_to_update, ['cart_stock', 'available_subnets', 'ip_stock'])
+    # # Bulk save updated objects
+    # if stocks_to_update:
+    #     ProxyStock.objects.bulk_update(stocks_to_update, ['cart_stock', 'available_subnets', 'ip_stock'])
 
     # If the number of Variant.objects.all() is large, consider only updating those that have indeed changed
     for variant in Variant.objects.all():
