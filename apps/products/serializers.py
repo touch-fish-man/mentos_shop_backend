@@ -93,7 +93,7 @@ class VariantCreateSerializer(serializers.ModelSerializer):
         acl_group_id = validated_data.get('acl_group').id
         for idx, cidr_id in enumerate(cidr_ids):
             cart_stock = ip_count[idx] // validated_data.get('cart_step')
-            if ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=acl_group_id, cart_stock=cart_stock).exists():
+            if ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=acl_group_id, cart_step=validated_data.get('cart_step',8)).exists():
                 # 如果已经存在，就不创建了
                 continue
             porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx],
