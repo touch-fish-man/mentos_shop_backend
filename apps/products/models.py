@@ -93,6 +93,7 @@ class Variant(BaseModel):
         cidr_ids, ip_count = self.get_cidr(server_group)
         stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, cart_step=cart_step, acl_group=acl_group)
         stocks_dict = {stock.cidr_id: stock for stock in stocks}
+        print(stocks_dict)
 
         for idx,cidr_id in enumerate(cidr_ids):
             stock_obj = stocks_dict.get(cidr_id)
