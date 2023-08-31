@@ -4,12 +4,11 @@ from .serializers import ProductSerializer, VariantSerializer, ProductCollection
 from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient, SyncClient
 from rest_framework.decorators import action
-from apps.core.json_response import SuccessResponse, ErrorResponse
+from apps.core.json_response import SuccessResponse, ErrorResponse, LimitOffsetResponse
 from django.conf import settings
 from apps.core.permissions import IsAuthenticated, IsSuperUser
 from rest_framework.permissions import AllowAny
-
-
+from django.core.cache import cache
 class ProductViewSet(ComModelViewSet):
     """
     商品列表
@@ -49,19 +48,30 @@ class ProductViewSet(ComModelViewSet):
     def get_recommend_product(self, request):
         """
         获取推荐商品
+        :param request:
         """
+        # 使用redi缓存
+
         tags = request.query_params.get('tags')
         if not tags:
             return ErrorResponse(msg='tags不能为空')
         tags = tags.split(',')
-        products = Product.objects.filter(product_tags__in=tags,soft_delete=False).distinct()
-        serializer = self.get_serializer(products, many=True)
-        # 获取分页数据
-        page = self.paginate_queryset(products)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        return SuccessResponse(data=serializer.data)
+        key = 'recommend_product' + str("".join(tags))
+        # 获取缓存数据
+        get_data = cache.get(key)
+        if get_data:
+            return SuccessResponse(data=get_data)
+        else:
+            products = Product.objects.filter(product_tags__in=tags,soft_delete=False).distinct()
+            serializer = self.get_serializer(products, many=True)
+            get_data = serializer.data
+            cache.set(key, get_data, timeout=60 * 60 * 8)
+            # 获取分页数据
+            page = self.paginate_queryset(products)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            return SuccessResponse(data=serializer.data)
 
 
 class ProductCollectionViewSet(ComModelViewSet):
@@ -91,6 +101,22 @@ class ProductCollectionViewSet(ComModelViewSet):
             return SuccessResponse(msg='同步成功')
         else:
             return ErrorResponse(msg='同步失败')
+    def list(self, request, *args, **kwargs):
+        # 使用redi缓存
+        key = 'product_collections'
+        data = cache.get(key)
+        if not data:
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
+            cache.set(key, data, timeout=60*60*24)
+            return LimitOffsetResponse(data=data, msg="Success")
+        return LimitOffsetResponse(data=data, msg="Success")
+
 
     def get_permissions(self):
         if self.action == 'list':

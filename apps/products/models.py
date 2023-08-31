@@ -1,6 +1,8 @@
 import logging
 import traceback
 
+from django.core.cache import cache
+
 from apps.core.models import BaseModel
 from django.db import models
 
@@ -35,6 +37,12 @@ class ProductCollection(BaseModel):
             self.save()
         else:
             return super().delete(using=None, keep_parents=False)
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        cache_key ='product_collections'
+        cache.delete(cache_key)
+        return super().save(force_insert, force_update, using, update_fields)
 
 
 class OptionValue(BaseModel):

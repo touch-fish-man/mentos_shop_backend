@@ -1,5 +1,6 @@
 from django.conf import settings
 from config.env import env
+from django.core.cache import cache
 
 def change_site_settings():
     revoke_dict = {
@@ -78,33 +79,38 @@ def save_site_settings(data,file):
 
     with open(file, "w", encoding="utf-8") as f2:
         [f2.write(item) for item in data]
+    get_site_setting(no_cache=True)
     
 
-def get_site_setting():
-    data ={
-        'discord_client_id':settings.DISCORD_CLIENT_ID,
-        'discord_client_secret':settings.DISCORD_CLIENT_SECRET,
-        'discord_redirect_uri':settings.DISCORD_REDIRECT_URI,
-        'discord_bind_redirect_uri':settings.DISCORD_BIND_REDIRECT_URI,
-        'shopify_api_key':settings.SHOPIFY_API_KEY,
-        'shopify_api_secret':settings.SHOPIFY_API_SECRET,
-        'shopify_app_key':settings.SHOPIFY_APP_KEY,
-        'shopify_shop_url':settings.SHOPIFY_SHOP_URL,
-        'email_method':settings.EMAIL_METHOD,
-        'email_code_expire':settings.EMAIL_CODE_EXPIRE,
-        'sendgrid_api_key':settings.SENDGRID_API_KEY,
-        'mailgun_api_key':settings.MAILGUN_API_KEY,
-        'mailgun_sender_domain':settings.MAILGUN_SENDER_DOMAIN, 
-        'support_twitter':settings.SUPPORT_TWITTER,
-        'support_discord':settings.SUPPORT_DISCORD,
-        'invite_level_points_per_user':settings.INVITE_LEVEL_POINTS_PER_USER,
-        'billing_rate':settings.BILLING_RATE,
-        'level_points_decay_rate':settings.LEVEL_POINTS_DECAY_RATE,
-        'level_points_decay_day':settings.LEVEL_POINTS_DECAY_DAY,
-        'invite_rebate_rate':settings.INVITE_REBATE_RATE,
-        'discord_bot_token':settings.DISCORD_BOT_TOKEN,
-        'discord_bot_channels':settings.DISCORD_BOT_CHANNELS,
-        'discord_bot_points_per_message':settings.POINTS_PER_MESSAGE,
-        'discord_bot_max_points_per_day':settings.MAX_POINTS_PER_DAY,
-    }
+def get_site_setting(no_cache=False):
+    cache_key='site_setting'
+    data = cache.get(cache_key)
+    if not data or no_cache:
+        data ={
+            'discord_client_id':settings.DISCORD_CLIENT_ID,
+            'discord_client_secret':settings.DISCORD_CLIENT_SECRET,
+            'discord_redirect_uri':settings.DISCORD_REDIRECT_URI,
+            'discord_bind_redirect_uri':settings.DISCORD_BIND_REDIRECT_URI,
+            'shopify_api_key':settings.SHOPIFY_API_KEY,
+            'shopify_api_secret':settings.SHOPIFY_API_SECRET,
+            'shopify_app_key':settings.SHOPIFY_APP_KEY,
+            'shopify_shop_url':settings.SHOPIFY_SHOP_URL,
+            'email_method':settings.EMAIL_METHOD,
+            'email_code_expire':settings.EMAIL_CODE_EXPIRE,
+            'sendgrid_api_key':settings.SENDGRID_API_KEY,
+            'mailgun_api_key':settings.MAILGUN_API_KEY,
+            'mailgun_sender_domain':settings.MAILGUN_SENDER_DOMAIN,
+            'support_twitter':settings.SUPPORT_TWITTER,
+            'support_discord':settings.SUPPORT_DISCORD,
+            'invite_level_points_per_user':settings.INVITE_LEVEL_POINTS_PER_USER,
+            'billing_rate':settings.BILLING_RATE,
+            'level_points_decay_rate':settings.LEVEL_POINTS_DECAY_RATE,
+            'level_points_decay_day':settings.LEVEL_POINTS_DECAY_DAY,
+            'invite_rebate_rate':settings.INVITE_REBATE_RATE,
+            'discord_bot_token':settings.DISCORD_BOT_TOKEN,
+            'discord_bot_channels':settings.DISCORD_BOT_CHANNELS,
+            'discord_bot_points_per_message':settings.POINTS_PER_MESSAGE,
+            'discord_bot_max_points_per_day':settings.MAX_POINTS_PER_DAY,
+        }
+        cache.set(cache_key, data)
     return data

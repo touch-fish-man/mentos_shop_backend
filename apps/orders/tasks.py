@@ -84,7 +84,7 @@ def delete_proxy_expired():
     删除过期代理,每天检查一次
     """
     delete_list= []
-    all_proxy = Proxy.objects.filter().all()
+    all_proxy = Proxy.objects.all()
     for proxy in all_proxy:
         if proxy.expired_at < datetime.datetime.now().astimezone(pytz.utc):
             delete_list.append((proxy.id, proxy.ip, proxy.username))
