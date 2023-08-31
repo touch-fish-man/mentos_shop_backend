@@ -75,10 +75,9 @@ class ProductViewSet(ComModelViewSet):
             return SuccessResponse(data=serializer.data)
     def list(self, request, *args, **kwargs):
         # 使用redi缓存
-        key = 'product_collection'
+        key = 'products'
         # 获取缓存数据
         get_data = cache.get(key)
-        get_data = None
         if get_data:
             return SuccessResponse(data=get_data)
         else:
