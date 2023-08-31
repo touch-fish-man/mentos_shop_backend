@@ -59,6 +59,7 @@ class ProductViewSet(ComModelViewSet):
         key = 'recommend_product' + str("".join(tags))
         # 获取缓存数据
         get_data = cache.get(key)
+        get_data = None
         if get_data:
             return SuccessResponse(data=get_data)
         else:
@@ -77,6 +78,7 @@ class ProductViewSet(ComModelViewSet):
         key = 'product_collection'
         # 获取缓存数据
         get_data = cache.get(key)
+        get_data = None
         if get_data:
             return SuccessResponse(data=get_data)
         else:
@@ -124,6 +126,7 @@ class ProductCollectionViewSet(ComModelViewSet):
         # 使用redi缓存
         cache_key = 'product_collections'
         data = cache.get(cache_key)
+        data = None
         if not data:
             queryset = self.filter_queryset(self.get_queryset())
             page = self.paginate_queryset(queryset)
@@ -182,6 +185,7 @@ class ProductTagViewSet(ComModelViewSet):
         # 使用redi缓存
         cache_key = 'product_tags'
         data = cache.get(cache_key)
+        data = None
 
         if not data:
             queryset = self.filter_queryset(self.get_queryset())
