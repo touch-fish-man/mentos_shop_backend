@@ -126,7 +126,6 @@ class ProductCollectionViewSet(ComModelViewSet):
         # 使用redi缓存
         cache_key = 'product_collections'
         data = cache.get(cache_key)
-        data = None
         if not data:
             queryset = self.filter_queryset(self.get_queryset())
             page = self.paginate_queryset(queryset)
