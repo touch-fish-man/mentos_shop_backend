@@ -80,7 +80,15 @@ class ProductViewSet(ComModelViewSet):
         if get_data:
             return SuccessResponse(data=get_data)
         else:
-            queryset = ProductCollection.objects.filter(soft_delete=False).all()
+            queryset = self.filter_queryset(self.get_queryset())
+
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                get_data = serializer.data
+                cache.set(key, get_data, timeout=60 * 60 * 8)
+                return self.get_paginated_response(serializer.data)
+
             serializer = self.get_serializer(queryset, many=True)
             get_data = serializer.data
             cache.set(key, get_data, timeout=60 * 60 * 8)
@@ -114,17 +122,19 @@ class ProductCollectionViewSet(ComModelViewSet):
             return ErrorResponse(msg='同步失败')
     def list(self, request, *args, **kwargs):
         # 使用redi缓存
-        key = 'product_collections'
-        data = cache.get(key)
+        cache_key = 'product_collections'
+        data = cache.get(cache_key)
         if not data:
             queryset = self.filter_queryset(self.get_queryset())
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
+                data = serializer.data
+                cache.set(cache_key, data, timeout=60 * 60 * 24)
                 return self.get_paginated_response(serializer.data)
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
-            cache.set(key, data, timeout=60*60*24)
+            cache.set(cache_key, data, timeout=60 * 60 * 24)
             return LimitOffsetResponse(data=data, msg="Success")
         return LimitOffsetResponse(data=data, msg="Success")
 
@@ -178,6 +188,8 @@ class ProductTagViewSet(ComModelViewSet):
             page = self.paginate_queryset(queryset)
             if page is not None:
                 serializer = self.get_serializer(page, many=True)
+                data = serializer.data
+                cache.set(cache_key, data, timeout=60 * 60 * 24)
                 return self.get_paginated_response(serializer.data)
             serializer = self.get_serializer(queryset, many=True)
             data = serializer.data
