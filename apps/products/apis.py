@@ -59,7 +59,6 @@ class ProductViewSet(ComModelViewSet):
         key = 'recommend_product' + str("".join(tags))
         # 获取缓存数据
         get_data = cache.get(key)
-        get_data = None
         if get_data:
             return SuccessResponse(data=get_data)
         else:
@@ -78,6 +77,7 @@ class ProductViewSet(ComModelViewSet):
         key = 'products'
         # 获取缓存数据
         get_data = cache.get(key)
+        get_data = None
         if get_data:
             return SuccessResponse(data=get_data)
         else:
