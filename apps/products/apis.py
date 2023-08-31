@@ -72,7 +72,18 @@ class ProductViewSet(ComModelViewSet):
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
             return SuccessResponse(data=serializer.data)
-
+    def list(self, request, *args, **kwargs):
+        # 使用redi缓存
+        key = 'product_collection'
+        # 获取缓存数据
+        get_data = cache.get(key)
+        if get_data:
+            return SuccessResponse(data=get_data)
+        else:
+            queryset = ProductCollection.objects.filter(soft_delete=False).all()
+            serializer = self.get_serializer(queryset, many=True)
+            get_data = serializer.data
+            cache.set(key, get_data, timeout=60 * 60 * 8)
 
 class ProductCollectionViewSet(ComModelViewSet):
     """
@@ -157,3 +168,19 @@ class ProductTagViewSet(ComModelViewSet):
         if self.action == 'list':
             self.permission_classes = []
         return super(ProductTagViewSet, self).get_permissions()
+    def list(self, request, *args, **kwargs):
+        # 使用redi缓存
+        cache_key = 'product_tags'
+        data = cache.get(cache_key)
+
+        if not data:
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
+            cache.set(cache_key, data, timeout=60 * 60 * 24)
+            return LimitOffsetResponse(data=data, msg="Success")
+        return LimitOffsetResponse(data=data, msg="Success")
