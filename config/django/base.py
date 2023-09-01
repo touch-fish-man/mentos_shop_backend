@@ -74,7 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware', # 关闭访问记录 防止攻击塞满数据库
+    'drf_api_logger.middleware.api_logger_middleware.APILoggerMiddleware', # 关闭访问记录 防止攻击塞满数据库
 ]
 STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
