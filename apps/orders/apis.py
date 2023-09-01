@@ -231,6 +231,7 @@ class OrdersApi(ComModelViewSet):
                                       name="reset_{}".format(order_id)).start()
             else:
                 return ErrorResponse(data={}, msg="订单不存在")
+        return SuccessResponse(data={}, msg="重置成功")        
 
 
 class OrderCallbackApi(APIView):
