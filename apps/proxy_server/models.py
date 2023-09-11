@@ -15,6 +15,7 @@ from django.db.models.signals import post_delete
 from django.dispatch.dispatcher import receiver
 import requests
 
+
 # Create your models here.
 class AclGroup(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL组名')
@@ -34,6 +35,21 @@ class AclGroup(BaseModel):
             self.save()
         else:
             super().delete(using, keep_parents)
+
+    def get_acl_values(self):
+        acl_value = []
+        acls = self.acls.all()
+        for acl in acls:
+            acl_value.extend(acl.acl_value.split('\n'))
+        acl_value = list(set(acl_value))
+        acl_value.sort()
+        return acl_value
+
+    def save(
+            self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        self.acl_value = '\n'.join(self.get_acl_values())
+        super().save(force_insert, force_update, using, update_fields)
 
 
 class Acls(BaseModel):
@@ -134,6 +150,7 @@ class Cidr(BaseModel):
         db_table = 'cidr'
         verbose_name = 'CIDR'
         verbose_name_plural = 'CIDR'
+
     def __str__(self):
         return self.cidr
 
@@ -200,7 +217,7 @@ class ProxyStock(BaseModel):
         verbose_name = 'IP库存'
         verbose_name_plural = 'IP库存'
         indexes = [
-            models.Index(fields=['id','cidr', 'acl_group','cart_step'], name='ip_stock_index'),
+            models.Index(fields=['id', 'cidr', 'acl_group', 'cart_step'], name='ip_stock_index'),
         ]
         constraints = [
             models.UniqueConstraint(fields=['cidr', 'acl_group'], name='ip_stock_pk')
@@ -294,7 +311,7 @@ class Proxy(BaseModel):
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, blank=True, null=True, verbose_name='用户')
     subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='subnet')  # 用于存储所所属子网
     ip_stock_id = models.IntegerField(blank=True, null=True, verbose_name='IP库存ID')
-    status = models.BooleanField(default=True, verbose_name='状态') # 用于判断是否有效
+    status = models.BooleanField(default=True, verbose_name='状态')  # 用于判断是否有效
 
     class Meta:
         db_table = 'proxy'
@@ -305,10 +322,13 @@ class Proxy(BaseModel):
             models.Index(fields=['order'], name='order_id_index'),
             models.Index(fields=['expired_at'], name='expired_at_index'),
         ]
+
     def __str__(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
+
     def get_proxy_str(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
+
     def judge_expired(self):
         """
         判断是否过期
@@ -326,9 +346,9 @@ def _mymodel_delete(sender, instance, **kwargs):
     cache_key = 'del_user_{}_{}'.format(instance.username, instance.server_ip)
     # 当最后一个代理被删除时,删除用户
     # delete_user_from_server.delay(instance.server_ip, instance.username,instance.subnet,instance.ip_stock_id)
-    if Proxy.objects.filter(username=instance.username,server_ip=instance.server_ip).count() == 0:
+    if Proxy.objects.filter(username=instance.username, server_ip=instance.server_ip).count() == 0:
         logging.info('删除用户{}'.format(instance.username))
-        server_obj= Server.objects.filter(ip=instance.server_ip).first()
+        server_obj = Server.objects.filter(ip=instance.server_ip).first()
         if server_obj:
             if server_obj.server_status == 0:
                 logging.info('服务器{}已经下线,不需要删除用户'.format(instance.server_ip))
@@ -338,7 +358,7 @@ def _mymodel_delete(sender, instance, **kwargs):
             if not cache.get(cache_key):
                 resp = kax_client.del_user(instance.username)
                 try:
-                    if resp.json().get('status')==200:
+                    if resp.json().get('status') == 200:
                         kax_client.del_acl(instance.username)
                         cache.set(cache_key, 1, timeout=30)
                     elif "User does not exist." in resp.json().get('message'):
@@ -350,7 +370,7 @@ def _mymodel_delete(sender, instance, **kwargs):
             cache.set(cache_key, 1, timeout=30)
             logging.info('删除用户失败,可能服务器挂了')
     stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
-    redis_key='stock_opt_{}'.format(instance.ip_stock_id)
+    redis_key = 'stock_opt_{}'.format(instance.ip_stock_id)
     oid = 'stock_opt_{}'.format(instance.subnet)
     # 归还子网,归还库存
     if stock:

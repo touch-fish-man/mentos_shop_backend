@@ -255,6 +255,8 @@ class KaxyClient:
                     raise Exception("服务器无响应")
                 if "Bad format for user." in resp.text:
                     user = self.random_username()
+                if "Invalid prefix." in resp.text:
+                    raise ValueError("Invalid prefix.")
         if proxy_info["num_of_ips"] > 0:
             if acl_str:
                 self.add_user_acl(user, acl_str)
