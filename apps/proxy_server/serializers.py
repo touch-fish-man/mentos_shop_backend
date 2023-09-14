@@ -126,6 +126,8 @@ class ServerGroupUpdateSerializer(CommonSerializer):
         model = ServerGroup
         fields = ('id', 'name', 'description', 'servers')
 
+    servers = serializers.PrimaryKeyRelatedField(many=True, queryset=Server.objects.all(), required=False)
+
     name = serializers.CharField(required=False,
                                  validators=[CustomUniqueValidator(ServerGroup.objects.all(),
                                                                    message="代理服务器组名称已存在")])
