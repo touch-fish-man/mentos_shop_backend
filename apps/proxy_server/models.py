@@ -45,11 +45,6 @@ class AclGroup(BaseModel):
         acl_value.sort()
         return acl_value
 
-    # def _do_update(self, base_qs, using, pk_val, values, update_fields, forced_update):
-    #     self.acl_value = '\n'.join(self.get_acl_values())
-    #     super()._do_update(base_qs, using, pk_val, values, update_fields, forced_update)
-
-
 class Acls(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')

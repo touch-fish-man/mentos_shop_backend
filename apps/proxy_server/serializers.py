@@ -50,7 +50,7 @@ class AclGroupCreateSerializer(CommonSerializer):
         validated_data['acl_value'] = "\n".join(acl_value)
         # 判断是否有重复的acl_value
         if AclGroup.objects.filter(acl_value=validated_data['acl_value']).exists():
-            raise ValidationError("acl组已存在")
+            raise ValidationError("已存在内容相同的acl组")
         return super().create(validated_data)
 
     class Meta:
@@ -60,6 +60,18 @@ class AclGroupUpdateSerializer(CommonSerializer):
     name = serializers.CharField(required=True,
                                  validators=[CustomUniqueValidator(AclGroup.objects.all(), message="acl组名称已存在")])
     description = serializers.CharField(required=True)
+
+    def update(self, instance, validated_data):
+        acl_value = []
+        for acl in validated_data['acls']:
+            acl_value.extend(acl.acl_value.split('\n'))
+        acl_value = list(set(acl_value))
+        acl_value.sort()
+        validated_data['acl_value'] = "\n".join(acl_value)
+        # 判断是否有重复的acl_value
+        if AclGroup.objects.filter(acl_value=validated_data['acl_value']).exists():
+            raise ValidationError("已存在内容相同的acl组")
+        return super().update(instance, validated_data)
 
 
     class Meta:
