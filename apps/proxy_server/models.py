@@ -45,11 +45,9 @@ class AclGroup(BaseModel):
         acl_value.sort()
         return acl_value
 
-    def save(
-            self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
+    def _do_update(self, base_qs, using, pk_val, values, update_fields, forced_update):
         self.acl_value = '\n'.join(self.get_acl_values())
-        super().save(force_insert, force_update, using, update_fields)
+        super()._do_update(base_qs, using, pk_val, values, update_fields, forced_update)
 
 
 class Acls(BaseModel):

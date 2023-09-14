@@ -4,7 +4,7 @@ from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
     ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer, AclGroupSerializer, ServerGroupSerializer, \
-    AclGroupCreateSerializer, ServerGroupUpdateSerializer,ServerGroupCreateSerializer
+    AclGroupCreateSerializer, ServerGroupUpdateSerializer,ServerGroupCreateSerializer,AclGroupUpdateSerializer
 from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
@@ -245,7 +245,7 @@ class AclGroupApi(ComModelViewSet):
     queryset = AclGroup.objects.filter(soft_delete=False).all()
     serializer_class = AclGroupSerializer
     create_serializer_class = AclGroupCreateSerializer
-    update_serializer_class = AclGroupCreateSerializer
+    update_serializer_class = AclGroupUpdateSerializer
     ordering_fields = ('id', 'name', 'created_at')
     search_fields = ('name', 'description')  # 搜索字段
     filterset_fields = ['id', 'name', 'description']  # 过滤字段
