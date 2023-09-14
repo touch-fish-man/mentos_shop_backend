@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import datetime
 import random
 import string
@@ -350,6 +351,15 @@ def logs(log_type="server"):
         with open("logs/celery_work.log", "r") as f:
             data = f.readlines()
     print("".join(data[-500:]))
+
+
+@cli.command()
+def update():
+    """
+    更新代码重新部署
+    """
+    os.system("git pull")
+    os.system("supervisorctl restart all")
 
 
 cli_all = click.CommandCollection(sources=[cli])
