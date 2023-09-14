@@ -8,6 +8,7 @@ from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup,
 from apps.core.validators import CustomUniqueValidator, CustomValidationError
 from apps.utils.kaxy_handler import KaxyClient
 from django.core.validators import validate_ipv46_address
+import logging
 
 class AclsSerializer(CommonSerializer):
     class Meta:
@@ -62,6 +63,7 @@ class AclGroupUpdateSerializer(CommonSerializer):
     description = serializers.CharField(required=True)
 
     def update(self, instance, validated_data):
+        logging.info(validated_data)
         acl_value = []
         for acl in validated_data['acls']:
             acl_value.extend(acl.acl_value.split('\n'))
