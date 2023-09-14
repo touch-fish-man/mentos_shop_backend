@@ -37,10 +37,10 @@ class AclGroup(BaseModel):
             super().delete(using, keep_parents)
 
 
-    def get_acl_values(self,acls_id=None):
+    def get_acl_values(self,acls_objs=None):
         acl_value = []
-        if acls_id:
-            acls = self.acls.filter(id__in=acls_id)
+        if acls_objs:
+            acls = acls_objs
         else:
             acls = self.acls.all()
         for acl in acls:
