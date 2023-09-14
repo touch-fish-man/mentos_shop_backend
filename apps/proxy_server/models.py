@@ -35,12 +35,6 @@ class AclGroup(BaseModel):
             self.save()
         else:
             super().delete(using, keep_parents)
-    def _do_update(self, base_qs, using, pk_val, values, update_fields, forced_update):
-        logging.info(values)
-        if 'acls' in values:
-            acls_id = values['acls']
-            self.acl_value = self.get_acl_values(acls_id)
-        return super()._do_update(base_qs, using, pk_val, values, update_fields, forced_update)
 
 
     def get_acl_values(self,acls_id=None):

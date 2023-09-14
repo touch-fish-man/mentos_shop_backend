@@ -62,6 +62,9 @@ class AclGroupUpdateSerializer(CommonSerializer):
                                  validators=[CustomUniqueValidator(AclGroup.objects.all(), message="acl组名称已存在")])
     description = serializers.CharField(required=True)
     acls = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
+    def  update(self, instance, validated_data):
+        validated_data['acl_value']=AclGroup.get_acl_values(validated_data.get('acls'))
+        return super().update(instance, validated_data)
 
     class Meta:
         model = AclGroup
