@@ -57,7 +57,6 @@ class AclGroupCreateSerializer(CommonSerializer):
         model = AclGroup
         fields = ('id', 'name', 'description', 'acls')
 class AclGroupUpdateSerializer(CommonSerializer):
-    acls = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
     name = serializers.CharField(required=True,
                                  validators=[CustomUniqueValidator(AclGroup.objects.all(), message="acl组名称已存在")])
     description = serializers.CharField(required=True)
