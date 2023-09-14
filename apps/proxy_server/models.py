@@ -35,10 +35,18 @@ class AclGroup(BaseModel):
             self.save()
         else:
             super().delete(using, keep_parents)
+    def _do_update(self, base_qs, using, pk_val, values, update_fields, forced_update):
+        super()._do_update(base_qs, using, pk_val, values, update_fields, forced_update)
+        if 'acls' in values:
+            acls_id = values['acls']
+            self.acl_value = self.get_acl_values(acls_id)
 
-    def get_acl_values(self):
+    def get_acl_values(self,acls_id=None):
         acl_value = []
-        acls = self.acls.all()
+        if acls_id:
+            acls = self.acls.filter(id__in=acls_id)
+        else:
+            acls = self.acls.all()
         for acl in acls:
             acl_value.extend(acl.acl_value.split('\n'))
         acl_value = list(set(acl_value))
