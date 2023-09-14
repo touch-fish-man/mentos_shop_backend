@@ -61,6 +61,8 @@ class AclGroupUpdateSerializer(CommonSerializer):
     name = serializers.CharField(required=True,
                                  validators=[CustomUniqueValidator(AclGroup.objects.all(), message="acl组名称已存在")])
     description = serializers.CharField(required=True)
+    def validate(self, attrs):
+        logging.info(attrs)
 
     def update(self, instance, validated_data):
         logging.info(validated_data)
