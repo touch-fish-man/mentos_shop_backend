@@ -46,6 +46,7 @@ class AclGroup(BaseModel):
             acl_value.extend(acl.acl_value.split('\n'))
         acl_value = list(set(acl_value))
         acl_value.sort()
+        acl_value = '\n'.join(acl_value)
         return acl_value
 
 class Acls(BaseModel):
