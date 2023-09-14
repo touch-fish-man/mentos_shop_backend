@@ -64,6 +64,7 @@ class AclGroupUpdateSerializer(CommonSerializer):
     acls = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
     def  update(self, instance, validated_data):
         logging.info(validated_data)
+        logging.info(validated_data.get('acls'))
         validated_data['acl_value']=AclGroup.get_acl_values(validated_data.get('acls'))
         return super().update(instance, validated_data)
 
