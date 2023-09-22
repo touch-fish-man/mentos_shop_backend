@@ -27,7 +27,7 @@ def check_server_status():
     """
     检查服务器状态,每10分钟检查一次
     """
-    servers = Server.objects.filter(faild_count__lt=5).all()
+    servers = Server.objects.filter(faild_count__lt=6).all()
     faild_list = []
     for server in servers:
         kaxy_client = KaxyClient(server.ip)
@@ -56,12 +56,14 @@ def check_server_status():
 
 
 @shared_task(name='reset_proxy')
-def reset_proxy_fn(order_id, username, server_ip):
+def reset_proxy_fn(order_id):
     ret_json = {}
     logging.info("==========create_proxy_by_id {}==========".format(order_id))
     delete_proxy_list = []
-    kaxy_client = KaxyClient(server_ip)
-    kaxy_client.del_user(username)
+    server_ip_username = Proxy.objects.filter(order_id=order_id).values_list( 'server_ip','username',flat=True).distinct()
+    for server_ip, username in server_ip_username:
+        kaxy_client = KaxyClient(server_ip)
+        kaxy_client.del_user(username)
     re_create_ret, ret_proxy_list,msg = create_proxy_by_id(order_id)
     if re_create_ret:
         new_proxy = Proxy.objects.filter(username=username).all()

@@ -10,6 +10,7 @@ from apps.utils.kaxy_handler import KaxyClient
 from django.core.validators import validate_ipv46_address
 import logging
 
+
 class AclsSerializer(CommonSerializer):
     class Meta:
         model = Acls
@@ -57,13 +58,16 @@ class AclGroupCreateSerializer(CommonSerializer):
     class Meta:
         model = AclGroup
         fields = ('id', 'name', 'description', 'acls')
+
+
 class AclGroupUpdateSerializer(CommonSerializer):
     name = serializers.CharField(required=True,
                                  validators=[CustomUniqueValidator(AclGroup.objects.all(), message="acl组名称已存在")])
     description = serializers.CharField(required=True)
     acls = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
-    def  update(self, instance, validated_data):
-        validated_data['acl_value']=AclGroup.get_acl_values(validated_data.get('acls'))
+
+    def update(self, instance, validated_data):
+        validated_data['acl_value'] = AclGroup.get_acl_values(validated_data.get('acls'))
         return super().update(instance, validated_data)
 
     class Meta:
@@ -201,6 +205,7 @@ class ServerUpdateSerializer(CommonSerializer):
         'id': {'read_only': True},
         'created_at': {'read_only': True},
         'updated_at': {'read_only': True}}
+
     def validate(self, attrs):
         # 检查cidr是否在代理服务器的cidr范围内
         cidrs = attrs['cidrs']
@@ -209,13 +214,13 @@ class ServerUpdateSerializer(CommonSerializer):
             server_cidrs = c_client.get_cidr()
         except Exception as e:
             raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
-        check_cidr_cnt=0
+        check_cidr_cnt = 0
         for cidr in cidrs:
             for s_cidr in server_cidrs:
-                update_i=ipaddress.ip_network(cidr['cidr'])
-                server_i=ipaddress.ip_network(s_cidr)
+                update_i = ipaddress.ip_network(cidr['cidr'])
+                server_i = ipaddress.ip_network(s_cidr)
                 if update_i.subnet_of(server_i):
-                    check_cidr_cnt+=1
+                    check_cidr_cnt += 1
                     break
         if check_cidr_cnt != len(cidrs):
             raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
@@ -224,14 +229,21 @@ class ServerUpdateSerializer(CommonSerializer):
     def update(self, instance, validated_data):
         cidrs = validated_data.pop('cidrs')
         instance.fail_count = 0
-        instance.server_status = 1 # 重置状态
+        instance.server_status = 1  # 重置状态
 
         instance.cidrs.clear()
         for cidr in cidrs:
             cidr['ip_count'] = cidr_ip_count(cidr['cidr'])
-            cidr_obj,if_create = Cidr.objects.get_or_create(**cidr)
+            cidr_obj, if_create = Cidr.objects.get_or_create(**cidr)
             instance.cidrs.add(cidr_obj.id)
         instance = super().update(instance, validated_data)
         from apps.products.tasks import update_product_stock
-        update_product_stock.delay()
+        result = update_product_stock.delay()
+        if result.ready():
+            if result.failed():
+                result = result.result
+                error_msg = result.result.get("exc_message", [])[-1]
+                logging.error("Task failed with exception:{}".format(result.result))
+                logging.error("Traceback:{}".format(result.traceback))
+                raise CustomValidationError("更新商品库存失败,请修改后重试:{}".format(error_msg))
         return instance

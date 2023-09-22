@@ -5,9 +5,11 @@ from django.core.cache import cache
 
 from apps.core.models import BaseModel
 from django.db import models
+from django.db import IntegrityError
 
+
+from apps.core.validators import CustomValidationError
 from apps.proxy_server.models import ProxyStock, ServerGroupThrough, ServerCidrThrough, Cidr
-
 
 class ProductTag(BaseModel):
     tag_name = models.CharField(max_length=255, verbose_name='标签名')
@@ -108,26 +110,37 @@ class Variant(BaseModel):
         cidr_ids, ip_count = self.get_cidr(server_group)
         stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, cart_step=cart_step, acl_group=acl_group)
         stocks_dict = {stock.cidr_id: stock for stock in stocks}
+        try:
 
-        for idx,cidr_id in enumerate(cidr_ids):
-            stock_obj = stocks_dict.get(cidr_id)
-            if stock_obj:
-                self.stock_ids.append(stock_obj.id)
-                variant_stock += stock_obj.ip_stock
-            else:
-                # 不存在则创建
-                logging.info(self.id)
-                logging.info(cidr_ids)
-                logging.info(ip_count)
-                logging.info(idx)
-                cart_stock =ip_count[idx] // cart_step
-                porxy_stock=ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group, ip_stock=ip_count[idx], cart_stock=cart_stock)
-                subnets = porxy_stock.gen_subnets()
-                porxy_stock.subnets = ",".join(subnets)
-                porxy_stock.available_subnets = porxy_stock.subnets
-                porxy_stock.save()
-                variant_stock += ip_count[idx]
-                self.stock_ids.append(porxy_stock.id)
+            for idx,cidr_id in enumerate(cidr_ids):
+                stock_obj = stocks_dict.get(cidr_id)
+                if stock_obj:
+                    self.stock_ids.append(stock_obj.id)
+                    variant_stock += stock_obj.ip_stock
+                else:
+                    # 不存在则创建
+                    logging.info(self.id)
+                    logging.info(cidr_ids)
+                    logging.info(ip_count)
+                    logging.info(idx)
+                    logging.info(cart_step)
+                    logging.info(acl_group)
+                    cart_stock = ip_count[idx] // cart_step
+                    porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group, ip_stock=ip_count[idx], cart_stock=cart_stock)
+                    subnets = porxy_stock.gen_subnets()
+                    porxy_stock.subnets = ",".join(subnets)
+                    porxy_stock.available_subnets = porxy_stock.subnets
+                    porxy_stock.save()
+                    variant_stock += ip_count[idx]
+                    self.stock_ids.append(porxy_stock.id)
+        except IntegrityError as e:
+            logging.info(e)
+            traceback.print_exc()
+            raise CustomValidationError("创建库存表失败:{}".format(e))
+        except Exception as e:
+            logging.info(e)
+            traceback.print_exc()
+            raise CustomValidationError("创建库存表失败")
         return variant_stock
 
     def get_cidr(self, server_group):

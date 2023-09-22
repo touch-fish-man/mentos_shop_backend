@@ -4,7 +4,7 @@ from apps.core.json_response import SuccessResponse, ErrorResponse
 from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
     ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer, AclGroupSerializer, ServerGroupSerializer, \
-    AclGroupCreateSerializer, ServerGroupUpdateSerializer,ServerGroupCreateSerializer,AclGroupUpdateSerializer
+    AclGroupCreateSerializer, ServerGroupUpdateSerializer, ServerGroupCreateSerializer, AclGroupUpdateSerializer
 from apps.core.validators import CustomUniqueValidator
 from apps.core.viewsets import ComModelViewSet
 from rest_framework.decorators import action
@@ -14,6 +14,7 @@ from apps.utils.kaxy_handler import KaxyClient
 from django.conf import settings
 from django.core.cache import cache
 import logging
+
 
 class AclsApi(ComModelViewSet):
     """
@@ -136,6 +137,7 @@ class ProxyServerApi(ComModelViewSet):
         except:
             del_resp = {}
         return SuccessResponse(data=del_resp)
+
     @action(methods=['post'], detail=True, url_path='reset_all_proxy', url_name='reset_proxy')
     def reset_proxy(self, request, *args, **kwargs):
         """
@@ -150,7 +152,7 @@ class ProxyServerApi(ComModelViewSet):
         cidr_whitelist = request.data.get('cidrs', [])
         if len(cidr_whitelist) == 0:
             return ErrorResponse(data={"message": "cidrs不能为空"})
-        proxy=Proxy.objects.filter(server_ip=server_ip).all()
+        proxy = Proxy.objects.filter(server_ip=server_ip).all()
         need_reset_user_list = {}
         need_delete_proxy_list = []
         for p in proxy:
@@ -164,7 +166,7 @@ class ProxyServerApi(ComModelViewSet):
                 need_delete_proxy_list.append(p.id)
                 need_reset_user_list[p.username] = p.order_id
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
-        request_data=[]
+        request_data = []
         redis_key = "proxy:reset_tasks:{}".format(server_ip)
         if redis_conn.get(redis_key):
             tasks_ids = redis_conn.lrange(redis_key, 0, -1)
@@ -175,14 +177,15 @@ class ProxyServerApi(ComModelViewSet):
                     return ErrorResponse(data={"message": "代理服务器正在重置中，请稍后再试"})
         tasks_ids_list = []
         for username, order_id in need_reset_user_list.items():
-            request_data.append([order_id,username, server_ip])
+            request_data.append([order_id, username, server_ip])
             from .tasks import reset_proxy_fn
-            task_i=reset_proxy_fn.delay(order_id,username, server_ip)
+            task_i = reset_proxy_fn.delay(order_id, username, server_ip)
             tasks_ids_list.append(task_i.id)
         if len(tasks_ids_list) > 0:
             redis_conn.rpush(redis_key, *tasks_ids_list)
             redis_conn.expire(redis_key, 60 * 60 * 1)
-        return SuccessResponse(data={"message": "reset success","request_data":request_data})
+        return SuccessResponse(data={"message": "reset success", "request_data": request_data})
+
     @action(methods=['post'], detail=True, url_path='list_acl', url_name='list_acl')
     def list_acl(self, request, *args, **kwargs):
         """
@@ -197,6 +200,7 @@ class ProxyServerApi(ComModelViewSet):
         except:
             acl_list = {}
         return SuccessResponse(data=acl_list)
+
     @action(methods=['post'], detail=True, url_path='flush_access_log', url_name='flush_access_log')
     def flush_access_log(self, request, *args, **kwargs):
         """
@@ -211,6 +215,7 @@ class ProxyServerApi(ComModelViewSet):
         except:
             clean_resp = {}
         return SuccessResponse(data=clean_resp)
+
     @action(methods=['post'], detail=True, url_path='request_api', url_name='request_api')
     def request_api(self, request, *args, **kwargs):
         """
