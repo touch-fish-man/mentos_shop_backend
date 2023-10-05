@@ -60,8 +60,10 @@ def reset_proxy_fn(order_id, username, server_ip):
     ret_json = {}
     logging.info("==========create_proxy_by_id {}==========".format(order_id))
     delete_proxy_list = []
-    kaxy_client = KaxyClient(server_ip)
-    kaxy_client.del_user(username)
+    server_ip_username = Proxy.objects.filter(order_id=order_id).values_list('server_ip', 'username').distinct()
+    for server_ip, username in server_ip_username:
+        kaxy_client = KaxyClient(server_ip)
+        kaxy_client.del_user(username)
     re_create_ret, ret_proxy_list,msg = create_proxy_by_id(order_id)
     if re_create_ret:
         new_proxy = Proxy.objects.filter(username=username).all()

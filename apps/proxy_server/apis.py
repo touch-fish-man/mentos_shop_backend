@@ -168,7 +168,7 @@ class ProxyServerApi(ComModelViewSet):
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
         request_data = []
         redis_key = "proxy:reset_tasks:{}".format(server_ip)
-        if redis_conn.get(redis_key):
+        if redis_conn.lrange(redis_key, 0, -1):
             tasks_ids = redis_conn.lrange(redis_key, 0, -1)
             from celery.result import AsyncResult
             for tasks_id in tasks_ids:
