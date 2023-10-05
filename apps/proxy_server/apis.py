@@ -179,7 +179,7 @@ class ProxyServerApi(ComModelViewSet):
         for username, order_id in need_reset_user_list.items():
             request_data.append([order_id, username, server_ip])
             from .tasks import reset_proxy_fn
-            task_i = reset_proxy_fn.delay(order_id)
+            task_i = reset_proxy_fn.delay(order_id,username, server_ip)
             tasks_ids_list.append(task_i.id)
         if len(tasks_ids_list) > 0:
             redis_conn.rpush(redis_key, *tasks_ids_list)
