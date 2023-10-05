@@ -168,22 +168,22 @@ class ProxyServerApi(ComModelViewSet):
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
         request_data = []
         redis_key = "proxy:reset_tasks:{}".format(server_ip)
-        if redis_conn.lrange(redis_key, 0, -1):
-            tasks_ids = redis_conn.lrange(redis_key, 0, -1)
-            from celery.result import AsyncResult
-            for tasks_id in tasks_ids:
-                task = AsyncResult(tasks_id)
-                if task.status not in ["SUCCESS", "FAILURE"]:
-                    return ErrorResponse(data={"message": "代理服务器正在重置中，请稍后再试"})
+        # if redis_conn.lrange(redis_key, 0, -1):
+        #     tasks_ids = redis_conn.lrange(redis_key, 0, -1)
+        #     from celery.result import AsyncResult
+        #     for tasks_id in tasks_ids:
+        #         task = AsyncResult(tasks_id)
+        #         if task.status not in ["SUCCESS", "FAILURE"]:
+        #             return ErrorResponse(data={"message": "代理服务器正在重置中，请稍后再试"})
         tasks_ids_list = []
         for username, order_id in need_reset_user_list.items():
             request_data.append([order_id, username, server_ip])
             from .tasks import reset_proxy_fn
             task_i = reset_proxy_fn.delay(order_id,username, server_ip)
             tasks_ids_list.append(task_i.id)
-        if len(tasks_ids_list) > 0:
-            redis_conn.rpush(redis_key, *tasks_ids_list)
-            redis_conn.expire(redis_key, 60 * 60 * 1)
+        # if len(tasks_ids_list) > 0:
+        #     redis_conn.rpush(redis_key, *tasks_ids_list)
+        #     redis_conn.expire(redis_key, 60 * 60 * 1)
         return SuccessResponse(data={"message": "reset success", "request_data": request_data})
 
     @action(methods=['post'], detail=True, url_path='list_acl', url_name='list_acl')
