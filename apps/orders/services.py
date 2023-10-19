@@ -59,6 +59,7 @@ def shopify_order(data):
         "note": data["note"],
         "discount_codes": discount_codes,
         "note_attributes": data["note_attributes"],
+        "email": data["customer"]["email"],
 
     }
     for note in data["note_attributes"]:
@@ -539,6 +540,7 @@ def webhook_handle(order_info):
             discount_codes = order_info.get('discount_codes')
             renewal_status = order_info.get("renewal", "0")
             order_id = order_info.get('order_id')
+            email = order_info.get('email')
             # 更新订单
             order = Orders.objects.filter(order_id=order_id).first()
             if order:
@@ -550,6 +552,11 @@ def webhook_handle(order_info):
                 order.shopify_order_id = shpify_order_id  # shopify订单id
                 order.shopify_order_number = shopify_order_number  # shopify订单号
                 order.save()
+                user_email=User.objects.filter(id=order.uid).first().email
+                if user_email.lower() != email.lower():
+                    logging.warning("email not match: %s, %s order_id: %s" % (user_email,email,order_id))
+                    return
+
                 # 生成代理，修改订单状态
                 if renewal_status == "1":
                     # 续费

@@ -26,6 +26,7 @@ from apps.orders.services import create_proxy_by_order
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.models import Product, Variant
 from django.core.exceptions import ObjectDoesNotExist
+import concurrent.futures
 
 
 class OrdersApi(ComModelViewSet):
@@ -223,12 +224,13 @@ class OrdersApi(ComModelViewSet):
             if order:
                 # 删除代理
                 for t in threading.enumerate():
-                    if t.name == "reset_{}".format(order_id):
+                    if t.name == "onkey_reset_{}".format(order_id):
                         return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
                 Proxy.objects.filter(order_id=order_id).all().delete()
                 # 重新创建代理
                 t1 = threading.Thread(target=create_proxy_by_id, args=(order_id,),
-                                      name="reset_{}".format(order_id)).start()
+                                      name="onkey_reset_{}".format(order_id)).start()
+
             else:
                 return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="重置成功")        
