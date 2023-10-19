@@ -332,6 +332,33 @@ def delete_expired():
 
 
 @cli.command()
+@click.option('--detial', "-d", is_flag=True, help='是否打印详情')
+def check_order_proxy(detial):
+    """
+    检查订单代理是否可用
+    """
+    # 获取有效订单
+    with console.status("[bold green]查询订单代理中...", spinner="dots"):
+        orders = Orders.get_vaild_orders()
+    csv_data = []
+    for order in track(orders):
+        get_proxies_failed = order.get_proxies_failed()
+        # print("订单id,代理失效数量,代理总数量,用户名")
+        if get_proxies_failed > 0:
+            # print("{},{},{},{}".format(order.id, get_proxies_failed, order.proxy_num, order.username))
+            csv_data_line = "{},{},{},{}".format(order.id, get_proxies_failed, order.proxy_num, order.username)
+            csv_data.append(csv_data_line)
+            if detial:
+
+                order.pretty_print({"代理失效数量": get_proxies_failed})
+    if len(csv_data) > 0:
+        csv_data.insert(0, "订单id,代理失效数量,代理总数量,用户名")
+        with open("/opt/mentos_shop_backend/logs/check_order_proxy.csv", "w") as f:
+            f.write("\n".join(csv_data))
+            print("检测完成: 结果已保存到 /opt/mentos_shop_backend/logs/check_order_proxy.csv")
+
+
+@cli.command()
 @click.option('--log_type', default="server",
               help='日志类型 server:服务器日志 error:错误日志 access:访问日志 celery:celery日志')
 def logs(log_type="server"):

@@ -1,6 +1,16 @@
+import datetime
+
 from django.db import models
 from apps.core.models import BaseModel
 from apps.products.models import Variant
+import rich
+from rich.console import Console
+from rich.table import Table
+from rich import box
+from rich.align import Align
+from rich.panel import Panel
+import pytz
+console = Console()
 
 
 # Create your models here.
@@ -85,3 +95,69 @@ class Orders(BaseModel):
             return Variant.objects.get(id=self.local_variant_id).variant_name
         except:
             return ''
+
+    @staticmethod
+    def get_vaild_orders(delivery_status=1):
+        utc_now = datetime.datetime.now(pytz.utc)
+        return Orders.objects.filter(order_status__in=[0, 1, 4], expired_at__gt=utc_now,
+                                     delivery_status=delivery_status).all()
+
+    @staticmethod
+    def get_vaild_orders_by_uid(uid, delivery_status=1):
+
+        utc_now = datetime.datetime.now(pytz.utc)
+        return Orders.objects.filter(uid=uid, order_status__in=[0, 1, 4], expired_at__gt=utc_now,
+                                     delivery_status=delivery_status).all()
+
+    def get_proxies(self):
+        from apps.proxy_server.models import Proxy
+        proxy = Proxy.objects.filter(order_id=self.id).all()
+        return proxy
+
+    def get_proxies_failed(self):
+        from apps.proxy_server.models import Proxy
+        failed_cnt = Proxy.objects.filter(order_id=self.id, status=0).count()
+        return failed_cnt
+
+    def pretty_print(self, print_dict={}):
+        table = Table(title="订单详情", box=box.SIMPLE)
+        table.add_column("用户名", justify="center", style="cyan", no_wrap=True)
+        table.add_column("订单号", justify="center", style="cyan", no_wrap=True)
+        table.add_column("产品名称", justify="center", style="cyan", no_wrap=True)
+        table.add_column("产品数量", justify="center", style="cyan", no_wrap=True)
+        table.add_column("产品总价", justify="center", style="cyan", no_wrap=True)
+        table.add_column("订单状态", justify="center", style="cyan", no_wrap=True)
+        table.add_column("支付状态", justify="center", style="cyan", no_wrap=True)
+        table.add_column("到期时间", justify="center", style="cyan", no_wrap=True)
+        table.add_column("发货数量", justify="center", style="cyan", no_wrap=True)
+        if not print_dict:
+            table.add_row(
+                self.username,
+                self.order_id,
+                self.product_name,
+                str(self.product_quantity),
+                str(self.product_total_price),
+                self.ORDER_STATUS[self.order_status],
+                self.PAY_STATUS[self.pay_status],
+                self.expired_at.strftime("%Y-%m-%d %H:%M:%S"),
+                str(self.delivery_num),
+            )
+        else:
+            v_list = []
+            for k,v in print_dict.items():
+                table.add_column(k, justify="center", style="cyan", no_wrap=True)
+                v_list.append(str(v))
+            table.add_row(
+                self.username,
+                self.order_id,
+                self.product_name,
+                str(self.product_quantity),
+                str(self.product_total_price),
+                self.ORDER_STATUS[self.order_status],
+                self.PAY_STATUS[self.pay_status],
+                self.expired_at.strftime("%Y-%m-%d %H:%M:%S"),
+                str(self.delivery_num),
+                *v_list
+            )
+
+        console.print(table)
