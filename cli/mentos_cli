@@ -385,10 +385,13 @@ def export_all_proxy():
     导出所有代理
     """
     proxies = []
+    ip={}
     for i in Proxy.objects.filter(status=1).all():
         # 检测代理是否可用
-        proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
-        proxies.append(proxy_str)
+        if i.ip not in ip:
+            ip[i.ip]=1
+            proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
+            proxies.append(proxy_str)
     with open("/opt/mentos_shop_backend/logs/all_proxy.txt", "w") as f:
         f.write("\n".join(proxies))
 
