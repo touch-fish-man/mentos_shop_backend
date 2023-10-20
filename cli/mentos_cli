@@ -380,7 +380,8 @@ def logs(log_type="server"):
 
 
 @cli.command()
-def export_all_proxy():
+@click.option('-d', default=0, help='是否去重')
+def export_all_proxy(d):
     """
     导出所有代理
     """
@@ -388,10 +389,14 @@ def export_all_proxy():
     ip={}
     for i in Proxy.objects.filter(status=1).all():
         # 检测代理是否可用
-        if i.ip not in ip:
-            ip[i.ip]=1
+        if d==0:
             proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
             proxies.append(proxy_str)
+        else:
+            if i.ip not in ip:
+                ip[i.ip]=1
+                proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
+                proxies.append(proxy_str)
     with open("/opt/mentos_shop_backend/logs/all_proxy.txt", "w") as f:
         f.write("\n".join(proxies))
 
