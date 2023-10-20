@@ -189,7 +189,7 @@ def check_proxy(proxy, id):
             'https': f'http://{proxy}'
         }
         ip_port = proxy.split('@')[1]
-        port_open = is_port_open(ip_port)
+        # port_open = is_port_open(ip_port)
         if port_open:
             response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5, verify=False)
             if response.status_code == 200:
