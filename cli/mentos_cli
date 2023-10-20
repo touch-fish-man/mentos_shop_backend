@@ -349,7 +349,6 @@ def check_order_proxy(detial):
             csv_data_line = "{},{},{},{}".format(order.id, get_proxies_failed, order.proxy_num, order.username)
             csv_data.append(csv_data_line)
             if detial:
-
                 order.pretty_print({"代理失效数量": get_proxies_failed})
     if len(csv_data) > 0:
         csv_data.insert(0, "订单id,代理失效数量,代理总数量,用户名")
@@ -378,6 +377,20 @@ def logs(log_type="server"):
         with open("logs/celery_work.log", "r") as f:
             data = f.readlines()
     print("".join(data[-500:]))
+
+
+@cli.command()
+def export_all_proxy():
+    """
+    导出所有代理
+    """
+    proxies = []
+    for i in Proxy.objects.filter(status=1).all():
+        # 检测代理是否可用
+        proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
+        proxies.append(proxy_str)
+    with open("/opt/mentos_shop_backend/logs/all_proxy.txt", "w") as f:
+        f.write("\n".join(proxies))
 
 
 @cli.command()
