@@ -381,23 +381,33 @@ def logs(log_type="server"):
 
 @cli.command()
 @click.option('-d', default=0, help='是否去重')
-def export_all_proxy(d):
+@click.option('-u', "--username", default=None, help='用户名')
+@click.option('-o', "--order_id", default=None, help='订单id')
+@click.option('-s', "--server_ip", default=None, help='服务器ip')
+def export_all_proxy(d, username, order_id, server_ip):
     """
     导出所有代理
     """
     proxies = []
     proxies_2 = []
-    ip={}
-    for i in Proxy.objects.filter(status=1).all():
+    ip = {}
+    filter = {"status": 1}
+    if username:
+        filter["username"] = username
+    if order_id:
+        filter["order_id"] = order_id
+    if server_ip:
+        filter["server_ip"] = server_ip
+    for i in Proxy.objects.filter(**filter).all():
         # 检测代理是否可用
-        if d==0:
+        if d == 0:
             proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
             proxy_str_2 = f"{i.ip}:{i.port}:{i.username}:{i.password}"
             proxies.append(proxy_str)
             proxies_2.append(proxy_str_2)
         else:
             if i.ip not in ip:
-                ip[i.ip]=1
+                ip[i.ip] = 1
                 proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
                 proxy_str_2 = f"{i.ip}:{i.port}:{i.username}:{i.password}"
                 proxies.append(proxy_str)
