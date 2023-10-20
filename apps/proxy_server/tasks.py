@@ -231,8 +231,11 @@ def check_proxy_status(order_id=None):
         proxies = list(Proxy.objects.filter(order_id=order_id).all())
     else:
         proxies = list(Proxy.objects.all())
-    # 获取所有状态为0的服务器IP
-    offline_server_ips = set(Server.objects.filter(server_status=0).values_list('ip', flat=True))
+    if order_id is None:
+        # 获取所有状态为0的服务器IP
+        offline_server_ips = set(Server.objects.filter(server_status=0).values_list('ip', flat=True))
+    else:
+        offline_server_ips = []
 
     to_update_ids = []
     proxy_data = []
@@ -259,7 +262,6 @@ def check_proxy_status(order_id=None):
     ret_json['message'] = 'success'
     ret_json['faild_list'] = faild_list
     return ret_json
-
 
 
 @shared_task(name="cleanup_sessions")
