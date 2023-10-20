@@ -233,7 +233,14 @@ class OrdersApi(ComModelViewSet):
 
             else:
                 return ErrorResponse(data={}, msg="订单不存在")
-        return SuccessResponse(data={}, msg="重置成功")        
+        return SuccessResponse(data={}, msg="重置成功")
+
+    @action(methods=['get'], detail=True, url_path='check_proxy', url_name='check_proxy')
+    def check_proxy(self, request, *args, **kwargs):
+        order_pk = kwargs.get('pk')
+        from apps.proxy_server.tasks import check_proxy_status
+        check_proxy_status.delay(order_pk)
+        return SuccessResponse(data={}, msg="代理状态检查中,请稍后刷新页面查看")
 
 
 class OrderCallbackApi(APIView):
