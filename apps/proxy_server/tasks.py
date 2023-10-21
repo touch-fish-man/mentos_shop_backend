@@ -192,7 +192,7 @@ def check_proxy(proxy, id):
         # port_open = is_port_open(ip_port)
         if port_open:
             response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5, verify=False)
-            logging.warning(response.status_code)
+            # logging.warning(response.status_code)
             if response.status_code == 200:
                 status = True
             else:
