@@ -555,6 +555,9 @@ def webhook_handle(order_info):
                 user_email=User.objects.filter(id=order.uid).first().email
                 if user_email.lower() != email.lower():
                     logging.warning("email not match: %s, %s order_id: %s" % (user_email,email,order_id))
+                    logging.info("order process fail")
+                    order_info = {"id": shpify_order_id, "tags": "delivery_fail", "note": "邮箱不匹配"}
+                    t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
                     return
 
                 # 生成代理，修改订单状态
