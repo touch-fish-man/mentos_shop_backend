@@ -199,6 +199,31 @@ class ProductSerializer(serializers.ModelSerializer):
         else:
             return "$0.0+"
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+
+        # 获取 variants 和 variant_options
+        variants = ret.get('variants', [])
+        variant_options = ret.get('variant_options', [])
+
+        # 使用集合进行快速查找
+        options = [set(), set(), set()]
+        for v in variants:
+            if v.get('variant_option1'):
+                options[0].add(v.get('variant_option1'))
+            if v.get('variant_option2'):
+                options[1].add(v.get('variant_option2'))
+            if v.get('variant_option3'):
+                options[2].add(v.get('variant_option3'))
+
+        # 使用列表推导式过滤 variant_options
+        for idx, option in enumerate(variant_options):
+            option_values = option.get('option_values', [])
+            filtered_values = [val for val in option_values if val.get('option_value') in options[idx]]
+            option['option_values'] = filtered_values
+
+        return ret
+
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     product_collections = ProductCollectionSerializer(many=True, required=True)
