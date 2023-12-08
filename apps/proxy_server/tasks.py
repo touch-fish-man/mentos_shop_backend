@@ -67,6 +67,9 @@ def reset_proxy_fn(order_id, username, server_ip):
     delete_proxy_list = []
     server_ip_username = Proxy.objects.filter(order_id=order_id).values_list('server_ip', 'username').distinct()
     for server_ip, username in server_ip_username:
+        server_exists = Server.objects.filter(ip=server_ip).exists()
+        if not server_exists:
+            continue
         kaxy_client = KaxyClient(server_ip)
         kaxy_client.del_user(username)
     re_create_ret, ret_proxy_list, msg = create_proxy_by_id(order_id)
@@ -127,6 +130,9 @@ def delete_user_from_server(server_ip, username, subnet, ip_stock_id):
             if server_obj.server_status == 0:
                 logging.info('服务器{}已经下线,不需要删除用户'.format(server_ip))
                 cache.set(cache_key, 1, timeout=30)
+        else:
+            logging.info('服务器{}已经下线,不需要删除用户'.format(server_ip))
+            cache.set(cache_key, 1, timeout=30)
         kax_client = KaxyClient(server_ip)
         try:
             if not cache.get(cache_key):
