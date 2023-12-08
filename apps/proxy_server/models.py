@@ -350,6 +350,9 @@ def _mymodel_delete(sender, instance, **kwargs):
             if server_obj.server_status == 0:
                 logging.info('服务器{}已经下线,不需要删除用户'.format(instance.server_ip))
                 cache.set(cache_key, 1, timeout=30)
+        else:
+            logging.info('服务器{}已经下线,不需要删除用户'.format(instance.server_ip))
+            cache.set(cache_key, 1, timeout=30)
         kax_client = KaxyClient(instance.server_ip)
         try:
             if not cache.get(cache_key):
