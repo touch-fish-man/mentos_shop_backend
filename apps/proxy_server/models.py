@@ -340,38 +340,13 @@ class Proxy(BaseModel):
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     from django.core.cache import cache
-    cache_key = 'del_user_{}_{}'.format(instance.username, instance.server_ip)
     # 当最后一个代理被删除时,删除用户
     # delete_user_from_server.delay(instance.server_ip, instance.username,instance.subnet,instance.ip_stock_id)
     if Proxy.objects.filter(username=instance.username, server_ip=instance.server_ip).count() == 0:
-        logging.info('删除用户{}'.format(instance.username))
-        server_obj = Server.objects.filter(ip=instance.server_ip).first()
-        if server_obj:
-            if server_obj.server_status == 0:
-                logging.info('服务器{}已经下线,不需要删除用户'.format(instance.server_ip))
-                cache.set(cache_key, 1, timeout=30)
-        else:
-            logging.info('服务器{}已经下线,不需要删除用户'.format(instance.server_ip))
-            cache.set(cache_key, 1, timeout=30)
-        kax_client = KaxyClient(instance.server_ip)
-        try:
-            if not cache.get(cache_key):
-                resp = kax_client.del_user(instance.username)
-                try:
-                    if resp.json().get('status') == 200:
-                        kax_client.del_acl(instance.username)
-                        cache.set(cache_key, 1, timeout=30)
-                    elif "User does not exist." in resp.json().get('message'):
-                        kax_client.del_acl(instance.username)
-                        cache.set(cache_key, 1, timeout=30)
-                except Exception as e:
-                    logging.info('删除用户失败')
-        except Exception as e:
-            cache.set(cache_key, 1, timeout=30)
-            logging.info('删除用户失败,可能服务器挂了')
+        from .tasks import delete_user_from_server
+        task_i = delete_user_from_server.apply(args=(instance.server_ip, instance.username))
     stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
     redis_key = 'stock_opt_{}'.format(instance.ip_stock_id)
-    oid = 'stock_opt_{}'.format(instance.subnet)
     # 归还子网,归还库存
     if stock:
         if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:

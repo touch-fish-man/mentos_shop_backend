@@ -197,6 +197,9 @@ def create_proxy_by_order(order_id):
                                         break
                                     # for i in range(order_obj.product_quantity // cart_step):
                                     kaxy_client = KaxyClient(server.ip)
+                                    if not kaxy_client.status:
+                                        msg = "服务器{}创建代理失败:{}".format(server.ip, e)
+                                        return False, msg
                                     prefix = Stock.get_next_subnet()
                                     try:
                                         proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
@@ -428,6 +431,9 @@ def create_proxy_by_id(id):
                                             break
                                         # for i in range(order_obj.product_quantity // cart_step):
                                         kaxy_client = KaxyClient(server.ip)
+                                        if not kaxy_client.status:
+                                            msg = "服务器{}创建代理失败:无法连接代理服务器api".format(server.ip)
+                                            return False,ret_proxy_list,msg
                                         prefix = Stock.get_next_subnet()
                                         proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
                                                                                            acl_value)

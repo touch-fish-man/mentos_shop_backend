@@ -2,11 +2,20 @@ import ipaddress
 import logging
 import random
 import string
+import sys
 
 import requests
+from requests.exceptions import RequestException
 import json
 import os
 from pprint import pprint
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from redis import Redis
+from config.django import local as env
+
+REDIS_URL = f"redis://:{env.REDIS_PASSWORD}@{env.REDIS_HOST}:6379/2"
+cache = Redis.from_url(REDIS_URL, decode_responses=True)
 
 
 class KaxyClient:
@@ -14,6 +23,18 @@ class KaxyClient:
         self.host = host
         self.url = "http://{}:65533".format(host)
         self.token = token
+        self.status = True
+        self.status = self.check_status()
+
+    def check_status(self):
+        try:
+            resp = self.get_server_info()
+            if len(resp) > 0:
+                return True
+            else:
+                return False
+        except Exception as e:
+            return False
 
     def __send_request(self, method, path, **kwargs):
         headers = {
@@ -22,17 +43,37 @@ class KaxyClient:
         }
         url = self.url + path
         resp = {}
+        error_msg = ""
+        faild_cnt = cache.get("request_fail_cnt_{}".format(self.host))  # 8小时内失败次数
+        if faild_cnt and int(faild_cnt) > 3:
+            error_msg = "请求失败次数过多"
+            return error_msg, resp
         if "write-user-acl" not in path and "view-server-info" not in path:
             logging.info("请求: {}-->{}".format(url, kwargs))
         try:
-            resp = requests.request(method, url, headers=headers, **kwargs, timeout=10)
-        except requests.exceptions.ConnectionError as e:
+            kwargs.update({"verify": False})
+            if "timeout" not in kwargs:
+                kwargs.update({"timeout": 10})
+            resp = requests.request(method, url, headers=headers, **kwargs)
+            error_msg = ""
+            if faild_cnt:
+                cache.delete("request_fail_cnt_{}".format(self.host))
+        except RequestException as e:
             logging.exception(e)
-            return resp
+            faild_cnt = cache.get("request_fail_cnt_{}".format(self.host))  # 8小时内失败次数
+            if faild_cnt:
+                cache.set("request_fail_cnt_{}".format(self.host), int(faild_cnt) + 1)
+            else:
+                cache.set("request_fail_cnt_{}".format(self.host), 1)
+                cache.expire("request_fail_cnt", 60 * 60 * 8)
+            error_msg = "请求失败: {}".format(e)
+            return error_msg, resp
         if resp.status_code != 200:
             if "write-user-acl" not in path:
                 logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
-        return resp
+            error_msg = "请求失败: {}".format(resp.text)
+        return error_msg, resp
+
     def request(self, method, path, **kwargs):
         resp = self.__send_request(method, path, **kwargs)
         return resp
@@ -40,47 +81,50 @@ class KaxyClient:
     # 服务器管理
     def get_server_info(self):
         # 获取服务器信息
-        resp = self.__send_request("get", "/api/view-server-info")
-        return resp
+        error_msg, resp = self.__send_request("get", "/api/view-server-info", timeout=5)
+        if len(error_msg) == 0:
+            if resp.status_code == 200:
+                return resp.json()
+        return {}
 
     def list_all_proxies(self):
         # 获取所有代理
-        resp = self.__send_request("get", "/api/export-all-proxies")
+        error_msg, resp = self.__send_request("get", "/api/export-all-proxies")
         return resp
 
     def add_domain_blacklist(self, domain):
         # 添加域名黑名单
-        resp = self.__send_request("post", "/api/add-blacklist", json={"domain": domain})
+        error_msg, resp = self.__send_request("post", "/api/add-blacklist", json={"domain": domain})
         return resp
 
     def del_domain_blacklist(self, domain):
         # 删除域名黑名单
-        resp = self.__send_request("post", "/api/del-blacklist", json={"domain": domain})
+        error_msg, resp = self.__send_request("post", "/api/del-blacklist", json={"domain": domain})
         return resp
 
     def list_domain_blacklist(self):
         # 获取域名黑名单
-        resp = self.__send_request("get", "/api/view-blacklist")
+        error_msg, resp = self.__send_request("get", "/api/view-blacklist")
         return resp
 
     def reload_server(self):
         # 重载服务器
-        resp = self.__send_request("post", "/api/reload")
+        error_msg, resp = self.__send_request("post", "/api/reload")
         return resp
 
     def restart_server(self):
         # 重启服务器
-        resp = self.__send_request("post", "/api/restart")
+        error_msg, resp = self.__send_request("post", "/api/restart")
         return resp
 
     def reset_server(self):
         # 重置服务器
-        resp = self.__send_request("post", "/api/reset")
+        error_msg, resp = self.__send_request("post", "/api/reset")
         return resp
 
     def check_update(self):
         # 检查更新
-        resp = self.__send_request("get", "/api/check-update")
+        error_msg, resp = self.__send_request("get", "/api/check-update")
         return resp
 
     # 用户管理
@@ -90,7 +134,7 @@ class KaxyClient:
             "user": user,
             "num_of_ips": num_of_ips
         }
-        resp = self.__send_request("post", "/api/create-user", json=data)
+        error_msg, resp = self.__send_request("post", "/api/create-user", json=data)
         return resp
 
     def create_user_by_prefix(self, user, prefix):
@@ -101,8 +145,12 @@ class KaxyClient:
             "remove_network_addr": False,
             "remove_broadcast_addr": False
         }
-        resp = self.__send_request("post", "/api/create-user-by-prefix", json=data)
-        return resp
+        error_msg, resp = self.__send_request("post", "/api/create-user-by-prefix", json=data)
+        resp_json = {"error_msg": error_msg}
+        if len(error_msg) == 0:
+            resp_json.update(resp.json())
+            return resp_json
+        return resp_json
 
     def update_user(self, user):
         # 更新用户代理密码
@@ -110,33 +158,42 @@ class KaxyClient:
             "user": user,
         }
         resp_ret = []
-        resp = self.__send_request("post", "/api/update-user", json=data)
-        if resp.status_code == 200:
-            resp_json = resp.json()
-            if resp_json["status"] == 200:
-                return resp_json['data']["proxy_str"]
-            return resp_ret
+        error_msg, resp = self.__send_request("post", "/api/update-user", json=data)
+        if len(error_msg) == 0:
+            if resp.status_code == 200:
+                resp_json = resp.json()
+                if resp_json["status"] == 200:
+                    return resp_json['data']["proxy_str"]
+                return resp_ret
         return resp_ret
 
     def list_users(self):
         # 获取所有用户
-        resp = self.__send_request("get", "/api/view-all-users")
-        return resp
-
+        error_msg, resp = self.__send_request("get", "/api/view-all-users")
+        if len(error_msg) == 0:
+            if resp.status_code == 200:
+                return resp.json()
+        return {}
     def get_user(self, user):
         # 获取用户信息
-        resp = self.__send_request("post", "/api/view-user", json={"user": user})
+        error_msg, resp = self.__send_request("post", "/api/view-user", json={"user": user})
         return resp
 
     def del_user(self, user):
         # 删除用户
-        resp = self.__send_request("post", "/api/delete-user", json={"user": user})
-        return resp
+        error_msg, resp = self.__send_request("post", "/api/delete-user", json={"user": user})
+        if len(error_msg) == 0:
+            if resp.status_code == 200:
+                return resp.json()
+        return {}
 
     def del_all_user(self):
         # 删除所有用户
-        resp = self.__send_request("post", "/api/delete-all-users")
-        return resp
+        error_msg, resp = self.__send_request("post", "/api/delete-all-users")
+        if len(error_msg) == 0:
+            if resp.status_code == 200:
+                return resp.json()
+        return {}
 
     def add_whitelist_ip(self, user, ip):
         # 添加白名单ip
@@ -144,7 +201,7 @@ class KaxyClient:
             "user": user,
             "ip": ip
         }
-        resp = self.__send_request("post", "/api/add-whitelist-ip", json=data)
+        error_msg, resp = self.__send_request("post", "/api/add-whitelist-ip", json=data)
         return resp
 
     def del_whitelist_ip(self, user, ip):
@@ -153,20 +210,21 @@ class KaxyClient:
             "user": user,
             "ip": ip
         }
-        resp = self.__send_request("post", "/api/del-whitelist-ip", json=data)
+        error_msg, resp = self.__send_request("post", "/api/del-whitelist-ip", json=data)
         return resp
 
     def complete_allocation(self):
         # 完成所有ip分配
-        resp = self.__send_request("post", "/api/complete-allocation")
+        error_msg, resp = self.__send_request("post", "/api/complete-allocation")
         return resp
 
     # acl控制
     def add_acl(self, acl_str):
         # 添加acl
-        resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": acl_str})
+        error_msg, resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": acl_str})
         return resp
-    def del_acl(self,user):
+
+    def del_acl(self, user):
         # 删除acl
         # 获取原始的 ACL 字典
         origin_acl_dict = self.paser_api_acl()
@@ -179,8 +237,6 @@ class KaxyClient:
             self.add_acl(new_acl_str)
             return True
         return False
-
-
 
     def add_user_acl(self, user, acl_str):
         # 构建新的 ACL 字典
@@ -200,15 +256,18 @@ class KaxyClient:
         origin_acl_str_list = [acl for acl_str in origin_acl_dict.values() for acl in acl_str.split("\n")]
         new_acl_str_list = origin_acl_str_list + new_acl_dict[user].split("\n")
         new_acl_str = "\n".join(sorted(set(new_acl_str_list)))
-        resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": new_acl_str})
-        if resp.json().get("status") == 200:
-            return True
+        error_msg, resp = self.__send_request("post", "/api/write-user-acl", json={"acl_str": new_acl_str})
+        try:
+            if resp.json().get("status") == 200:
+                return True
+        except Exception as e:
+            return False
         return False
 
     def paser_api_acl(self):
         # 解析acl
         origin_acl_dict = {}
-        ori_acl = self.list_user_acl().text
+        ori_acl = self.list_user_acl()
         for acl in ori_acl.split("\n"):
             if acl:
                 if len(acl.strip().split(" ")) != 2:
@@ -222,6 +281,7 @@ class KaxyClient:
         for k, v in origin_acl_dict.items():
             origin_acl_dict[k] = "\n".join(sorted(list(v)))
         return origin_acl_dict
+
     def build_acl_str(self, acl_dict):
         # 构建acl字符串 排序
         acl_str_list = [acl for acl_str in acl_dict.values() for acl in acl_str.split("\n")]
@@ -242,25 +302,25 @@ class KaxyClient:
         proxy_info = {"proxy": [], "num_of_ips": 0}
         for x in range(5):
             resp = self.create_user_by_prefix(user, prefix)
-            try:
-                resp_json = resp.json()
-                proxy_info["num_of_ips"] = resp_json["data"]["num_of_ips"]
-                for proxy_i in resp_json["data"]["proxy_str"]:
-                    # 判断ip是否在指定网段内
-                    if ipaddress.IPv4Address(proxy_i.split(":")[0]) in ipaddress.IPv4Network(prefix):
-                        proxy_info["proxy"].append(proxy_i)
+            pprint(resp)
+            if "Bad format for user." in resp["error_msg"]:  # 用户名格式错误 重新生成用户名
+                user = self.random_username()
+                logging.info("change user: {}".format(user))
+            elif "Invalid prefix." in resp["error_msg"]:  # ip前缀格式错误
+                raise ValueError("Invalid prefix.")
+            else:
+                try:
+                    proxy_info["num_of_ips"] = resp["data"]["num_of_ips"]
+                    for proxy_i in resp["data"]["proxy_str"]:
+                        # 判断ip是否在指定网段内
+                        if ipaddress.IPv4Address(proxy_i.split(":")[0]) in ipaddress.IPv4Network(prefix):
+                            proxy_info["proxy"].append(proxy_i)
+                except Exception as e:
+                    logging.exception(e)
                 break
-            except Exception as e:
-                if resp=={}:
-                    raise Exception("服务器无响应")
-                if "Bad format for user." in resp.text:
-                    user = self.random_username()
-                if "Invalid prefix." in resp.text:
-                    raise ValueError("Invalid prefix.")
         if proxy_info["num_of_ips"] > 0:
             if acl_str:
                 self.add_user_acl(user, acl_str)
-
         return proxy_info
 
     def random_username(self):
@@ -269,53 +329,44 @@ class KaxyClient:
 
     def add_subnet_acl(self, acl_str):
         # 添加子网acl
-        resp = self.__send_request("post", "/api/write-subnet-acl", json={"acl_str": acl_str})
+        error_msg, resp = self.__send_request("post", "/api/write-subnet-acl", json={"acl_str": acl_str})
         return resp
 
     def list_subnet_acl(self):
         # 获取子网acl
-        resp = self.__send_request("get", "/api/export/subnet.acl")
+        error_msg, resp = self.__send_request("get", "/api/export/subnet.acl")
         return resp
 
     def list_user_acl(self):
         # 获取用户acl
-        resp = self.__send_request("get", "/api/export/user.acl")
-        return resp
+        error_msg, resp = self.__send_request("get", "/api/export/user.acl")
+        if len(error_msg) == 0:
+            if resp.status_code == 200:
+                return resp.text
+        else:
+            raise ValueError(error_msg)
 
     # 日志查看
     def get_access_log(self):
         # 获取访问日志
-        resp = self.__send_request("get", "/api/export/access.log")
+        error_msg, resp = self.__send_request("get", "/api/export/access.log")
         return resp
 
     def flush_access_log(self):
         # 清空访问日志
-        resp = self.__send_request("post", "/api/flush-access-log")
+        error_msg, resp = self.__send_request("post", "/api/flush-access-log")
         return resp
 
     def get_cidr(self):
         # 获取cidr
         resp = self.get_server_info()
-        if resp.status_code != 200:
-            return []
-        return resp.json().get("data").get("cidr")
+        return resp.get("data",{}).get("cidr",[])
 
 
 if __name__ == "__main__":
     token = 'EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'
-    client = KaxyClient("112.75.252.6", token)
-    # pprint(client.list_all_proxies().json())
-    # pprint(client.list_users().json())
-    acl_str = "asasas.com"
-    user = "test123456"
-    user_acl_str = user + " " + acl_str + "\n"
-    # pprint(client.add_acl(user_acl_str).json())
-    # client.create_user("test123456", 8)
-    add_user = "test1234568888"
-    add_acl_str = "asasas11111.com"
-    # pprint(client.add_user_acl(add_user,add_acl_str))
-    # pprint(client.paser_api_acl())
-    # pprint(client.get_server_info().json())
-    print(client.list_user_acl().text)
 
-
+    client = KaxyClient("38.90.19.134", token)
+    print(client.list_user_acl())
+    # print(client.create_user_acl_by_prefix("testqq22", "165.12.212.0/31","google.com"))
+    # print(client.flush_access_log())

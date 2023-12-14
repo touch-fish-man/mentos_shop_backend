@@ -69,14 +69,6 @@ class ProxyServerApi(ComModelViewSet):
         kaxy = KaxyClient(ip)
         server_info = kaxy.get_server_info()
         user_list = kaxy.list_users()
-        try:
-            server_info = server_info.json()
-        except:
-            server_info = {}
-        try:
-            user_list = user_list.json()
-        except:
-            user_list = {}
         return SuccessResponse(data={"server_info": server_info, "user_list": user_list})
 
     @action(methods=['post'], detail=True, url_path='create_user_by_prefix', url_name='create_user_by_prefix')
@@ -114,11 +106,9 @@ class ProxyServerApi(ComModelViewSet):
         if not username:
             return ErrorResponse('参数错误')
         kaxy_client = KaxyClient(ip)
+        if not kaxy_client.status:
+            return ErrorResponse(data={"message": "代理服务器连接失败"})
         del_resp = kaxy_client.del_user(username)
-        try:
-            del_resp = del_resp.json()
-        except:
-            del_resp = {}
         return SuccessResponse(data=del_resp)
 
     @action(methods=['post'], detail=True, url_path='delete_all_user', url_name='delete_all_user')
@@ -131,11 +121,9 @@ class ProxyServerApi(ComModelViewSet):
         proxy_server = self.get_object()
         ip = proxy_server.ip
         kaxy_client = KaxyClient(ip)
+        if not kaxy_client.status:
+            return ErrorResponse(data={"message": "代理服务器连接失败"})
         del_resp = kaxy_client.del_all_user()
-        try:
-            del_resp = del_resp.json()
-        except:
-            del_resp = {}
         return SuccessResponse(data=del_resp)
 
     @action(methods=['post'], detail=True, url_path='reset_all_proxy', url_name='reset_proxy')
@@ -195,11 +183,10 @@ class ProxyServerApi(ComModelViewSet):
         proxy_server = self.get_object()
         ip = proxy_server.ip
         kaxy_client = KaxyClient(ip)
-        acl_list = kaxy_client.list_user_acl()
         try:
-            acl_list = acl_list.text
-        except:
-            acl_list = {}
+            acl_list = kaxy_client.list_acl()
+        except Exception as e:
+            return ErrorResponse(data={"message": "代理服务器连接失败"})
         return SuccessResponse(data=acl_list)
 
     @action(methods=['post'], detail=True, url_path='flush_access_log', url_name='flush_access_log')
@@ -232,7 +219,7 @@ class ProxyServerApi(ComModelViewSet):
         if not api:
             return ErrorResponse('参数错误')
         try:
-            api_resp = kaxy_client.request("post", api_ur, json=json_input)
+            error_msg,api_resp = kaxy_client.request("post", api_ur, json=json_input)
             api_resp = api_resp.json()
         except:
             api_resp = {"message": "请求失败"}

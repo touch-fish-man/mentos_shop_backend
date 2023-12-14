@@ -300,8 +300,7 @@ def change_proxy(server_ip):
         for u, sub_ in user_dict.items():
             need_update = set()
             for s in sub_:
-                resp = kc.create_user_by_prefix(u, s)
-                resp_json = resp.json()
+                resp_json = kc.create_user_by_prefix(u, s)
                 for proxy_i in resp_json["data"]["proxy_str"]:
                     ip, port, user, password = proxy_i.split(":")
                     need_update.add((ip, user, password))
@@ -321,6 +320,15 @@ def flush_access_cache():
             print(s_c.flush_access_log().text)
         except Exception as e:
             pass
+
+
+@cli.command()
+def check_server():
+    """
+    检查服务器状态
+    """
+    from apps.proxy_server.tasks import check_server_status, delete_user_from_server
+    check_server_status.apply()
 
 
 @cli.command()
@@ -417,7 +425,13 @@ def export_all_proxy(d, username, order_id, server_ip):
     with open("/opt/mentos_shop_backend/logs/all_proxy_2.txt", "w") as f:
         f.write("\n".join(proxies_2))
 
-
+@cli.command()
+def sql():
+    """
+    进入数据库
+    """
+    base_dir=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    os.system("python {}/manage.py dbshell".format(base_dir))
 @cli.command()
 def update():
     """

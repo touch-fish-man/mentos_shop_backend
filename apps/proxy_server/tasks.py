@@ -35,10 +35,9 @@ def check_server_status():
     servers = Server.objects.filter(faild_count__lt=6).all()
     faild_list = []
     for server in servers:
-        kaxy_client = KaxyClient(server.ip)
         try:
-            resp = kaxy_client.get_server_info()
-            if resp.status_code == 200:
+            kaxy_client = KaxyClient(server.ip)
+            if kaxy_client.status:
                 server.server_status = 1
                 server.faild_count = 0
             else:
@@ -49,6 +48,7 @@ def check_server_status():
             server.server_status = 0
             server.faild_count += 1
             faild_list.append(server.ip)
+        print(server.ip, server.server_status)
         server.save()
         if server.faild_count >= 5:
             # 服务器连续5次检查失败
@@ -119,55 +119,6 @@ def is_port_open(proxy_port):
     except socket.error:
         return False
 
-
-@shared_task(name='delete_user_from_server')
-def delete_user_from_server(server_ip, username, subnet, ip_stock_id):
-    cache_key = 'del_user_{}_{}'.format(username, server_ip)
-    if Proxy.objects.filter(username=username, server_ip=server_ip).count() == 0:
-        logging.info('删除用户{}'.format(username))
-        server_obj = Server.objects.filter(ip=server_ip).first()
-        if server_obj:
-            if server_obj.server_status == 0:
-                logging.info('服务器{}已经下线,不需要删除用户'.format(server_ip))
-                cache.set(cache_key, 1, timeout=30)
-        else:
-            logging.info('服务器{}已经下线,不需要删除用户'.format(server_ip))
-            cache.set(cache_key, 1, timeout=30)
-        kax_client = KaxyClient(server_ip)
-        try:
-            if not cache.get(cache_key):
-                resp = kax_client.del_user(username)
-                try:
-                    if resp.json().get('status') == 200:
-                        kax_client.del_acl(username)
-                        cache.set(cache_key, 1, timeout=30)
-                    elif "User does not exist." in resp.json().get('message'):
-                        kax_client.del_acl(username)
-                        cache.set(cache_key, 1, timeout=30)
-                except Exception as e:
-                    logging.info('删除用户失败')
-        except Exception as e:
-            cache.set(cache_key, 1, timeout=30)
-            logging.info('删除用户失败,可能服务器挂了')
-    stock = ProxyStock.objects.filter(id=ip_stock_id).first()
-    redis_key = 'stock_opt_{}'.format(ip_stock_id)
-    oid = 'stock_opt_{}'.format(subnet)
-    # 归还子网,归还库存
-    if stock:
-        if Proxy.objects.filter(subnet=subnet, ip_stock_id=stock.id).count() == 0:
-            from apps.core.cache_lock import memcache_lock
-            cache_key = 'return_stock_opt_{}_{}'.format(subnet, ip_stock_id)
-            if not cache.get(cache_key):
-                cache.set(cache_key, 1, timeout=30)
-                with memcache_lock(redis_key, redis_key) as acquired:
-                    logging.info('归还子网{},归还库存{}'.format(subnet, ip_stock_id))
-                    stock.return_subnet(subnet)
-                    stock.return_stock()
-                    from apps.products.models import Variant
-                    # 更新库存
-                    variant = Variant.objects.filter(id=stock.variant_id).first()
-                    if variant:
-                        variant.save()
 
 
 def create_proxy_task(order_id, username, server_ip):
@@ -287,3 +238,26 @@ def clear_access_log():
             print(s_c.flush_access_log().text)
         except Exception as e:
             pass
+
+
+@shared_task(name='delete_user_from_server')
+def delete_user_from_server(server_ip=None, username=None):
+    if server_ip and username:
+        if Server.objects.filter(ip=server_ip, server_status=1).exists():  # 服务器在线
+            try:
+                kaxy_client = KaxyClient(server_ip)
+                if kaxy_client.status:
+                    kaxy_client.del_user(username)
+                    kaxy_client.del_acl(username)
+            except Exception as e:
+                pass
+        # cache.delete("del_user_list", server_ip + '_' + username)
+    else:
+        del_user_list = cache.hgetall("del_user_list")
+        for server_user, cnt in del_user_list.items():
+            server, user = server_user.split('_')
+            if Server.objects.filter(ip=server_ip, server_status=1).exists():  # 服务器在线
+                kaxy_client = KaxyClient(server)
+                kaxy_client.del_user(user)
+                kaxy_client.del_acl(user)
+        cache.delete("del_user_list")

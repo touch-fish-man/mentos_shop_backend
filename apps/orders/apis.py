@@ -108,6 +108,8 @@ class OrdersApi(ComModelViewSet):
                     ip_ = s_ip.server_ip
                     username_ = u.username
                     client = KaxyClient(ip_)
+                    if not client.status:
+                        return ErrorResponse(data={}, msg="服务器{}连接失败,请检查服务器状态".format(ip_))
                     proxy_list = client.update_user(username_)
                     for p in proxy_list:
                         proxy_ip, port, username, password = p.split(':')

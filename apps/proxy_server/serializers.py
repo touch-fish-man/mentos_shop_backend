@@ -163,6 +163,8 @@ class ServerCreateSerializer(CommonSerializer):
             return CustomValidationError("ip地址格式错误")
         try:
             c_client = KaxyClient(attrs['ip'])
+            if not c_client.status:
+                raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
             server_cidrs = c_client.get_cidr()
         except Exception as e:
             raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
@@ -170,8 +172,11 @@ class ServerCreateSerializer(CommonSerializer):
         check_cidr_cnt = 0
         for cidr in cidrs:
             for s_cidr in server_cidrs:
-                update_i = ipaddress.ip_network(cidr['cidr'])
-                server_i = ipaddress.ip_network(s_cidr)
+                try:
+                    update_i = ipaddress.ip_network(cidr['cidr'])
+                    server_i = ipaddress.ip_network(s_cidr)
+                except Exception:
+                    raise CustomValidationError("cidr格式错误")
                 if update_i.subnet_of(server_i):
                     check_cidr_cnt += 1
                     break
@@ -211,6 +216,8 @@ class ServerUpdateSerializer(CommonSerializer):
         cidrs = attrs['cidrs']
         try:
             c_client = KaxyClient(attrs['ip'])
+            if not c_client.status:
+                raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
             server_cidrs = c_client.get_cidr()
         except Exception as e:
             raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
