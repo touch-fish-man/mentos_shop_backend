@@ -58,7 +58,7 @@ class KaxyClient:
             error_msg = ""
             if faild_cnt:
                 cache.delete("request_fail_cnt_{}".format(self.host))
-        except RequestException as e:
+        except Exception as e:
             logging.exception(e)
             faild_cnt = cache.get("request_fail_cnt_{}".format(self.host))  # 8小时内失败次数
             if faild_cnt:
