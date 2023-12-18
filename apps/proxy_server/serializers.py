@@ -162,7 +162,7 @@ class ServerCreateSerializer(CommonSerializer):
         except Exception:
             return CustomValidationError("ip地址格式错误")
         try:
-            c_client = KaxyClient(attrs['ip'])
+            c_client = KaxyClient(attrs['ip'],clean_fail_cnt=True)
             if not c_client.status:
                 raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
             server_cidrs = c_client.get_cidr()

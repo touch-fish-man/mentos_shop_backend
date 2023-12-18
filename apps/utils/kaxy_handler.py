@@ -28,11 +28,13 @@ logger.addHandler(hdlr)
 
 
 class KaxyClient:
-    def __init__(self, host, token='EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT'):
+    def __init__(self, host, token='EeLTYE7iysw30I7RRkOPv3PxaUu8yoivXIitjV%Lel79WExmBocsToaVeU9f&zpT',clean_fail_cnt=False):
         self.host = host
         self.url = "http://{}:65533".format(host)
         self.token = token
         self.status = True
+        if clean_fail_cnt:
+            cache.delete("request_fail_cnt_{}".format(self.host))
         self.status = self.check_status()
 
     def check_status(self):
@@ -102,8 +104,6 @@ class KaxyClient:
     def get_server_info(self):
         # 获取服务器信息
         error_msg, resp = self.__send_request("get", "/api/view-server-info", timeout=5)
-        logging.info(error_msg)
-        logging.info(resp)
         if len(error_msg) == 0:
             if resp.status_code == 200:
                 return resp.json()
