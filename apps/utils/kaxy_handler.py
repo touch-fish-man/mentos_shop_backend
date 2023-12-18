@@ -9,6 +9,7 @@ from requests.exceptions import RequestException
 import json
 import os
 from pprint import pprint
+from logging.handlers import RotatingFileHandler
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from redis import Redis
@@ -16,6 +17,14 @@ from config.django import local as env
 
 REDIS_URL = f"redis://:{env.REDIS_PASSWORD}@{env.REDIS_HOST}:6379/2"
 cache = Redis.from_url(REDIS_URL, decode_responses=True)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+log_dir = os.path.join(base_dir, "logs")
+hdlr = RotatingFileHandler(os.path.join(log_dir, "kaxy_handler.log"), maxBytes=10 * 1024 * 1024, backupCount=5)
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
 
 
 class KaxyClient:
@@ -48,6 +57,10 @@ class KaxyClient:
         if faild_cnt and int(faild_cnt) > 2:
             error_msg = "请求失败次数过多"
             return error_msg, resp
+        logger.info("请求: {}-->{}".format(url, kwargs))
+        req_log = "请求: {}-->{}".format(url, kwargs)
+        logger.info("-" * 100)
+        logger.info(req_log)
         if "write-user-acl" not in path and "view-server-info" not in path:
             logging.info("请求: {}-->{}".format(url, kwargs))
         try:
@@ -55,11 +68,17 @@ class KaxyClient:
             if "timeout" not in kwargs:
                 kwargs.update({"timeout": 10})
             resp = requests.request(method, url, headers=headers, **kwargs)
+            resp_log = "响应: {}-->{}".format(resp.status_code, resp.text)
+            logger.info(resp_log)
+            logger.info("-" * 100)
             error_msg = ""
             if faild_cnt:
                 cache.delete("request_fail_cnt_{}".format(self.host))
         except Exception as e:
             logging.exception(e)
+            resp_log = "响应: {}".format(e)
+            logger.info(resp_log)
+            logger.info("-" * 100)
             faild_cnt = cache.get("request_fail_cnt_{}".format(self.host))  # 8小时内失败次数
             if faild_cnt:
                 cache.set("request_fail_cnt_{}".format(self.host), int(faild_cnt) + 1)
