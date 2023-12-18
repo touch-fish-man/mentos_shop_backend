@@ -167,6 +167,7 @@ class ServerCreateSerializer(CommonSerializer):
                 raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
             server_cidrs = c_client.get_cidr()
         except Exception as e:
+            logging.exception(e)
             raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
         cidrs = attrs['cidrs']
         check_cidr_cnt = 0
