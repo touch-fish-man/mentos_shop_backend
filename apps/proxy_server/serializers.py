@@ -216,7 +216,7 @@ class ServerUpdateSerializer(CommonSerializer):
         # 检查cidr是否在代理服务器的cidr范围内
         cidrs = attrs['cidrs']
         try:
-            c_client = KaxyClient(attrs['ip'])
+            c_client = KaxyClient(attrs['ip'],clean_fail_cnt=True)
             if not c_client.status:
                 raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
             server_cidrs = c_client.get_cidr()
