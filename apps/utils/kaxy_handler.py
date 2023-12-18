@@ -102,6 +102,7 @@ class KaxyClient:
     def get_server_info(self):
         # 获取服务器信息
         error_msg, resp = self.__send_request("get", "/api/view-server-info", timeout=5)
+        logging.info(resp)
         if len(error_msg) == 0:
             if resp.status_code == 200:
                 return resp.json()
