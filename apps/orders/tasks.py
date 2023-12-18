@@ -39,11 +39,22 @@ def precheck_order_expired(ceheck_days=3, send_email=True):
                 send_email_via_mailgun(email, subject, from_email, html_message)
             else:
                 send_mail(subject, "", from_email, [email], html_message=html_message)
-    data={
-        "expire_list":expire_list,
-        "status":1
+    data = {
+        "expire_list": expire_list,
+        "status": 1
     }
     return json.dumps(data)
+
+
+def model_to_dict(instance):
+    data = {}
+    for field in instance._meta.fields:
+        value = getattr(instance, field.name)
+        if isinstance(value, datetime):
+            data[field.name] = value.isoformat()
+        else:
+            data[field.name] = value
+    return data
 
 
 @shared_task(name='check_order_expired')
@@ -54,6 +65,7 @@ def check_order_expired():
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
     expired_orders = Orders.objects.filter(pay_status=1, order_status=4, expired_at__lte=utc_now).all()
     expired_order_ids = [order.id for order in expired_orders]
+    orders_to_dict = {order.id: model_to_dict(order) for order in expired_orders}
 
     # 获取与这些订单关联的代理
     proxies_to_delete = Proxy.objects.filter(order_id__in=expired_order_ids)
@@ -72,7 +84,7 @@ def check_order_expired():
     Orders.objects.filter(id__in=expired_order_ids).update(order_status=3)
 
     data = {
-        'orders': expired_order_ids,
+        'orders': orders_to_dict,
         'status': 1
     }
     return json.dumps(data)
@@ -83,14 +95,14 @@ def delete_proxy_expired():
     """
     删除过期代理,每天检查一次
     """
-    delete_list= []
+    delete_dict = {}
     all_proxy = Proxy.objects.all()
     for proxy in all_proxy:
         if proxy.expired_at < datetime.datetime.now().astimezone(pytz.utc):
-            delete_list.append((proxy.id, proxy.ip, proxy.username))
+            delete_dict[proxy.id] = model_to_dict(proxy)
             proxy.delete()
     data = {
-        'proxies': delete_list,
+        'proxies': delete_dict,
         'status': 1
     }
     return json.dumps(data)
