@@ -38,6 +38,7 @@ class KaxyClient:
     def check_status(self):
         try:
             resp = self.get_server_info()
+            logging.info(resp)
             if len(resp) > 0:
                 return True
             else:
