@@ -198,7 +198,7 @@ def create_proxy_by_order(order_id):
                                     # for i in range(order_obj.product_quantity // cart_step):
                                     kaxy_client = KaxyClient(server.ip)
                                     if not kaxy_client.status:
-                                        msg = "服务器{}创建代理失败:{}".format(server.ip, e)
+                                        msg = "服务器{}创建代理失败:{}".format(server.ip, "无法连接服务器")
                                         return False, msg
                                     prefix = Stock.get_next_subnet()
                                     try:

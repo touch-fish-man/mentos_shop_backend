@@ -215,6 +215,7 @@ class OrdersApi(ComModelViewSet):
     def one_key_reset(self, request, *args, **kwargs):
         # 重置所有代理
         order_ids = request.data.get('order_ids', None)
+        logging.info("order_ids:{}".format(order_ids))
         if not order_ids:
             return ErrorResponse(data={}, msg="订单id不能为空")
         try:

@@ -35,11 +35,11 @@ app.conf.beat_schedule = {
     },
     '过期订单检查': {
         'task': 'check_order_expired',
-        'schedule': 6000.0, # 每小时执行一次
+        'schedule': 15000.0, # 每小时执行一次
     },
     '删除过期代理': {
         'task': 'delete_proxy_expired',
-        'schedule': 6000.0, # 每小时执行一次
+        'schedule': 9500.0, # 每小时执行一次
     },
     '过期订单提醒': {
         'task': 'precheck_order_expired',
@@ -52,6 +52,11 @@ app.conf.beat_schedule = {
     '服务器状态检查': {
         'task': 'check_server_status',
         'schedule': 6000.0,# 每小时执行一次
+    },
+    '服务器状态检查1d': {
+        'task': 'check_server_status',
+        'schedule': crontab(hour=1, minute=30),
+        "args": (99, )
     },
     '删除超时订单': {
         'task': 'delete_timeout_order',
@@ -71,15 +76,15 @@ app.conf.beat_schedule = {
     },
     '清理过期验证码': {
         'task': 'clean_captcha',
-        'schedule': crontab(hour=3, minute=0), # 每天凌晨3点执行
+        'schedule': crontab(hour=3, minute=40), # 每天凌晨3点执行
     },
     '清理过期邮箱验证码': {
         'task': 'clean_email_code',
-        'schedule': crontab(hour=2, minute=0), # 每天凌晨2点执行
+        'schedule': crontab(hour=2, minute=45), # 每天凌晨2点执行
     },
     '清理过期session': {
         'task': 'cleanup_sessions',
-        'schedule': crontab(day_of_week=1, hour=4, minute=0), # 每周一凌晨4点执行
+        'schedule': crontab(day_of_week=1, hour=4, minute=12), # 每周一凌晨4点执行
     },
     '代理有效性检查': {
         'task': 'check_proxy_status',

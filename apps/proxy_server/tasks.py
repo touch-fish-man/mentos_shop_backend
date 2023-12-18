@@ -28,11 +28,11 @@ from django.core.cache import cache
 
 
 @shared_task(name='check_server_status')
-def check_server_status():
+def check_server_status(faild_count=5):
     """
     检查服务器状态,每10分钟检查一次
     """
-    servers = Server.objects.filter(faild_count__lt=6).all()
+    servers = Server.objects.filter(faild_count__lt=faild_count).all()
     faild_list = []
     for server in servers:
         try:

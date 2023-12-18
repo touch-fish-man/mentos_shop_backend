@@ -45,7 +45,7 @@ class KaxyClient:
         resp = {}
         error_msg = ""
         faild_cnt = cache.get("request_fail_cnt_{}".format(self.host))  # 8小时内失败次数
-        if faild_cnt and int(faild_cnt) > 3:
+        if faild_cnt and int(faild_cnt) > 2:
             error_msg = "请求失败次数过多"
             return error_msg, resp
         if "write-user-acl" not in path and "view-server-info" not in path:
@@ -302,7 +302,6 @@ class KaxyClient:
         proxy_info = {"proxy": [], "num_of_ips": 0}
         for x in range(5):
             resp = self.create_user_by_prefix(user, prefix)
-            pprint(resp)
             if "Bad format for user." in resp["error_msg"]:  # 用户名格式错误 重新生成用户名
                 user = self.random_username()
                 logging.info("change user: {}".format(user))
