@@ -50,7 +50,7 @@ def model_to_dict(instance):
     data = {}
     for field in instance._meta.fields:
         value = getattr(instance, field.name)
-        if isinstance(value, datetime):
+        if isinstance(value, datetime.datetime):
             data[field.name] = value.isoformat()
         else:
             data[field.name] = value
