@@ -53,7 +53,7 @@ def model_to_dict(instance):
         if isinstance(value, datetime.datetime):
             data[field.name] = value.isoformat()
         else:
-            data[field.name] = value
+            data[field.name] = str(value)
     return data
 
 
