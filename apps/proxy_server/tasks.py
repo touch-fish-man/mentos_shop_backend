@@ -134,55 +134,41 @@ def create_proxy_task(order_id, username, server_ip):
         one_off=True,
         expires=timezone.now() + datetime.timedelta(seconds=70)
     )
-
+check_site_list = {
+    "amazon": "https://checkip.amazonaws.com",
+    "bing": "https://www.bing.com",
+}
 
 def check_proxy(proxy, id):
-    status = True
-    port_open = True
-    delay = 99999
-    try:
-        proxies = {
-            'http': f'http://{proxy}',
-            'https': f'http://{proxy}'
-        }
-        ip_port = proxy.split('@')[1]
-        # port_open = is_port_open(ip_port)
-        if port_open:
-            s_time = time.time()
-            response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5, verify=False)
-            e_time = time.time()
-            delay = int((e_time - s_time) * 1000)
-            # logging.warning(response.status_code)
-            if response.status_code == 200:
-                status = True
-            else:
-                status = False
-    except Exception as e:
-        status = False
-    if not status:
+    def check_site(url):
         try:
-            proxies = {
-                'http': f'http://{proxy}',
-                'https': f'http://{proxy}'
-            }
             s_time = time.time()
-            response = requests.get('https://www.bing.com', proxies=proxies, timeout=5, verify=False)
-            e_time = time.time()
-            delay = int((e_time - s_time) * 1000)
-            if response.status_code == 200:
-                status = True
-            else:
-                status = False
+            response = requests.get(url, proxies=proxies, timeout=5, verify=False)
+            delay = int((time.time() - s_time) * 1000)
+            return response.status_code == 200, delay
         except Exception as e:
-            status = False
-    if not port_open:
-        status = False
+            print(f"Error checking {url}: {e}")  # Replace with your preferred logging
+            return False, 99999
+
+    proxies = {
+        'http': f'http://{proxy}',
+        'https': f'http://{proxy}'
+    }
+
     proxy_obj = Proxy.objects.filter(id=id).first()
     if proxy_obj:
-        proxy_obj.status = status
-        proxy_obj.delay = delay
+        overall_status = False
+        for site_name, site_url in check_site_list.items():
+            status, delay = check_site(site_url)
+            if hasattr(proxy_obj, f"{site_name}_delay"):
+                setattr(proxy_obj, f"{site_name}_delay", delay)  # Dynamically set the delay attribute
+            if status:
+                overall_status = True
+
+        proxy_obj.status = overall_status
         proxy_obj.save()
-    return proxy, status, id, delay
+
+    return proxy, overall_status, id, delay
 
 
 @shared_task(name='check_proxy_status')

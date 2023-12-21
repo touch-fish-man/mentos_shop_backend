@@ -309,7 +309,8 @@ class Proxy(BaseModel):
     subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='subnet')  # 用于存储所所属子网
     ip_stock_id = models.IntegerField(blank=True, null=True, verbose_name='IP库存ID')
     status = models.BooleanField(default=True, verbose_name='状态')  # 用于判断是否有效
-    delay = models.IntegerField(blank=True, null=True, verbose_name='延迟')
+    bing_delay = models.IntegerField(blank=True, null=True, verbose_name='bing延迟')
+    amazon_delay = models.IntegerField(blank=True, null=True, verbose_name='amazon延迟')
 
     class Meta:
         db_table = 'proxy'
