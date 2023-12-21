@@ -566,12 +566,12 @@ def webhook_handle(order_info):
                     order_process_ret,msg = renew_proxy_by_order(order_id)
                 else:
                     # 新订
-                    if user_email.lower() != email.lower():
-                        logging.warning("email not match: %s, %s order_id: %s" % (user_email,email,order_id))
-                        logging.info("order process fail")
-                        order_info = {"id": shpify_order_id, "tags": "delivery_fail", "note": "邮箱不匹配"}
-                        t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
-                        return
+                    # if user_email.lower() != email.lower():
+                    #     logging.warning("email not match: %s, %s order_id: %s" % (user_email,email,order_id))
+                    #     logging.info("order process fail")
+                    #     order_info = {"id": shpify_order_id, "tags": "delivery_fail", "note": "邮箱不匹配"}
+                    #     t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
+                    #     return
                     order_process_ret,msg = create_proxy_by_order(order_id)
                 Orders.objects.filter(order_id=order_id).update(shopify_order_number=shopify_order_number)
                 if order_process_ret:
