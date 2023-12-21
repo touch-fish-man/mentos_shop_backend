@@ -425,9 +425,10 @@ def export_all_proxy(d, username, order_id, server_ip,all):
                 proxies_2.append(proxy_str_2)
     with open("/opt/mentos_shop_backend/logs/all_proxy.txt", "w") as f:
         f.write("\n".join(proxies))
-    with open("/opt/mentos_shop_backend/logs/all_proxy_http.txt", "w") as f:
-        proxies_1=[f"http://{i}" for i in proxies]
-        f.write("\n".join(proxies_1))
+    if all:
+        with open("/opt/mentos_shop_backend/logs/all_proxy_all.txt", "w") as f:
+            proxies_1=[f"http://{i}" for i in proxies]
+            f.write("\n".join(proxies_1))
     with open("/opt/mentos_shop_backend/logs/all_proxy_2.txt", "w") as f:
         f.write("\n".join(proxies_2))
 
