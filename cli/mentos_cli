@@ -392,7 +392,8 @@ def logs(log_type="server"):
 @click.option('-u', "--username", default=None, help='用户名')
 @click.option('-o', "--order_id", default=None, help='订单id')
 @click.option('-s', "--server_ip", default=None, help='服务器ip')
-def export_all_proxy(d, username, order_id, server_ip):
+@click.option('-a', "--all", default=None, help='导出所有代理')
+def export_all_proxy(d, username, order_id, server_ip,all):
     """
     导出所有代理
     """
@@ -406,6 +407,8 @@ def export_all_proxy(d, username, order_id, server_ip):
         filter["order_id"] = order_id
     if server_ip:
         filter["server_ip"] = server_ip
+    if all:
+        filter={}
     for i in Proxy.objects.filter(**filter).all():
         # 检测代理是否可用
         if d == 0:
