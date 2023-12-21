@@ -190,25 +190,25 @@ def check_proxy_status(order_id=None):
     """
     检查代理状态,每4个小时检查一次
     """
-    # 获取所有代理
-    if order_id:
-        proxies = list(Proxy.objects.filter(order_id=order_id).all())
-    else:
-        proxies = list(Proxy.objects.all())
     if order_id is None:
         # 获取所有状态为0的服务器IP
         offline_server_ips = set(Server.objects.filter(server_status=0).values_list('ip', flat=True))
+        proxies = list(Proxy.objects.all())
     else:
+        proxies = list(Proxy.objects.filter(order_id=order_id).all())
         offline_server_ips = []
-
     to_update_ids = []
     proxy_data = []
-
+    export_proxy_list = []
     for p in proxies:
+        export_proxy_list.append(f'http://{p.get_proxy_str()}')
         if p.server_ip in offline_server_ips:
             to_update_ids.append(p.id)
         else:
             proxy_data.append((p.get_proxy_str(), p.id))
+    # 导出代理列表
+    with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs",'proxy_all.txt'), 'w') as f:
+        f.write('\n'.join(export_proxy_list))
 
     # 批量更新代理状态为False
     if to_update_ids:
