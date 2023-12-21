@@ -139,7 +139,7 @@ def create_proxy_task(order_id, username, server_ip):
 def check_proxy(proxy, id):
     status = True
     port_open = True
-    delay = -1
+    delay = 99999
     try:
         proxies = {
             'http': f'http://{proxy}',
