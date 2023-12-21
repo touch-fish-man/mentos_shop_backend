@@ -120,7 +120,6 @@ def is_port_open(proxy_port):
         return False
 
 
-
 def create_proxy_task(order_id, username, server_ip):
     # 创建一次性celery任务，立即执行，执行完毕后删除
     interval = IntervalSchedule.objects.get_or_create(every=1, period=IntervalSchedule.SECONDS)[0]
@@ -140,6 +139,7 @@ def create_proxy_task(order_id, username, server_ip):
 def check_proxy(proxy, id):
     status = True
     port_open = True
+    delay = -1
     try:
         proxies = {
             'http': f'http://{proxy}',
@@ -148,7 +148,10 @@ def check_proxy(proxy, id):
         ip_port = proxy.split('@')[1]
         # port_open = is_port_open(ip_port)
         if port_open:
+            s_time = time.time()
             response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5, verify=False)
+            e_time = time.time()
+            delay = int((e_time - s_time) * 1000)
             # logging.warning(response.status_code)
             if response.status_code == 200:
                 status = True
@@ -162,7 +165,10 @@ def check_proxy(proxy, id):
                 'http': f'http://{proxy}',
                 'https': f'http://{proxy}'
             }
+            s_time = time.time()
             response = requests.get('https://www.bing.com', proxies=proxies, timeout=5, verify=False)
+            e_time = time.time()
+            delay = int((e_time - s_time) * 1000)
             if response.status_code == 200:
                 status = True
             else:
@@ -174,8 +180,9 @@ def check_proxy(proxy, id):
     proxy_obj = Proxy.objects.filter(id=id).first()
     if proxy_obj:
         proxy_obj.status = status
+        proxy_obj.delay = delay
         proxy_obj.save()
-    return proxy, status, id
+    return proxy, status, id, delay
 
 
 @shared_task(name='check_proxy_status')
@@ -212,9 +219,9 @@ def check_proxy_status(order_id=None):
         results = executor.map(lambda x: check_proxy(x[0], x[1]), proxy_data)
     ret_json = {}
     faild_list = []
-    for proxy, status, id in results:
+    for proxy, status, id,delay in results:
         if not status:
-            faild_list.append((proxy, id))
+            faild_list.append((proxy, id,delay))
     ret_json['code'] = 200
     ret_json['message'] = 'success'
     ret_json['faild_list'] = faild_list
