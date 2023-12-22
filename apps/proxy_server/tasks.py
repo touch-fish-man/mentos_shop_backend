@@ -136,16 +136,20 @@ def create_proxy_task(order_id, username, server_ip):
     )
 check_site_list = {
     "amazon": "https://checkip.amazonaws.com",
-    "bing": "https://www.bing.com",
+    # "bing": "https://www.bing.com",
 }
 
 def check_proxy(proxy, id):
+    proxy_connect_faild = False
     def check_site(url):
         try:
             s_time = time.time()
             response = requests.get(url, proxies=proxies, timeout=5, verify=False)
             delay = int((time.time() - s_time) * 1000)
             return response.status_code == 200, delay
+        except requests.exceptions.ProxyError:
+            proxy_connect_faild = True
+            return False, 99999
         except Exception as e:
             print(f"Error checking {url}: {e}")  # Replace with your preferred logging
             return False, 99999
@@ -159,12 +163,14 @@ def check_proxy(proxy, id):
     if proxy_obj:
         overall_status = False
         for site_name, site_url in check_site_list.items():
-            status, delay = check_site(site_url)
+            if not proxy_connect_faild:
+                status, delay = check_site(site_url)
+            else:
+                status, delay = False, 99999
             if hasattr(proxy_obj, f"{site_name}_delay"):
                 setattr(proxy_obj, f"{site_name}_delay", delay)  # Dynamically set the delay attribute
             if status:
                 overall_status = True
-
         proxy_obj.status = overall_status
         proxy_obj.save()
 
