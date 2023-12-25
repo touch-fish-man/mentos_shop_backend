@@ -25,7 +25,7 @@ from apps.utils.kaxy_handler import KaxyClient
 # List of URLs to be checked
 urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
         "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
-URLS = ['http://www.google.com', "https://bing.com","https://checkip.amazonaws.com"]
+URLS = ['http://www.google.com', "https://bing.com", "https://checkip.amazonaws.com"]
 netloc_models = {
     "www.google.com": "google_delay",
     "bing.com": "bing_delay",
@@ -227,7 +227,7 @@ async def fetch_using_proxy(url, proxy):
         return url, proxy, latency, False
 
 
-def get_proxies(order_id=None,id=None, status=None):
+def get_proxies(order_id=None, id=None, status=None):
     filter_dict = {}
     if order_id is not None:
         filter_dict['order_id'] = order_id
@@ -242,17 +242,17 @@ def get_proxies(order_id=None,id=None, status=None):
 
 
 async def check_proxies_from_db(order_id):
-    for proxies, id in get_proxies(order_id=order_id).items():
-        tasks = [fetch_using_proxy(url, proxy) for proxy in proxies for url in URLS]
-        results = await asyncio.gather(*tasks)
-        for url, proxy, latency, success in results:
-            if success:
-                proxy_obj = Proxy.objects.filter(id=id).first()
-                if proxy_obj:
-                    model_name = netloc_models.get(urlparse(url).netloc, None)
-                    if model_name and hasattr(proxy_obj, model_name):
-                        setattr(proxy_obj, model_name, latency)
-                        proxy_obj.save()
+    proxies = get_proxies(order_id=order_id)
+    tasks = [fetch_using_proxy(url, proxy) for proxy in proxies.keys() for url in URLS]
+    results = await asyncio.gather(*tasks)
+    for url, proxy, latency, success in results:
+        if success:
+            proxy_obj = Proxy.objects.filter(id=id).first()
+            if proxy_obj:
+                model_name = netloc_models.get(urlparse(url).netloc, None)
+                if model_name and hasattr(proxy_obj, model_name):
+                    setattr(proxy_obj, model_name, latency)
+                    proxy_obj.save()
 
 
 @shared_task(name='check_proxy_status')
