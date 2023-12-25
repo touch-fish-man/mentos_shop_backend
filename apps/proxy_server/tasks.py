@@ -245,6 +245,7 @@ async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)
     tasks = [fetch_using_proxy(url, proxy) for proxy in proxies.keys() for url in URLS]
     results = await asyncio.gather(*tasks)
+    fail_list = []
     for url, proxy, latency, success in results:
         id=proxies.get(proxy)
         if success:
@@ -254,6 +255,9 @@ async def check_proxies_from_db(order_id):
                 if model_name and hasattr(proxy_obj, model_name):
                     setattr(proxy_obj, model_name, latency)
                     proxy_obj.save()
+        else:
+            fail_list.append([id,url, proxy, latency, success])
+    return fail_list
 
 
 @shared_task(name='check_proxy_status')
@@ -264,7 +268,7 @@ def check_proxy_status(order_id=None):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     result = loop.run_until_complete(check_proxies_from_db(order_id))
-    return result
+    return {"fail_list": result, "status": 1}
 
 
 @shared_task(name="cleanup_sessions")
