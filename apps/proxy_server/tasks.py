@@ -208,7 +208,6 @@ def read_proxies(proxy_file, batch_size=100):
 
 async def fetch_using_proxy(url, proxy):
     try:
-        # 解析代理URL以获取用户名和密码
         proxy_url = urlparse(proxy)
         connector = ProxyConnector.from_url(proxy)
         start_time = time.perf_counter()
@@ -216,7 +215,7 @@ async def fetch_using_proxy(url, proxy):
             async with session.get(url, ssl=False) as response:
                 await response.read()
                 latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
-                logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
+                # logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
                 if response.ok and response.status == 200:
                     return url, proxy, latency, True
                 else:
@@ -237,7 +236,10 @@ def get_proxies(order_id=None, id=None, status=None):
         filter_dict['status'] = status
     proxies = Proxy.objects.filter(**filter_dict).all()
     proxies_dict = {f'http://{p.get_proxy_str()}': p.id for p in proxies}
-
+    if order_id ==None and id==None and status==None:
+        proxies_list = sorted(list(proxies_dict.keys()))
+        with open('/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt', 'w') as f:
+            f.write('\n'.join(proxies_dict.keys()))
     return proxies_dict
 
 

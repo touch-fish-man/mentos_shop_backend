@@ -331,6 +331,8 @@ class Proxy(BaseModel):
     def save( self, force_insert=False, force_update=False, using=None, update_fields=None):
         if self.bing_delay == self.amazon_delay == self.google_delay == 99999:
             self.status = False
+        else:
+            self.status = True
         super().save(force_insert, force_update, using, update_fields)
 
     def judge_expired(self):
