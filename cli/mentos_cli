@@ -389,25 +389,26 @@ def logs(log_type="server"):
 
 @cli.command()
 @click.option('-d', default=0, help='是否去重')
+@click.option('-s','--status', default=None ,help='状态')
 @click.option('-u', "--username", default=None, help='用户名')
 @click.option('-o', "--order_id", default=None, help='订单id')
-@click.option('-s', "--server_ip", default=None, help='服务器ip')
-def export_all_proxy(d, username, order_id, server_ip):
+@click.option('-ip', "--server_ip", default=None, help='服务器ip')
+def export_all_proxy(d, username, order_id, server_ip,status):
     """
     导出所有代理
     """
     proxies = []
     proxies_2 = []
     ip = {}
-    filter = {"status": 1}
-    if username:
+    filter = {}
+    if status is not None:
+        filter["status"] = status
+    if username is not None:
         filter["username"] = username
-    if order_id:
+    if order_id is not None:
         filter["order_id"] = order_id
-    if server_ip:
+    if server_ip is not None:
         filter["server_ip"] = server_ip
-    if all:
-        filter = {}
     for i in Proxy.objects.filter(**filter).all():
         # 检测代理是否可用
         if d == 0:
