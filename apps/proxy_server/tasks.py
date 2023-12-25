@@ -227,8 +227,10 @@ async def fetch_using_proxy(url, proxy):
         return url, proxy, latency, False
 
 
-def get_proxies(id=None, status=None):
+def get_proxies(order_id=None,id=None, status=None):
     filter_dict = {}
+    if order_id is not None:
+        filter_dict['order_id'] = order_id
     if id is not None:
         filter_dict['id'] = id
     if status is not None:
@@ -240,7 +242,7 @@ def get_proxies(id=None, status=None):
 
 
 async def check_proxies_from_db(order_id):
-    for proxies, id in get_proxies(order_id).items():
+    for proxies, id in get_proxies(order_id=order_id).items():
         tasks = [fetch_using_proxy(url, proxy) for proxy in proxies for url in URLS]
         results = await asyncio.gather(*tasks)
         for url, proxy, latency, success in results:
