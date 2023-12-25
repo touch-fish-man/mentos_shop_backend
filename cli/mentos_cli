@@ -392,7 +392,6 @@ def logs(log_type="server"):
 @click.option('-u', "--username", default=None, help='用户名')
 @click.option('-o', "--order_id", default=None, help='订单id')
 @click.option('-s', "--server_ip", default=None, help='服务器ip')
-@click.option('-a', "--all", default=None, help='导出所有代理')
 def export_all_proxy(d, username, order_id, server_ip, all):
     """
     导出所有代理
@@ -425,10 +424,9 @@ def export_all_proxy(d, username, order_id, server_ip, all):
                 proxies_2.append(proxy_str_2)
     with open("/opt/mentos_shop_backend/logs/user_pwd_ip_port.txt", "w") as f:
         f.write("\n".join(proxies))
-    if all:
-        with open("/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt", "w") as f:
-            proxies_1 = [f"http://{i}" for i in proxies]
-            f.write("\n".join(proxies_1))
+    with open("/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt", "w") as f:
+        proxies_1 = [f"http://{i}" for i in proxies]
+        f.write("\n".join(proxies_1))
     with open("/opt/mentos_shop_backend/logs/ip_port_user_pwd.txt", "w") as f:
         f.write("\n".join(proxies_2))
 
