@@ -1,28 +1,40 @@
+import asyncio
 import datetime
+import json
 import logging
-import os
 import socket
 import threading
-from concurrent.futures import ThreadPoolExecutor
+import time
+from urllib.parse import urlparse
 
 import requests
+import urllib3
+from aiohttp import ClientSession, ClientTimeout
+from aiohttp_proxy import ProxyConnector
+from celery import shared_task
 from django.core import management
 from django.utils import timezone
-
-from apps.proxy_server.models import Server, ProxyStock
-import json
-import time
-
+from django.views.decorators.cache import cache_page
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
 from apps.orders.services import create_proxy_by_id
 from apps.proxy_server.models import Proxy
-from celery import shared_task
-from django.views.decorators.cache import cache_page
-
+from apps.proxy_server.models import Server
 from apps.utils.kaxy_handler import KaxyClient
-import urllib3
 
+# List of URLs to be checked
+urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
+        "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
+URLS = ['http://www.google.com', "https://bing.com","https://checkip.amazonaws.com"]
+netloc_models = {
+    "www.google.com": "google_delay",
+    "bing.com": "bing_delay",
+    "icanhazip.com": "icanhazip_delay",
+    "jsonip.com": "jsonip_delay",
+    "api.seeip.org": "seeip_delay",
+    "api.geoiplookup.net": "geoiplookup_delay",
+    "checkip.amazonaws.com": "amazon_delay",
+}
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from django.core.cache import cache
 
@@ -134,13 +146,17 @@ def create_proxy_task(order_id, username, server_ip):
         one_off=True,
         expires=timezone.now() + datetime.timedelta(seconds=70)
     )
+
+
 check_site_list = {
     "amazon": "https://checkip.amazonaws.com",
     # "bing": "https://www.bing.com",
 }
 
+
 def check_proxy(proxy, id):
     proxy_connect_faild = False
+
     def check_site(url):
         try:
             s_time = time.time()
@@ -177,47 +193,75 @@ def check_proxy(proxy, id):
     return proxy, overall_status, id, delay
 
 
+def read_proxies(proxy_file, batch_size=100):
+    with open(proxy_file, 'r') as file:
+        batch = []
+        for line in file:
+            if line.strip():
+                batch.append(line.strip())
+                if len(batch) == batch_size:
+                    yield batch
+                    batch = []
+        if batch:
+            yield batch
+
+
+async def fetch_using_proxy(url, proxy):
+    try:
+        # 解析代理URL以获取用户名和密码
+        proxy_url = urlparse(proxy)
+        connector = ProxyConnector.from_url(proxy)
+        start_time = time.perf_counter()
+        async with ClientSession(connector=connector, timeout=ClientTimeout(total=5)) as session:
+            async with session.get(url, ssl=False) as response:
+                await response.read()
+                latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
+                print(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
+                if response.ok and response.status == 200:
+                    return url, proxy, latency, True
+                else:
+                    return url, proxy, 9999999, False
+    except Exception as e:
+        print(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
+        latency = 9999999
+        return url, proxy, latency, False
+
+
+def get_proxies(id=None, status=None):
+    filter_dict = {}
+    if id is not None:
+        filter_dict['id'] = id
+    if status is not None:
+        filter_dict['status'] = status
+    proxies = Proxy.objects.filter(**filter_dict).all()
+    proxies_dict = {f'http://{p.get_proxy_str()}': p.id for p in proxies}
+
+    return proxies_dict
+
+
+async def check_proxies_from_db(order_id):
+    for proxies, id in get_proxies(order_id).items():
+        tasks = [fetch_using_proxy(url, proxy) for proxy in proxies for url in URLS]
+        results = await asyncio.gather(*tasks)
+        for url, proxy, latency, success in results:
+            if success:
+                proxy_obj = Proxy.objects.filter(id=id).first()
+                if proxy_obj:
+                    model_name = netloc_models.get(urlparse(url).netloc, None)
+                    if model_name and hasattr(proxy_obj, model_name):
+                        setattr(proxy_obj, model_name, latency)
+                        proxy_obj.save()
+
+
 @shared_task(name='check_proxy_status')
 def check_proxy_status(order_id=None):
     """
     检查代理状态,每4个小时检查一次
     """
-    if order_id is None:
-        # 获取所有状态为0的服务器IP
-        offline_server_ips = set(Server.objects.filter(server_status=0).values_list('ip', flat=True))
-        proxies = list(Proxy.objects.all())
-    else:
-        proxies = list(Proxy.objects.filter(order_id=order_id).all())
-        offline_server_ips = []
-    to_update_ids = []
-    proxy_data = []
-    export_proxy_list = []
-    for p in proxies:
-        export_proxy_list.append(f'http://{p.get_proxy_str()}')
-        if p.server_ip in offline_server_ips:
-            to_update_ids.append(p.id)
-        else:
-            proxy_data.append((p.get_proxy_str(), p.id))
-    # 导出代理列表
-    with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs",'http_user_pwd_ip_port.txt'), 'w') as f:
-        f.write('\n'.join(export_proxy_list))
-
-    # 批量更新代理状态为False
-    if to_update_ids:
-        Proxy.objects.filter(id__in=to_update_ids).update(status=False)
-
-    # 使用线程池并发检查代理状态
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        results = executor.map(lambda x: check_proxy(x[0], x[1]), proxy_data)
-    ret_json = {}
-    faild_list = []
-    for proxy, status, id,delay in results:
-        if not status:
-            faild_list.append((proxy, id,delay))
-    ret_json['code'] = 200
-    ret_json['message'] = 'success'
-    ret_json['faild_list'] = faild_list
-    return ret_json
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    result = loop.run_until_complete(check_proxies_from_db(order_id))
+    return result
 
 
 @shared_task(name="cleanup_sessions")

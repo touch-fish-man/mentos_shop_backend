@@ -311,6 +311,7 @@ class Proxy(BaseModel):
     status = models.BooleanField(default=True, verbose_name='状态')  # 用于判断是否有效
     bing_delay = models.IntegerField(blank=True, null=True, verbose_name='bing延迟')
     amazon_delay = models.IntegerField(blank=True, null=True, verbose_name='amazon延迟')
+    google_delay = models.IntegerField(blank=True, null=True, verbose_name='amazon延迟')
 
     class Meta:
         db_table = 'proxy'
