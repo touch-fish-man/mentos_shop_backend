@@ -216,13 +216,13 @@ async def fetch_using_proxy(url, proxy):
             async with session.get(url, ssl=False) as response:
                 await response.read()
                 latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
-                print(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
+                logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
                 if response.ok and response.status == 200:
                     return url, proxy, latency, True
                 else:
                     return url, proxy, 9999999, False
     except Exception as e:
-        print(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
+        logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
 
