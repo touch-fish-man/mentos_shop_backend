@@ -393,7 +393,7 @@ def logs(log_type="server"):
 @click.option('-o', "--order_id", default=None, help='订单id')
 @click.option('-s', "--server_ip", default=None, help='服务器ip')
 @click.option('-a', "--all", default=None, help='导出所有代理')
-def export_all_proxy(d, username, order_id, server_ip,all):
+def export_all_proxy(d, username, order_id, server_ip, all):
     """
     导出所有代理
     """
@@ -408,7 +408,7 @@ def export_all_proxy(d, username, order_id, server_ip,all):
     if server_ip:
         filter["server_ip"] = server_ip
     if all:
-        filter={}
+        filter = {}
     for i in Proxy.objects.filter(**filter).all():
         # 检测代理是否可用
         if d == 0:
@@ -423,22 +423,49 @@ def export_all_proxy(d, username, order_id, server_ip,all):
                 proxy_str_2 = f"{i.ip}:{i.port}:{i.username}:{i.password}"
                 proxies.append(proxy_str)
                 proxies_2.append(proxy_str_2)
-    with open("/opt/mentos_shop_backend/logs/all_proxy.txt", "w") as f:
+    with open("/opt/mentos_shop_backend/logs/user_pwd_ip_port.txt", "w") as f:
         f.write("\n".join(proxies))
     if all:
-        with open("/opt/mentos_shop_backend/logs/all_proxy_all.txt", "w") as f:
-            proxies_1=[f"http://{i}" for i in proxies]
+        with open("/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt", "w") as f:
+            proxies_1 = [f"http://{i}" for i in proxies]
             f.write("\n".join(proxies_1))
-    with open("/opt/mentos_shop_backend/logs/all_proxy_2.txt", "w") as f:
+    with open("/opt/mentos_shop_backend/logs/ip_port_user_pwd.txt", "w") as f:
         f.write("\n".join(proxies_2))
+
 
 @cli.command()
 def sql():
     """
     进入数据库
     """
-    base_dir=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    os.system("python {}/manage.py dbshell".format(base_dir))
+    os.system("python /opt/mentos_shop_backend/manage.py dbshell")
+
+
+@cli.command()
+@click.option('--url', default=None, help='url')
+@click.option('--proxy', default=None, help='代理')
+def check_delay(url, proxy):
+    """
+    检查延迟
+    """
+    if proxy:
+        proxy = ["http://" + proxy]
+    else:
+        proxy_objs = Proxy.objects.filter(status=1).all()
+        proxy = []
+        for proxy_obj in proxy_objs:
+            proxy.append("http://" + proxy_obj.get_proxy_str())
+    if url:
+        try:
+            for p in proxy:
+                resp = requests.get(url, proxies={"http": p})
+                print(f"{p} {resp.elapsed.total_seconds()}")
+        except Exception as e:
+            print(f"{p} {e}")
+    else:
+        print("请输入url")
+
+
 @cli.command()
 def update():
     """

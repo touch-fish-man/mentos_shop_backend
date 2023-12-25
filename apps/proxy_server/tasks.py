@@ -199,7 +199,7 @@ def check_proxy_status(order_id=None):
         else:
             proxy_data.append((p.get_proxy_str(), p.id))
     # 导出代理列表
-    with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs",'proxy_all.txt'), 'w') as f:
+    with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "logs",'http_user_pwd_ip_port.txt'), 'w') as f:
         f.write('\n'.join(export_proxy_list))
 
     # 批量更新代理状态为False
