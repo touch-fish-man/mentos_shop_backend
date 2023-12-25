@@ -328,6 +328,10 @@ class Proxy(BaseModel):
 
     def get_proxy_str(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
+    def save( self, force_insert=False, force_update=False, using=None, update_fields=None):
+        if self.bing_delay == self.amazon_delay == self.google_delay == 99999:
+            self.status = False
+        super().save(force_insert, force_update, using, update_fields)
 
     def judge_expired(self):
         """
