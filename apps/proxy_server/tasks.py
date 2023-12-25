@@ -246,6 +246,7 @@ async def check_proxies_from_db(order_id):
     tasks = [fetch_using_proxy(url, proxy) for proxy in proxies.keys() for url in URLS]
     results = await asyncio.gather(*tasks)
     for url, proxy, latency, success in results:
+        id=proxies.get(proxy)
         if success:
             proxy_obj = Proxy.objects.filter(id=id).first()
             if proxy_obj:
