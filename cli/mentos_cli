@@ -392,7 +392,7 @@ def logs(log_type="server"):
 @click.option('-u', "--username", default=None, help='用户名')
 @click.option('-o', "--order_id", default=None, help='订单id')
 @click.option('-s', "--server_ip", default=None, help='服务器ip')
-def export_all_proxy(d, username, order_id, server_ip, all):
+def export_all_proxy(d, username, order_id, server_ip):
     """
     导出所有代理
     """
