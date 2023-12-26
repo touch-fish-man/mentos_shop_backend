@@ -265,23 +265,10 @@ def check_proxy_fn(proxy):
 @cli.command()
 def check_all_proxy():
     """
-    检测所有代理是否可用，无效代理保存到 /opt/mentos_shop_backend/logs/invalid_proxy.txt
+    检测所有代理是否可用
     """
-    proxies = []
-    for i in Proxy.objects.all():
-        # 检测代理是否可用
-        proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
-        proxies.append(proxy_str)
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        results = executor.map(check_proxy_fn, proxies)
-    invalid_proxy = []
-    for proxy, result in track(zip(proxies, results), description="检测代理中...", total=len(proxies)):
-        if not result:
-            invalid_proxy.append(proxy)
-    with open("/opt/mentos_shop_backend/logs/invalid_proxy.txt", "w") as f:
-        f.write("\n".join(invalid_proxy))
-    print("检测完成: 无效代理已保存到 /opt/mentos_shop_backend/logs/invalid_proxy.txt")
-
+    from apps.proxy_server.tasks import check_proxy_status
+    check_proxy_status.delay()
 
 @cli.command()
 @click.option('--server_ip', default=None, help='服务器IP')
