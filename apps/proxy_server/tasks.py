@@ -1,290 +1,306 @@
-import asyncio
+#!/usr/bin/env python
 import datetime
-import json
-import logging
-import socket
-import threading
-import time
-from urllib.parse import urlparse
+import random
+import string
 
+import os
+import sys
 import requests
-import urllib3
-from aiohttp import ClientSession, ClientTimeout
-from aiohttp_proxy import ProxyConnector
-from celery import shared_task
-from django.core import management
-from django.utils import timezone
-from django.views.decorators.cache import cache_page
-from django_celery_beat.models import PeriodicTask, IntervalSchedule
+import time
+from concurrent.futures import ThreadPoolExecutor
 
-from apps.orders.services import create_proxy_by_id
-from apps.proxy_server.models import Proxy
-from apps.proxy_server.models import Server
+from init_env import *
+from rich.console import Console
+from rich.progress import track
+import ipaddress
+from apps.core.cache_lock import memcache_lock
+
+console = Console()
+from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
+    ServerGroupThrough, Cidr
+from apps.orders.models import Orders
+from apps.products.models import Variant, ProductTag, ProductTagRelation, Product
 from apps.utils.kaxy_handler import KaxyClient
-
-# List of URLs to be checked
-urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
-        "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
-URLS = ['http://www.google.com', "https://bing.com", "https://checkip.amazonaws.com"]
-netloc_models = {
-    "www.google.com": "google_delay",
-    "bing.com": "bing_delay",
-    "icanhazip.com": "icanhazip_delay",
-    "jsonip.com": "jsonip_delay",
-    "api.seeip.org": "seeip_delay",
-    "api.geoiplookup.net": "geoiplookup_delay",
-    "checkip.amazonaws.com": "amazon_delay",
-}
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-from django.core.cache import cache
+from apps.orders.services import create_proxy_by_id
+import click
+from apps.orders.tasks import delete_proxy_expired
 
 
-@shared_task(name='check_server_status')
-def check_server_status(faild_count=5):
-    """
-    检查服务器状态,每10分钟检查一次
-    """
-    servers = Server.objects.filter(faild_count__lt=faild_count).all()
-    faild_list = []
-    for server in servers:
-        try:
-            kaxy_client = KaxyClient(server.ip)
-            if kaxy_client.status:
-                server.server_status = 1
-                server.faild_count = 0
-            else:
-                server.server_status = 0
-                server.faild_count += 1
-                faild_list.append(server.ip)
-        except Exception as e:
-            server.server_status = 0
-            server.faild_count += 1
-            faild_list.append(server.ip)
-        print(server.ip, server.server_status)
-        server.save()
-        if server.faild_count >= 5:
-            # 服务器连续5次检查失败
-            pass
-    data = {
-        "faild_list": faild_list,
-        "status": 1
-    }
-    return json.dumps(data)
-
-
-@shared_task(name='reset_proxy')
-def reset_proxy_fn(order_id, username, server_ip):
-    ret_json = {}
-    logging.info("==========create_proxy_by_id {}==========".format(order_id))
-    delete_proxy_list = []
-    server_ip_username = Proxy.objects.filter(order_id=order_id).values_list('server_ip', 'username').distinct()
-    for server_ip, username in server_ip_username:
-        server_exists = Server.objects.filter(ip=server_ip).exists()
-        if not server_exists:
-            continue
-        kaxy_client = KaxyClient(server_ip)
-        kaxy_client.del_user(username)
-    re_create_ret, ret_proxy_list, msg = create_proxy_by_id(order_id)
-    if re_create_ret:
-        new_proxy = Proxy.objects.filter(username=username).all()
-        for p in new_proxy:
-            if p.id not in ret_proxy_list and len(ret_proxy_list) > 0:
-                p.delete()
-        ret_json['code'] = 200
-        ret_json['message'] = 'success'
-        ret_json['data'] = {}
-        ret_json['data']['delete_proxy_list'] = delete_proxy_list
-        ret_json['data']['order_id'] = order_id
-        ret_json['data']['re_create'] = re_create_ret
-        logging.info("==========create_proxy_by_id success==========")
-        return ret_json
-    else:
-        ret_json['code'] = 500
-        ret_json['message'] = msg
-        ret_json['data'] = {}
-        ret_json['data']['re_create'] = re_create_ret
-        ret_json['data']['order_id'] = order_id
-        logging.info("==========create_proxy_by_id faild==========")
-        return ret_json
-
-
-@shared_task(name='delete_proxy_by_id')
-def delete_proxy_by_id(id):
+@click.group()
+def cli():
     pass
 
 
-lock = threading.Lock()
+def is_ip_in_network(ip_str, network_str):
+    ip = ipaddress.ip_address(ip_str)
+    network = ipaddress.ip_network(network_str)
+    return ip in network
 
 
-@cache_page(60 * 60 * 2)
-def is_port_open(proxy_port):
+@cli.command()
+def fix_stock():
     """
-    获取端口状态
+    修复库存
     """
-    ip, port = proxy_port.split(':')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(1)  # 设置超时，例如1秒
-    try:
-        s.connect((ip, port))
-        s.close()
-        return True
-    except socket.error:
-        return False
+    for xxx in ProxyStock.objects.all():
+        ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()
+        if xxx.subnets:
+            subnets = xxx.subnets.split(",")
+            for p in ppp:
+                if p.subnet in subnets:
+                    subnets.remove(p.subnet)
+            subnets.sort()
+            cart_stock = len(subnets)
+            xxx.available_subnets = ",".join(subnets)
+            # print(xxx.available_subnets)
+            if xxx.cart_stock != cart_stock:
+                print("id: {} fix stock: {} -> {}".format(xxx.id, xxx.cart_stock, cart_stock))
+                xxx.cart_stock = cart_stock
+                xxx.available_subnets = ",".join(subnets)
+                xxx.ip_stock = cart_stock * xxx.cart_step
+                xxx.save()
+    for x in Variant.objects.all():
+        x.save()
 
 
-def create_proxy_task(order_id, username, server_ip):
-    # 创建一次性celery任务，立即执行，执行完毕后删除
-    interval = IntervalSchedule.objects.get_or_create(every=1, period=IntervalSchedule.SECONDS)[0]
-    # 删除已有且已过期的任务
-    PeriodicTask.objects.filter(name=f'重置代理_{order_id}', one_off=True, expires__lte=timezone.now()).delete()
-
-    PeriodicTask.objects.get_or_create(
-        name=f'重置代理_{order_id}',
-        task='reset_proxy',
-        args=json.dumps([order_id, username, server_ip]),
-        interval=interval,
-        one_off=True,
-        expires=timezone.now() + datetime.timedelta(seconds=70)
-    )
-
-
-check_site_list = {
-    "amazon": "https://checkip.amazonaws.com",
-    # "bing": "https://www.bing.com",
-}
+@cli.command()
+def clean_stock():
+    """
+    清理无效库存条目
+    """
+    used_stock_ids = []
+    for va in Variant.objects.all():
+        va.get_stock()
+        used_stock_ids.extend(va.stock_ids)
+    for xxx in ProxyStock.objects.all():
+        ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()  # 没有发货数据
+        if not ppp and not used_stock_ids.__contains__(xxx.id):
+            print(xxx.id)
+            xxx.delete()
 
 
-def check_proxy(proxy, id):
-    proxy_connect_faild = False
+def get_cidr(server_group):
+    cidr_ids = []
+    if server_group:
 
-    def check_site(url):
-        try:
-            s_time = time.time()
-            response = requests.get(url, proxies=proxies, timeout=5, verify=False)
-            delay = int((time.time() - s_time) * 1000)
-            return response.status_code == 200, delay
-        except requests.exceptions.ProxyError:
-            proxy_connect_faild = True
-            return False, 99999
-        except Exception as e:
-            print(f"Error checking {url}: {e}")  # Replace with your preferred logging
-            return False, 99999
-
-    proxies = {
-        'http': f'http://{proxy}',
-        'https': f'http://{proxy}'
-    }
-
-    proxy_obj = Proxy.objects.filter(id=id).first()
-    if proxy_obj:
-        overall_status = False
-        for site_name, site_url in check_site_list.items():
-            if not proxy_connect_faild:
-                status, delay = check_site(site_url)
-            else:
-                status, delay = False, 99999
-            if hasattr(proxy_obj, f"{site_name}_delay"):
-                setattr(proxy_obj, f"{site_name}_delay", delay)  # Dynamically set the delay attribute
-            if status:
-                overall_status = True
-        proxy_obj.status = overall_status
-        proxy_obj.save()
-
-    return proxy, overall_status, id, delay
+        server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
+                                                                                                    flat=True)
+        cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
+        ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('ip_count', flat=True)
+        return cidr_ids, ip_count
+    else:
+        return cidr_ids, []
 
 
-def read_proxies(proxy_file, batch_size=100):
-    with open(proxy_file, 'r') as file:
-        batch = []
-        for line in file:
-            if line.strip():
-                batch.append(line.strip())
-                if len(batch) == batch_size:
-                    yield batch
-                    batch = []
-        if batch:
-            yield batch
+def fix_cidr():
+    # 查询所有产品
+    for variant_obj in Variant.objects.all():
+        servers = variant_obj.server_group.servers.all()
+        acl_group = variant_obj.acl_group.id
 
-
-async def fetch_using_proxy(url, proxy):
-    try:
-        proxy_url = urlparse(proxy)
-        connector = ProxyConnector.from_url(proxy)
-        start_time = time.perf_counter()
-        async with ClientSession(connector=connector, timeout=ClientTimeout(total=5)) as session:
-            async with session.get(url, ssl=False) as response:
-                await response.read()
-                latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
-                # logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
-                if response.ok and response.status == 200:
-                    return url, proxy, latency, True
+        for server in servers:
+            cidr_info = server.get_cidr_info()
+            for cidr_i in cidr_info:
+                ip_stock = cidr_i.get('ip_count')
+                if not ProxyStock.objects.filter(variant_id=variant_obj.id, acl_group_id=acl_group,
+                                                 cidr_id=cidr_i['id']).exists():
+                    cart_stock = ip_stock // variant_obj.cart_step
+                    porxy_stock = ProxyStock.objects.create(cidr_id=cidr_i['id'], acl_group_id=acl_group,
+                                                            ip_stock=ip_stock, variant_id=variant_obj.id,
+                                                            cart_step=variant_obj.cart_step,
+                                                            cart_stock=cart_stock)
+                    subnets = porxy_stock.gen_subnets()
+                    porxy_stock.subnets = ",".join(subnets)
+                    porxy_stock.available_subnets = porxy_stock.subnets
+                    porxy_stock.save()
+                    print("创建库存", porxy_stock.id)
                 else:
-                    return url, proxy, 9999999, False
-    except Exception as e:
-        logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
-        latency = 9999999
-        return url, proxy, latency, False
+                    porxy_stock = ProxyStock.objects.filter(variant_id=variant_obj.id, acl_group_id=acl_group,
+                                                            cidr_id=cidr_i['id']).first()
+                    if not porxy_stock.subnets:
+                        subnets = porxy_stock.gen_subnets()
+                        porxy_stock.subnets = ",".join(subnets)
+                        porxy_stock.available_subnets = porxy_stock.subnets
+                        porxy_stock.save()
+                        print("更新库存", porxy_stock.id)
+        variant_obj.save()
 
 
-def get_proxies(order_id=None, id=None, status=None):
-    filter_dict = {}
-    if order_id is not None:
-        filter_dict['order_id'] = order_id
-    if id is not None:
-        filter_dict['id'] = id
-    if status is not None:
-        filter_dict['status'] = status
-    proxies = Proxy.objects.filter(**filter_dict).all()
-    proxies_dict = {f'http://{p.get_proxy_str()}': p.id for p in proxies}
-    if order_id ==None and id==None and status==None:
-        proxies_list = sorted(list(proxies_dict.keys()))
-        with open('/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt', 'w') as f:
-            f.write('\n'.join(proxies_dict.keys()))
-    return proxies_dict
-
-
-async def check_proxies_from_db(order_id):
-    proxies = get_proxies(order_id=order_id)
-    tasks = [fetch_using_proxy(url, proxy) for proxy in proxies.keys() for url in URLS]
-    results = await asyncio.gather(*tasks)
-    fail_list = []
-    for url, proxy, latency, success in results:
-        id=proxies.get(proxy)
-        if success:
-            proxy_obj = Proxy.objects.filter(id=id).first()
-            if proxy_obj:
-                model_name = netloc_models.get(urlparse(url).netloc, None)
-                if model_name and hasattr(proxy_obj, model_name):
-                    setattr(proxy_obj, model_name, latency)
-                    proxy_obj.save()
+def fix_product():
+    # 合并商品标签关系
+    tag_dict = {}
+    for product_tag in ProductTag.objects.all():
+        if product_tag.tag_name not in tag_dict:
+            tag_dict[product_tag.tag_name] = []
+            tag_dict[product_tag.tag_name].append(product_tag.id)
         else:
-            fail_list.append([id,url, proxy, latency, success])
-    return fail_list
+            tag_dict[product_tag.tag_name].append(product_tag.id)
+            tag_dict[product_tag.tag_name].sort()
+    for relation in ProductTagRelation.objects.all():
+        # 合并商品标签关系
+        for tag_k, tag_v in tag_dict.items():
+            if relation.product_tag_id in tag_v[1:]:
+                relation.product_tag_id = tag_v[0]
+                relation.save()
+                print("合并商品标签关系", relation.id)
+    # 删除多余商品标签
+    for tag_k, tag_v in tag_dict.items():
+        for tag_id in tag_v[1:]:
+            ProductTag.objects.filter(id=tag_id).delete()
+            print("删除多余商品标签", tag_id)
 
 
-@shared_task(name='check_proxy_status')
-def check_proxy_status(order_id=None):
+@cli.command()
+def find_repeat():
     """
-    检查代理状态,每4个小时检查一次
+    查找重复发货代理
     """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    result = loop.run_until_complete(check_proxies_from_db(order_id))
-    return {"fail_list": result, "status": 1}
+    cnt = 0
+    xxx = {}
+    order_id = set()
+    order_ = set()
+    for ppp in Proxy.objects.all():
+        key = "-".join((str(ppp.ip), str(ppp.ip_stock_id)))
+        if key in xxx:
+            print(ppp.id, ppp.subnet, ppp.ip_stock_id, ppp.order_id, xxx[key])
+            order_.add((ppp.order_id, xxx[key]))
+            order_id.add(ppp.order_id)
+            cnt += 1
+        else:
+            xxx[key] = ppp.order_id
+    print("重复发货代理数量", cnt)
+    order_ = list(order_)
+    # 根据第二个元素排序
+    order_.sort(key=lambda x: x[1])
+    for xi in order_:
+        print(xi)
 
 
-@shared_task(name="cleanup_sessions")
-def cleanup():
-    """Cleanup expired sessions by using Django management command."""
-    management.call_command("clearsessions", verbosity=0)
-
-
-@shared_task(name='flush_access_log')
-def clear_access_log():
+@cli.command()
+def proxy_compare_order():
     """
-    清理访问日志,每天凌晨1点清理
+    检查发货代理数量和订单数量是否一致
     """
-    for s in Server.objects.all():
+    cnt = 0
+    xxx = {}
+    order_id = set()
+    order_ = set()
+    for ppp in Proxy.objects.all():
+        if ppp.order_id in xxx:
+            xxx[ppp.order_id] += 1
+        else:
+            xxx[ppp.order_id] = 1
+        if not ppp.subnet:
+            for s in ProxyStock.objects.filter(id=ppp.ip_stock_id).first().gen_subnets():
+                if is_ip_in_network(ppp.ip, s):
+                    ppp.subnet = s
+                    ppp.save()
+                    break
+    for ooo in Orders.objects.all():
+        if ooo.id in xxx:
+            if xxx[ooo.id] != ooo.proxy_num:
+                ppp = Proxy.objects.filter(order_id=ooo.id).first()
+                username = ppp.username
+                server_ip = ppp.server_ip
+                # print(ooo.id, ooo.proxy_num, xxx[ooo.id], username, server_ip)
+                print("订单id:{} 应发货代理数量:{} 实际发货代理数量:{} 用户名:{} 服务器ip:{}".format(ooo.id,
+                                                                                                     ooo.proxy_num,
+                                                                                                     xxx[ooo.id],
+                                                                                                     username,
+                                                                                                     server_ip))
+
+
+@cli.command()
+@click.option('-p', '--proxy', help='代理，格式：username:password@ip:port')
+def check_proxy(proxy):
+    """
+    检测代理是否可用 代理格式：username:password@ip:port
+    """
+    status = False
+    try:
+        proxies = {
+            'http': f'http://{proxy}',
+            'https': f'http://{proxy}'
+        }
+        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
+        if response.status_code == 200:
+            status = True
+        else:
+            status = False
+    except Exception as e:
+        print(e)
+        status = False
+    if status:
+        print(f"{proxy} 可用")
+    else:
+        print(f"{proxy} 不可用")
+    return status
+
+
+def check_proxy_fn(proxy):
+    """
+    检测代理是否可用 代理格式：username:password@ip:port
+    """
+    status = False
+    try:
+        proxies = {
+            'http': f'http://{proxy}',
+            'https': f'http://{proxy}'
+        }
+        response = requests.get('https://checkip.amazonaws.com', proxies=proxies, timeout=5)
+        if response.status_code == 200:
+            status = True
+        else:
+            status = False
+    except Exception as e:
+        print(e)
+        status = False
+    if status:
+        print(f"{proxy} 可用")
+    else:
+        print(f"{proxy} 不可用")
+    return status
+
+
+@cli.command()
+def check_all_proxy():
+    """
+    检测所有代理是否可用
+    """
+    from apps.proxy_server.tasks import check_proxy_status
+    check_proxy_status.delay()
+
+@cli.command()
+@click.option('--server_ip', default=None, help='服务器IP')
+def change_proxy(server_ip):
+    """
+    修改指定服务器的失效代理
+    """
+    kc = KaxyClient(server_ip)
+    user_dict = {}
+    with console.status("[bold green]修改代理中...", spinner="monkey"):
+        for x in Proxy.objects.filter(server_ip=server_ip, status=0).all():
+            if x.username not in user_dict:
+                user_dict[x.username] = set()
+            user_dict[x.username].add(x.subnet)
+        for u, sub_ in user_dict.items():
+            need_update = set()
+            for s in sub_:
+                resp_json = kc.create_user_by_prefix(u, s)
+                for proxy_i in resp_json["data"]["proxy_str"]:
+                    ip, port, user, password = proxy_i.split(":")
+                    need_update.add((ip, user, password))
+            for ip, user, password in need_update:
+                Proxy.objects.filter(username=user, ip=ip).update(password=password, status=1)
+                print(ip, user, password)
+
+
+@cli.command()
+def flush_access_cache():
+    """
+    清理访问日志
+    """
+    for s in track(Server.objects.all(), description="清理访问日志中..."):
         try:
             s_c = KaxyClient(s.ip)
             print(s_c.flush_access_log().text)
@@ -292,24 +308,158 @@ def clear_access_log():
             pass
 
 
-@shared_task(name='delete_user_from_server')
-def delete_user_from_server(server_ip=None, username=None):
-    if server_ip and username:
-        if Server.objects.filter(ip=server_ip, server_status=1).exists():  # 服务器在线
-            try:
-                kaxy_client = KaxyClient(server_ip)
-                if kaxy_client.status:
-                    kaxy_client.del_user(username)
-                    kaxy_client.del_acl(username)
-            except Exception as e:
-                pass
-        # cache.delete("del_user_list", server_ip + '_' + username)
+@cli.command()
+def check_server():
+    """
+    检查服务器状态
+    """
+    from apps.proxy_server.tasks import check_server_status, delete_user_from_server
+    check_server_status.apply()
+
+
+@cli.command()
+def delete_expired():
+    """
+    删除过期代理
+    """
+    delete_proxy_expired()
+
+
+@cli.command()
+@click.option('--detial', "-d", is_flag=True, help='是否打印详情')
+def check_order_proxy(detial):
+    """
+    检查订单代理是否可用
+    """
+    # 获取有效订单
+    with console.status("[bold green]查询订单代理中...", spinner="dots"):
+        orders = Orders.get_vaild_orders()
+    csv_data = []
+    for order in track(orders):
+        get_proxies_failed = order.get_proxies_failed()
+        # print("订单id,代理失效数量,代理总数量,用户名")
+        if get_proxies_failed > 0:
+            # print("{},{},{},{}".format(order.id, get_proxies_failed, order.proxy_num, order.username))
+            csv_data_line = "{},{},{},{}".format(order.id, get_proxies_failed, order.proxy_num, order.username)
+            csv_data.append(csv_data_line)
+            if detial:
+                order.pretty_print({"代理失效数量": get_proxies_failed})
+    if len(csv_data) > 0:
+        csv_data.insert(0, "订单id,代理失效数量,代理总数量,用户名")
+        with open("/opt/mentos_shop_backend/logs/check_order_proxy.csv", "w") as f:
+            f.write("\n".join(csv_data))
+            print("检测完成: 结果已保存到 /opt/mentos_shop_backend/logs/check_order_proxy.csv")
+
+
+@cli.command()
+@click.option('--log_type', default="server",
+              help='日志类型 server:服务器日志 error:错误日志 access:访问日志 celery:celery日志')
+def logs(log_type="server"):
+    """
+    显示日志
+    """
+    if log_type == "server":
+        with open("logs/server.log", "r") as f:
+            data = f.readlines()
+    elif log_type == "error":
+        with open("logs/error.log", "r") as f:
+            data = f.readlines()
+    elif log_type == "access":
+        with open("logs/access.log", "r") as f:
+            data = f.readlines()
+    elif log_type == "celery":
+        with open("logs/celery_work.log", "r") as f:
+            data = f.readlines()
+    print("".join(data[-500:]))
+
+
+@cli.command()
+@click.option('-d', default=0, help='是否去重')
+@click.option('-s','--status', default=None ,help='状态')
+@click.option('-u', "--username", default=None, help='用户名')
+@click.option('-o', "--order_id", default=None, help='订单id')
+@click.option('-ip', "--server_ip", default=None, help='服务器ip')
+def export_all_proxy(d, username, order_id, server_ip,status):
+    """
+    导出所有代理
+    """
+    proxies = []
+    proxies_2 = []
+    ip = {}
+    filter = {}
+    if status is not None:
+        filter["status"] = status
+    if username is not None:
+        filter["username"] = username
+    if order_id is not None:
+        filter["order_id"] = order_id
+    if server_ip is not None:
+        filter["server_ip"] = server_ip
+    for i in Proxy.objects.filter(**filter).all():
+        # 检测代理是否可用
+        if d == 0:
+            proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
+            proxy_str_2 = f"{i.ip}:{i.port}:{i.username}:{i.password}"
+            proxies.append(proxy_str)
+            proxies_2.append(proxy_str_2)
+        else:
+            if i.ip not in ip:
+                ip[i.ip] = 1
+                proxy_str = f"{i.username}:{i.password}@{i.ip}:{i.port}"
+                proxy_str_2 = f"{i.ip}:{i.port}:{i.username}:{i.password}"
+                proxies.append(proxy_str)
+                proxies_2.append(proxy_str_2)
+    with open("/opt/mentos_shop_backend/logs/user_pwd_ip_port.txt", "w") as f:
+        f.write("\n".join(proxies))
+    with open("/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt", "w") as f:
+        proxies_1 = [f"http://{i}" for i in proxies]
+        f.write("\n".join(sorted(proxies_1)))
+    with open("/opt/mentos_shop_backend/logs/ip_port_user_pwd.txt", "w") as f:
+        f.write("\n".join(proxies_2))
+
+
+@cli.command()
+def sql():
+    """
+    进入数据库
+    """
+    os.system("python /opt/mentos_shop_backend/manage.py dbshell")
+
+
+@cli.command()
+@click.option('--url', default=None, help='url')
+@click.option('--proxy', default=None, help='代理')
+def check_delay(url, proxy):
+    """
+    检查延迟
+    """
+    if proxy:
+        proxy = ["http://" + proxy]
     else:
-        del_user_list = cache.hgetall("del_user_list")
-        for server_user, cnt in del_user_list.items():
-            server, user = server_user.split('_')
-            if Server.objects.filter(ip=server_ip, server_status=1).exists():  # 服务器在线
-                kaxy_client = KaxyClient(server)
-                kaxy_client.del_user(user)
-                kaxy_client.del_acl(user)
-        cache.delete("del_user_list")
+        proxy_objs = Proxy.objects.filter(status=1).all()
+        proxy = []
+        for proxy_obj in proxy_objs:
+            proxy.append("http://" + proxy_obj.get_proxy_str())
+    if url:
+        try:
+            for p in proxy:
+                resp = requests.get(url, proxies={"http": p})
+                print(f"{p} {resp.elapsed.total_seconds()}")
+        except Exception as e:
+            print(f"{p} {e}")
+    else:
+        print("请输入url")
+
+
+@cli.command()
+def update():
+    """
+    更新代码重新部署
+    """
+    os.system("git pull")
+    os.system("supervisorctl restart all")
+
+
+cli_all = click.CommandCollection(sources=[cli])
+if __name__ == '__main__':
+    cli_all()
