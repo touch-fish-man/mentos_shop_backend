@@ -16,7 +16,6 @@ import ipaddress
 from apps.core.cache_lock import memcache_lock
 
 console = Console()
-from apps.proxy_server.tasks import create_proxy_task
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
 from apps.orders.models import Orders
