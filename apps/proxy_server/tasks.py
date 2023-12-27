@@ -16,7 +16,7 @@ from django.core import management
 from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
-
+import os
 from apps.orders.services import create_proxy_by_id
 from apps.proxy_server.models import Proxy
 from apps.proxy_server.models import Server
