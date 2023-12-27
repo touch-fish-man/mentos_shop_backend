@@ -211,7 +211,7 @@ async def fetch_using_proxy(url, proxy):
         proxy_url = urlparse(proxy)
         connector = ProxyConnector.from_url(proxy)
         start_time = time.perf_counter()
-        async with ClientSession(connector=connector, timeout=ClientTimeout(total=30)) as session:
+        async with ClientSession(connector=connector, timeout=ClientTimeout(total=15)) as session:
             async with session.get(url, ssl=False) as response:
                 await response.read()
                 latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
