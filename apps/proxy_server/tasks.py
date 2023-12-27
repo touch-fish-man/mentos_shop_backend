@@ -260,11 +260,10 @@ async def check_proxies_from_db(order_id):
     success_updates = {}  # 存储成功代理的更新数据
     for url, proxy, latency, success in results:
         id = proxies.get(proxy)
-        if success:
-            model_name = netloc_models.get(urlparse(url).netloc, None)
-            if model_name:
-                success_updates.setdefault(id, []).append((model_name, latency))
-        else:
+        model_name = netloc_models.get(urlparse(url).netloc, None)
+        if model_name:
+            success_updates.setdefault(id, []).append((model_name, latency))
+        if not success:
             fail_list.add(id)
     fail_list = sorted(list(fail_list))
     if fail_list:
