@@ -22,7 +22,7 @@ from apps.proxy_server.models import Proxy
 from apps.proxy_server.models import Server
 from apps.utils.kaxy_handler import KaxyClient
 import certifi
-
+os.environ['SSL_CERT_FILE'] = certifi.where()
 
 # List of URLs to be checked
 urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
@@ -213,9 +213,9 @@ async def fetch_using_proxy(url, proxy):
         proxy_url = urlparse(proxy)
         connector = ProxyConnector.from_url(proxy)
         start_time = time.perf_counter()
-        async with ClientSession(connector=connector, timeout=ClientTimeout(total=5*60)) as session:
-            sslcontext = ssl.create_default_context(cafile=certifi.where())
-            async with session.get(url, ssl=sslcontext) as response:
+        async with ClientSession(connector=connector, timeout=ClientTimeout(total=60)) as session:
+            # sslcontext = ssl.create_default_context(cafile=certifi.where())
+            async with session.get(url) as response:
                 await response.read()
                 latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
                 # logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
