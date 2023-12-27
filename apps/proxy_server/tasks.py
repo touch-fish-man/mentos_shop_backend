@@ -245,11 +245,15 @@ def get_proxies(order_id=None, id=None, status=None):
             f.write('\n'.join(proxies_list))
     return proxies_dict
 
-
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)
+    semaphore = asyncio.Semaphore(100)
     # os.system("/opt/mubeng_0.14.1_linux_amd64 -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt")
-    tasks = [fetch_using_proxy(url, proxy) for proxy in proxies.keys() for url in URLS]
+    async def bounded_fetch(url, proxy):
+        async with semaphore:
+            return await fetch_using_proxy(url, proxy)
+
+    tasks = [bounded_fetch(url, proxy) for proxy in proxies.keys() for url in URLS]
     results = await asyncio.gather(*tasks)
     fail_list = set()
     total_count=len(proxies)
