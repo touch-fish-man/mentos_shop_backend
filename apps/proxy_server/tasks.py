@@ -248,18 +248,26 @@ async def check_proxies_from_db(order_id):
     tasks = [fetch_using_proxy(url, proxy) for proxy in proxies.keys() for url in URLS]
     results = await asyncio.gather(*tasks)
     fail_list = set()
+    success_updates = {}  # 存储成功代理的更新数据
     for url, proxy, latency, success in results:
-        id=proxies.get(proxy)
+        id = proxies.get(proxy)
         if success:
-            proxy_obj = Proxy.objects.filter(id=id).first()
-            if proxy_obj:
-                model_name = netloc_models.get(urlparse(url).netloc, None)
-                if model_name and hasattr(proxy_obj, model_name):
-                    setattr(proxy_obj, model_name, latency)
-                    proxy_obj.save()
+            model_name = netloc_models.get(urlparse(url).netloc, None)
+            if model_name:
+                success_updates.setdefault(id, []).append((model_name, latency))
         else:
             fail_list.add(id)
     fail_list = sorted(list(fail_list))
+    if fail_list:
+        Proxy.objects.filter(id__in=fail_list).update(status=False)
+    # 批量更新成功的代理
+    for id, updates in success_updates.items():
+        proxy_obj = Proxy.objects.filter(id=id).first()
+        if proxy_obj:
+            for model_name, latency in updates:
+                if hasattr(proxy_obj, model_name):
+                    setattr(proxy_obj, model_name, latency)
+            proxy_obj.save()
     return fail_list
 
 
