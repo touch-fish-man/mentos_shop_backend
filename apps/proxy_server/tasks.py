@@ -27,7 +27,7 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 # List of URLs to be checked
 urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
         "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
-URLS = ['https://www.google.com', "https://bing.com", "https://checkip.amazonaws.com"]
+URLS = ['https://www.google.com', "https://bing.com", "https://checkip.amazonaws.com",'http://httpbin.org/get']
 netloc_models = {
     "www.google.com": "google_delay",
     "bing.com": "bing_delay",
@@ -36,6 +36,7 @@ netloc_models = {
     "api.seeip.org": "seeip_delay",
     "api.geoiplookup.net": "geoiplookup_delay",
     "checkip.amazonaws.com": "amazon_delay",
+    "httpbin.org": "httpbin_delay",
 }
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from django.core.cache import cache
@@ -213,7 +214,7 @@ async def fetch_using_proxy(url, proxy):
         proxy_url = urlparse(proxy)
         connector = ProxyConnector.from_url(proxy)
         start_time = time.perf_counter()
-        async with ClientSession(connector=connector, timeout=ClientTimeout(total=30)) as session:
+        async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:
             sslcontext = ssl.create_default_context(cafile=certifi.where())
             async with session.get(url,ssl=sslcontext) as response:
                 await response.read()
@@ -266,8 +267,8 @@ async def check_proxies_from_db(order_id):
         if not success:
             fail_list.add(id)
     fail_list = sorted(list(fail_list))
-    if fail_list:
-        Proxy.objects.filter(id__in=fail_list).update(status=False)
+    # if fail_list:
+    #     Proxy.objects.filter(id__in=fail_list).update(status=False)
     # 批量更新成功的代理
     for id, updates in success_updates.items():
         proxy_obj = Proxy.objects.filter(id=id).first()

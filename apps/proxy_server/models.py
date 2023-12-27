@@ -311,7 +311,8 @@ class Proxy(BaseModel):
     status = models.BooleanField(default=True, verbose_name='状态')  # 用于判断是否有效
     bing_delay = models.IntegerField(blank=True, null=True, verbose_name='bing延迟')
     amazon_delay = models.IntegerField(blank=True, null=True, verbose_name='amazon延迟')
-    google_delay = models.IntegerField(blank=True, null=True, verbose_name='amazon延迟')
+    google_delay = models.IntegerField(blank=True, null=True, verbose_name='google延迟')
+    httpbin_delay = models.IntegerField(blank=True, null=True, verbose_name='httpbin延迟')
 
     class Meta:
         db_table = 'proxy'
@@ -329,7 +330,7 @@ class Proxy(BaseModel):
     def get_proxy_str(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
     def save( self, force_insert=False, force_update=False, using=None, update_fields=None):
-        if self.bing_delay == self.amazon_delay == self.google_delay == 99999:
+        if self.httpbin_delay == 99999:
             self.status = False
         else:
             self.status = True
