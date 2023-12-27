@@ -6,7 +6,7 @@ import socket
 import threading
 import time
 from urllib.parse import urlparse
-
+import ssl
 import requests
 import urllib3
 from aiohttp import ClientSession, ClientTimeout
@@ -27,7 +27,7 @@ import certifi
 # List of URLs to be checked
 urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
         "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
-URLS = ['http://www.google.com', "http://bing.com", "http://checkip.amazonaws.com"]
+URLS = ['https://www.google.com', "https://bing.com", "https://checkip.amazonaws.com"]
 netloc_models = {
     "www.google.com": "google_delay",
     "bing.com": "bing_delay",
