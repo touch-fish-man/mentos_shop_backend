@@ -239,7 +239,7 @@ def get_proxies(order_id=None, id=None, status=None):
     if order_id ==None and id==None and status==None:
         proxies_list = sorted(list(proxies_dict.keys()))
         with open('/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt', 'w') as f:
-            f.write('\n'.join(proxies_dict.keys()))
+            f.write('\n'.join(proxies_list))
     return proxies_dict
 
 
