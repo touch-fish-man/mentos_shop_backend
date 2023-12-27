@@ -248,6 +248,7 @@ async def check_proxies_from_db(order_id):
     tasks = [fetch_using_proxy(url, proxy) for proxy in proxies.keys() for url in URLS]
     results = await asyncio.gather(*tasks)
     fail_list = set()
+    total_count=len(proxies)
     success_updates = {}  # 存储成功代理的更新数据
     for url, proxy, latency, success in results:
         id = proxies.get(proxy)
@@ -268,7 +269,7 @@ async def check_proxies_from_db(order_id):
                 if hasattr(proxy_obj, model_name):
                     setattr(proxy_obj, model_name, latency)
             proxy_obj.save()
-    return fail_list
+    return fail_list,total_count
 
 
 @shared_task(name='check_proxy_status')
@@ -279,11 +280,11 @@ def check_proxy_status(order_id=None):
     s=time.time()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    result = loop.run_until_complete(check_proxies_from_db(order_id))
+    fail_list,total_count = loop.run_until_complete(check_proxies_from_db(order_id))
     loop.close()
     e=time.time()
-    print(f"check_proxy_status cost time: {e-s}")
-    return {"fail_list": result, "status": 1,"cost_time":e-s}
+    print(f"检查代理状态,总数:{total_count},失败数:{len(fail_list)},耗时:{e-s}s")
+    return {"total_count":total_count,"status": 1,"cost_time":e-s,"fail_list": fail_list}
 
 
 @shared_task(name="cleanup_sessions")
