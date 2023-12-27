@@ -167,7 +167,7 @@ def check_proxy(proxy, id):
             proxy_connect_faild = True
             return False, 99999
         except Exception as e:
-            print(f"Error checking {url}: {e}")  # Replace with your preferred logging
+            logging.exception(f"Error checking {url}: {e}")  # Replace with your preferred logging
             return False, 99999
 
     proxies = {
@@ -221,7 +221,7 @@ async def fetch_using_proxy(url, proxy):
                 else:
                     return url, proxy, 9999999, False
     except Exception as e:
-        logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
+        logging.exception(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
 
