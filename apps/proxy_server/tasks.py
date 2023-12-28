@@ -233,9 +233,9 @@ async def fetch_using_proxy(url, proxy):
         logging.exception(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
-    # finally:
-    #     # 确保在结束时关闭连接器
-    #     await connector.close()
+    finally:
+        # 确保在结束时关闭连接器
+        await connector.close()
 
 
 def get_proxies(order_id=None, id=None, status=None):
