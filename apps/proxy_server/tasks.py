@@ -229,9 +229,9 @@ async def fetch_using_proxy(url, proxy):
         logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
-    finally:
-        # 确保在结束时关闭连接器
-        await connector.close()
+    # finally:
+    #     # 确保在结束时关闭连接器
+    #     await connector.close()
 
 
 def get_proxies(order_id=None, id=None, status=None):
@@ -256,7 +256,7 @@ def get_proxies(order_id=None, id=None, status=None):
 
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)
-    semaphore = asyncio.Semaphore(400)
+    semaphore = asyncio.Semaphore(800)
     # os.system("/opt/mubeng_0.14.1_linux_amd64 -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt")
     async def bounded_fetch(url, proxy):
         async with semaphore:
