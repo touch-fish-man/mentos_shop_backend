@@ -22,7 +22,7 @@ from apps.proxy_server.models import Proxy
 from apps.proxy_server.models import Server
 from apps.utils.kaxy_handler import KaxyClient
 import certifi
-from rich.progress import track
+from rich.console import Console
 os.environ['SSL_CERT_FILE'] = certifi.where()
 
 # List of URLs to be checked
@@ -256,17 +256,14 @@ def get_proxies(order_id=None, id=None, status=None):
 
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)
-    semaphore = asyncio.Semaphore(800)
+    semaphore = asyncio.Semaphore(200)
     # os.system("/opt/mubeng_0.14.1_linux_amd64 -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt")
     async def bounded_fetch(url, proxy):
         async with semaphore:
             return await fetch_using_proxy(url, proxy)
 
     tasks = [bounded_fetch(url, proxy) for proxy in proxies.keys() for url in URLS]
-    results = []
-    for task in track(asyncio.as_completed(tasks), total=len(tasks), description="检查代理中..."):
-        result = await task
-        results.append(result)
+    results = await asyncio.gather(*tasks)
     fail_list = set()
     total_count=len(proxies)
     success_updates = {}  # 存储成功代理的更新数据
