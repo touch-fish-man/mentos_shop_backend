@@ -273,7 +273,7 @@ class AsyncCounter:
             return self.count
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)  # 假设这是您之前定义的函数
-    semaphore = asyncio.Semaphore(500)
+    semaphore = asyncio.Semaphore(1000)
     fail_list = set()
     success_updates = {}
     total_count = len(proxies)
@@ -303,7 +303,7 @@ async def check_proxies_from_db(order_id):
                 success_updates[id].update({model_name: latency})
                 if len(success_updates[id]) == len(URLS):
                     Proxy.objects.filter(id=id).update(**success_updates[id])
-                    logging.info(f"更新代理:{id} {success_updates[id]}")
+                    # logging.info(f"更新代理:{id} {success_updates[id]}")
                     success_updates.pop(id)
             if not success:
                 fail_list.add(id)
