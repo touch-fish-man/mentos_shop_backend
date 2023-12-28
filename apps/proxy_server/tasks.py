@@ -284,7 +284,7 @@ async def check_proxies_from_db(order_id):
             result = await fetch_using_proxy(url, proxy)
             current_count = await counter.increment()
             progress.update(task_id, advance=1)
-            if current_count % 500 == 0:
+            if current_count/total*100%10==0:
                 logging.info(f"检查代理进度:{current_count}/{total}")
             return result
 
