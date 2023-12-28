@@ -278,6 +278,7 @@ async def check_proxies_from_db(order_id):
         model_name = netloc_models.get(urlparse(url).netloc, None)
         if model_name:
             success_updates[id]=success_updates.get(id,{}).update({model_name:latency})
+            logging.info(success_updates[id])
             if len(success_updates[id])==len(URLS):
                 logging.info(f"代理{proxy}检查成功")
                 Proxy.objects.filter(id=id).update(**success_updates[id])
