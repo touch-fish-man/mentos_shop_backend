@@ -30,10 +30,10 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 # List of URLs to be checked
 urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
         "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
-URLS = ['https://www.google.com', "https://bing.com", "https://checkip.amazonaws.com",'http://httpbin.org/get']
+URLS = ['https://www.google.com', "https://global.bing.com", "https://checkip.amazonaws.com",'http://httpbin.org/get']
 netloc_models = {
     "www.google.com": "google_delay",
-    "bing.com": "bing_delay",
+    "global.bing.com": "bing_delay",
     "icanhazip.com": "icanhazip_delay",
     "jsonip.com": "jsonip_delay",
     "api.seeip.org": "seeip_delay",
@@ -273,7 +273,7 @@ class AsyncCounter:
             return self.count
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)  # 假设这是您之前定义的函数
-    semaphore = asyncio.Semaphore(500)
+    semaphore = asyncio.Semaphore(800)
     fail_list = set()
     success_updates = {}
     total_count = len(proxies)
