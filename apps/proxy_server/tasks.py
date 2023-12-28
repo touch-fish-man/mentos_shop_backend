@@ -214,6 +214,8 @@ sslcontext = ssl.create_default_context(cafile=certifi.where())
 async def fetch_using_proxy(url, proxy):
     proxy_url = urlparse(proxy)
     connector = ProxyConnector.from_url(proxy)
+    if ".255:" in proxy:
+        return url, proxy, 9999999, False
     try:
         start_time = time.perf_counter()
         async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:  
@@ -280,6 +282,8 @@ async def check_proxies_from_db(order_id):
                 logging.info(f"代理{proxy}检查成功")
                 Proxy.objects.filter(id=id).update(**success_updates[id])
                 success_updates.pop(id)
+        else:
+            logging.info(urlparse(url).netloc)
         if not success:
             fail_list.add(id)
     fail_list = sorted(list(fail_list))
@@ -291,6 +295,7 @@ def check_proxy_status(order_id=None):
     """
     检查代理状态,每4个小时检查一次
     """
+    logging.info("==========check_proxy_status==========")
     s=time.time()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
