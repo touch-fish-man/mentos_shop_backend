@@ -220,7 +220,7 @@ async def fetch_using_proxy(url, proxy):
             async with session.get(url,ssl=sslcontext) as response:
                 await response.read()
                 latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
-                # logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
+                logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
                 if response.ok and response.status == 200:
                     return url, proxy, latency, True
                 else:
