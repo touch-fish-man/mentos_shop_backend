@@ -28,7 +28,7 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 # List of URLs to be checked
 urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
         "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
-URLS = ['https://www.google.com', "https://bing.com", "https://checkip.amazonaws.com",'http://httpbin.org/get']
+URLS = ['https://www.google.com', "https://bing.com", "https://checkip.amazonaws.com",'https://api.geoiplookup.net/?json=true']
 netloc_models = {
     "www.google.com": "google_delay",
     "bing.com": "bing_delay",
@@ -38,6 +38,7 @@ netloc_models = {
     "api.geoiplookup.net": "geoiplookup_delay",
     "checkip.amazonaws.com": "amazon_delay",
     "httpbin.org": "httpbin_delay",
+    "api.geoiplookup.net": "httpbin_delay",
 }
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from django.core.cache import cache
