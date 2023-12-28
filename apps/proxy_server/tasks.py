@@ -210,14 +210,13 @@ def read_proxies(proxy_file, batch_size=100):
         if batch:
             yield batch
 
-
+sslcontext = ssl.create_default_context(cafile=certifi.where())
 async def fetch_using_proxy(url, proxy):
     proxy_url = urlparse(proxy)
     connector = ProxyConnector.from_url(proxy)
     try:
         start_time = time.perf_counter()
-        async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:
-            sslcontext = ssl.create_default_context(cafile=certifi.where())
+        async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:  
             async with session.get(url,ssl=sslcontext) as response:
                 await response.read()
                 latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
@@ -234,9 +233,9 @@ async def fetch_using_proxy(url, proxy):
         logging.exception(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
-    finally:
-        # 确保在结束时关闭连接器
-        await connector.close()
+    # finally:
+    #     # 确保在结束时关闭连接器
+    #     await connector.close()
 
 
 def get_proxies(order_id=None, id=None, status=None):
