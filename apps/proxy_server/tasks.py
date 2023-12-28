@@ -24,6 +24,7 @@ from apps.utils.kaxy_handler import KaxyClient
 import certifi
 from rich.console import Console
 from rich.progress import Progress
+import subprocess
 
 os.environ['SSL_CERT_FILE'] = certifi.where()
 
