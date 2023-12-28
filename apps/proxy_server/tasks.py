@@ -273,7 +273,7 @@ class AsyncCounter:
             return self.count
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)  # 假设这是您之前定义的函数
-    semaphore = asyncio.Semaphore(1000)
+    semaphore = asyncio.Semaphore(500)
     fail_list = set()
     success_updates = {}
     total_count = len(proxies)
