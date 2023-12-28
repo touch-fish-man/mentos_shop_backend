@@ -22,6 +22,7 @@ from apps.proxy_server.models import Proxy
 from apps.proxy_server.models import Server
 from apps.utils.kaxy_handler import KaxyClient
 import certifi
+from rich.progress import track
 os.environ['SSL_CERT_FILE'] = certifi.where()
 
 # List of URLs to be checked
@@ -210,9 +211,9 @@ def read_proxies(proxy_file, batch_size=100):
 
 
 async def fetch_using_proxy(url, proxy):
+    proxy_url = urlparse(proxy)
+    connector = ProxyConnector.from_url(proxy)
     try:
-        proxy_url = urlparse(proxy)
-        connector = ProxyConnector.from_url(proxy)
         start_time = time.perf_counter()
         async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:
             sslcontext = ssl.create_default_context(cafile=certifi.where())
@@ -228,6 +229,9 @@ async def fetch_using_proxy(url, proxy):
         logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
+    finally:
+        # 确保在结束时关闭连接器
+        await connector.close()
 
 
 def get_proxies(order_id=None, id=None, status=None):
@@ -238,8 +242,11 @@ def get_proxies(order_id=None, id=None, status=None):
         filter_dict['id'] = id
     if status is not None:
         filter_dict['status'] = status
-    proxies = Proxy.objects.filter(**filter_dict).all()
-    proxies_dict = {f'http://{p.get_proxy_str()}': p.id for p in proxies}
+    proxies = Proxy.objects.filter(**filter_dict).values_list('ip', 'port', 'username', 'password', 'id',flat=True)
+    proxies_dict={}
+    for p in proxies:
+        proxy_str = f"http://{p[2]}:{p[3]}@{p[0]}:{p[1]}"
+        proxies_dict[proxy_str] = p[4]
     if order_id ==None and id==None and status==None:
         proxies_list = sorted(list(proxies_dict.keys()))
         with open('/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt', 'w') as f:
@@ -255,7 +262,10 @@ async def check_proxies_from_db(order_id):
             return await fetch_using_proxy(url, proxy)
 
     tasks = [bounded_fetch(url, proxy) for proxy in proxies.keys() for url in URLS]
-    results = await asyncio.gather(*tasks)
+    results = []
+    for task in track(asyncio.as_completed(tasks), total=len(tasks), description="检查代理中..."):
+        result = await task
+        results.append(result)
     fail_list = set()
     total_count=len(proxies)
     success_updates = {}  # 存储成功代理的更新数据
@@ -263,20 +273,13 @@ async def check_proxies_from_db(order_id):
         id = proxies.get(proxy)
         model_name = netloc_models.get(urlparse(url).netloc, None)
         if model_name:
-            success_updates.setdefault(id, []).append((model_name, latency))
+            success_updates[id]=success_updates.get(id,{}).update({model_name:latency})
+            if len(success_updates[id])==len(URLS):
+                Proxy.objects.filter(id=id).update(**success_updates[id])
+                success_updates.pop(id)
         if not success:
             fail_list.add(id)
     fail_list = sorted(list(fail_list))
-    # if fail_list:
-    #     Proxy.objects.filter(id__in=fail_list).update(status=False)
-    # 批量更新成功的代理
-    for id, updates in success_updates.items():
-        proxy_obj = Proxy.objects.filter(id=id).first()
-        if proxy_obj:
-            for model_name, latency in updates:
-                if hasattr(proxy_obj, model_name):
-                    setattr(proxy_obj, model_name, latency)
-            proxy_obj.save()
     return fail_list,total_count
 
 
