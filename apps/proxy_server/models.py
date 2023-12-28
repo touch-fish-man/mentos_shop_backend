@@ -334,6 +334,7 @@ class Proxy(BaseModel):
             self.status = False
         else:
             self.status = True
+        print(self.status)
         super().save(force_insert, force_update, using, update_fields)
 
     def judge_expired(self):
