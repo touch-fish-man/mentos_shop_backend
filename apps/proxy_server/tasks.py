@@ -262,21 +262,35 @@ def get_proxies(order_id=None, id=None, status=None):
             f.write('\n'.join(proxies_list))
     return proxies_dict
 
+class AsyncCounter:
+    def __init__(self):
+        self.count = 0
+        self._lock = asyncio.Lock()
+
+    async def increment(self):
+        async with self._lock:
+            self.count += 1
+            return self.count
 async def check_proxies_from_db(order_id):
     # os.system("/opt/mubeng_0.14.1_linux_amd64 -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt")
     proxies = get_proxies(order_id=order_id)
     semaphore = asyncio.Semaphore(500)
     tasks = []
-    async def bounded_fetch(url, proxy, progress, task_id):
+    progress_counter = AsyncCounter()
+    async def bounded_fetch(url, proxy, progress, task_id,total,counter):
         async with semaphore:
             result = await fetch_using_proxy(url, proxy)
+            current_count = await counter.increment()
             progress.update(task_id, advance=1)
+            if current_count % 10 == 0:
+                logging.info(f"检查代理进度:{current_count}/{total}")
             return result
+    logging.info(f"检查代理总数:{len(proxies)}")
     with Progress() as progress:
         task_id = progress.add_task("[green]检测代理中...", total=len(proxies)*len(URLS))
         for proxy in proxies.keys():
             for url in URLS:
-                task = bounded_fetch(url, proxy, progress, task_id)
+                task = bounded_fetch(url, proxy, progress, task_id,len(proxies)*len(URLS),progress_counter)
                 tasks.append(task)
         results = await asyncio.gather(*tasks)
     fail_list = set()
