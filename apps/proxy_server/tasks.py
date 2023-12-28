@@ -303,12 +303,12 @@ async def check_proxies_from_db(order_id):
                 success_updates[id].update({model_name: latency})
                 if len(success_updates[id]) == len(URLS):
                     proxy = Proxy.objects.filter(id=id).first()
+                    if sum(success_updates[id].values()) == 9999999 * len(URLS):
+                        fail_list.add(id)
                     if proxy:
                         for field, value in success_updates[id].items():
                             setattr(proxy, field, value)
                         proxy.save()
-            if not success:
-                fail_list.add(id)
 
     fail_list = sorted(list(fail_list))
     return fail_list, total_count
