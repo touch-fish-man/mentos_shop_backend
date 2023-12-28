@@ -277,6 +277,7 @@ async def check_proxies_from_db(order_id):
         if model_name:
             success_updates[id]=success_updates.get(id,{}).update({model_name:latency})
             if len(success_updates[id])==len(URLS):
+                logging.info(f"代理{proxy}检查成功")
                 Proxy.objects.filter(id=id).update(**success_updates[id])
                 success_updates.pop(id)
         if not success:
