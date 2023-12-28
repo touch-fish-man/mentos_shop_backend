@@ -242,9 +242,10 @@ def get_proxies(order_id=None, id=None, status=None):
         filter_dict['id'] = id
     if status is not None:
         filter_dict['status'] = status
-    proxies = Proxy.objects.filter(**filter_dict).values_list('ip', 'port', 'username', 'password', 'id',flat=True)
+    proxies = Proxy.objects.filter(**filter_dict).values_list('ip', 'port', 'username', 'password', 'id')
     proxies_dict={}
     for p in proxies:
+        p=list(p)
         proxy_str = f"http://{p[2]}:{p[3]}@{p[0]}:{p[1]}"
         proxies_dict[proxy_str] = p[4]
     if order_id ==None and id==None and status==None:
