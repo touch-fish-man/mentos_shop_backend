@@ -272,7 +272,7 @@ async def check_proxies_from_db(order_id):
             result = await fetch_using_proxy(url, proxy)
             progress.update(task_id, advance=1)
             return result
-    async with Progress() as progress:
+    with Progress() as progress:
         task_id = progress.add_task("[green]检测代理中...", total=len(proxies)*len(URLS))
         for proxy in proxies.keys():
             for url in URLS:
