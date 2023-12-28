@@ -225,13 +225,17 @@ async def fetch_using_proxy(url, proxy):
                     return url, proxy, latency, True
                 else:
                     return url, proxy, 9999999, False
+    except asyncio.TimeoutError as e:
+        logging.info(f'Error. URL: {url}, Proxy: {proxy}; request timeout')
+        latency = 9999999
+        return url, proxy, latency, False
     except Exception as e:
         logging.exception(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
-    # finally:
-    #     # 确保在结束时关闭连接器
-    #     await connector.close()
+    finally:
+        # 确保在结束时关闭连接器
+        await connector.close()
 
 
 def get_proxies(order_id=None, id=None, status=None):
