@@ -226,7 +226,7 @@ async def fetch_using_proxy(url, proxy):
                 else:
                     return url, proxy, 9999999, False
     except Exception as e:
-        logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
+        logging.exception(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
         latency = 9999999
         return url, proxy, latency, False
     # finally:
