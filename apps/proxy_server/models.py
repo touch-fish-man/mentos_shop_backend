@@ -330,7 +330,7 @@ class Proxy(BaseModel):
     def get_proxy_str(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
     def save( self, force_insert=False, force_update=False, using=None, update_fields=None):
-        if self.httpbin_delay == 99999:
+        if self.httpbin_delay == self.amazon_delay== self.bing_delay == self.google_delay == 9999999:
             self.status = False
         else:
             self.status = True
