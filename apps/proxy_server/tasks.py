@@ -272,46 +272,44 @@ class AsyncCounter:
             self.count += 1
             return self.count
 async def check_proxies_from_db(order_id):
-    # os.system("/opt/mubeng_0.14.1_linux_amd64 -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt")
-    proxies = get_proxies(order_id=order_id)
+    proxies = get_proxies(order_id=order_id)  # 假设这是您之前定义的函数
     semaphore = asyncio.Semaphore(500)
-    tasks = []
+    fail_list = set()
+    success_updates = {}
+    total_count = len(proxies)
     progress_counter = AsyncCounter()
-    async def bounded_fetch(url, proxy, progress, task_id,total,counter):
+
+    async def bounded_fetch(url, proxy, progress, task_id, total, counter):
         async with semaphore:
             result = await fetch_using_proxy(url, proxy)
             current_count = await counter.increment()
             progress.update(task_id, advance=1)
-            if current_count % 10 == 0:
+            if current_count % 500 == 0:
                 logging.info(f"检查代理进度:{current_count}/{total}")
             return result
-    logging.info(f"检查代理总数:{len(proxies)}")
+
     with Progress() as progress:
-        task_id = progress.add_task("[green]检测代理中...", total=len(proxies)*len(URLS))
-        for proxy in proxies.keys():
-            for url in URLS:
-                task = bounded_fetch(url, proxy, progress, task_id,len(proxies)*len(URLS),progress_counter)
-                tasks.append(task)
-        results = await asyncio.gather(*tasks)
-    fail_list = set()
-    total_count=len(proxies)
-    success_updates = {}  # 存储成功代理的更新数据
-    for url, proxy, latency, success in results:
-        id = proxies.get(proxy)
-        model_name = netloc_models.get(urlparse(url).netloc, None)
-        if model_name:
-            success_updates[id]=success_updates.get(id,{}).update({model_name:latency})
-            logging.info(success_updates[id])
-            if len(success_updates[id])==len(URLS):
-                logging.info(f"代理{proxy}检查成功")
-                Proxy.objects.filter(id=id).update(**success_updates[id])
-                success_updates.pop(id)
-        else:
-            logging.info(urlparse(url).netloc)
-        if not success:
-            fail_list.add(id)
+        task_id = progress.add_task("[green]检测代理中...", total=len(proxies) * len(URLS))
+        tasks = [bounded_fetch(url, proxy, progress, task_id, len(proxies) * len(URLS), progress_counter) 
+                 for proxy in proxies.keys() for url in URLS]
+
+        for task in asyncio.as_completed(tasks):
+            url, proxy, latency, success = await task
+            id = proxies.get(proxy)
+            model_name = netloc_models.get(urlparse(url).netloc, None)
+            if model_name:
+                if id not in success_updates:
+                    success_updates[id] = {}
+                success_updates[id].update({model_name: latency})
+                if len(success_updates[id]) == len(URLS):
+                    Proxy.objects.filter(id=id).update(**success_updates[id])
+                    success_updates.pop(id)
+            if not success:
+                fail_list.add(id)
+
     fail_list = sorted(list(fail_list))
-    return fail_list,total_count
+    return fail_list, total_count
+
 
 
 @shared_task(name='check_proxy_status')
