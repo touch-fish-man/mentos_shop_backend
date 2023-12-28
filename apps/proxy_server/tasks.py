@@ -248,7 +248,7 @@ def get_proxies(order_id=None, id=None, status=None):
 
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)
-    semaphore = asyncio.Semaphore(100)
+    semaphore = asyncio.Semaphore(500)
     # os.system("/opt/mubeng_0.14.1_linux_amd64 -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt")
     async def bounded_fetch(url, proxy):
         async with semaphore:
