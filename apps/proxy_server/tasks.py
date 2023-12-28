@@ -23,6 +23,7 @@ from apps.proxy_server.models import Server
 from apps.utils.kaxy_handler import KaxyClient
 import certifi
 from rich.console import Console
+from rich.progress import Progress
 os.environ['SSL_CERT_FILE'] = certifi.where()
 
 # List of URLs to be checked
@@ -211,7 +212,7 @@ def read_proxies(proxy_file, batch_size=100):
             yield batch
 
 sslcontext = ssl.create_default_context(cafile=certifi.where())
-async def fetch_using_proxy(url, proxy):
+async def fetch_using_proxy(url, proxy, progress, task_id):
     proxy_url = urlparse(proxy)
     connector = ProxyConnector.from_url(proxy)
     if ".255:" in proxy:
@@ -238,6 +239,7 @@ async def fetch_using_proxy(url, proxy):
     finally:
         # 确保在结束时关闭连接器
         await connector.close()
+        progress.update(task_id, advance=1)
 
 
 def get_proxies(order_id=None, id=None, status=None):
@@ -264,30 +266,31 @@ async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)
     semaphore = asyncio.Semaphore(500)
     # os.system("/opt/mubeng_0.14.1_linux_amd64 -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt")
-    async def bounded_fetch(url, proxy):
+    async def bounded_fetch(url, proxy, progress, task_id):
         async with semaphore:
-            return await fetch_using_proxy(url, proxy)
-
-    tasks = [bounded_fetch(url, proxy) for proxy in proxies.keys() for url in URLS]
-    results = await asyncio.gather(*tasks)
-    fail_list = set()
-    total_count=len(proxies)
-    success_updates = {}  # 存储成功代理的更新数据
-    for url, proxy, latency, success in results:
-        id = proxies.get(proxy)
-        model_name = netloc_models.get(urlparse(url).netloc, None)
-        if model_name:
-            success_updates[id]=success_updates.get(id,{}).update({model_name:latency})
-            logging.info(success_updates[id])
-            if len(success_updates[id])==len(URLS):
-                logging.info(f"代理{proxy}检查成功")
-                Proxy.objects.filter(id=id).update(**success_updates[id])
-                success_updates.pop(id)
-        else:
-            logging.info(urlparse(url).netloc)
-        if not success:
-            fail_list.add(id)
-    fail_list = sorted(list(fail_list))
+            return await fetch_using_proxy(url, proxy, progress, task_id)
+    async with Progress() as progress:
+        task_id = progress.add_task("[green]检测代理...", total=len(URLS) * len(proxies))
+        tasks = [bounded_fetch(url, proxy, progress, task_id) for proxy in proxies.keys() for url in URLS]
+        results = await asyncio.gather(*tasks)
+        fail_list = set()
+        total_count=len(proxies)
+        success_updates = {}  # 存储成功代理的更新数据
+        for url, proxy, latency, success in results:
+            id = proxies.get(proxy)
+            model_name = netloc_models.get(urlparse(url).netloc, None)
+            if model_name:
+                success_updates[id]=success_updates.get(id,{}).update({model_name:latency})
+                logging.info(success_updates[id])
+                if len(success_updates[id])==len(URLS):
+                    logging.info(f"代理{proxy}检查成功")
+                    Proxy.objects.filter(id=id).update(**success_updates[id])
+                    success_updates.pop(id)
+            else:
+                logging.info(urlparse(url).netloc)
+            if not success:
+                fail_list.add(id)
+        fail_list = sorted(list(fail_list))
     return fail_list,total_count
 
 
