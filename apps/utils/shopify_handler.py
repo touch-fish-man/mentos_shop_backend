@@ -64,7 +64,7 @@ class LruCache:
 class ShopifyClient:
     def __init__(self, shop_url=None, api_key=None, api_scert=None, access_token=None, api_version=None):
         self.shop_url = shop_url
-        self.api_version = api_version if api_version else '2023-01'
+        self.api_version = api_version if api_version else '2024-01'
         self.api_key = api_key
         self.api_scert = api_scert
         self.access_token = access_token
