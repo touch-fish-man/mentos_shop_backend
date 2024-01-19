@@ -71,7 +71,7 @@ class ShopifyClient:
         logging.info(shop_url)
         logging.info(api_key)
         self.session = None
-        self.check_shop()
+        logging.info(self.check_shop())
 
     def check_shop(self):
         # 检查秘钥地址是否正确
