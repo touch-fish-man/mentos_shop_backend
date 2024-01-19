@@ -216,7 +216,11 @@ def read_proxies(proxy_file, batch_size=100):
 sslcontext = ssl.create_default_context(cafile=certifi.where())
 async def fetch_using_proxy(url, proxy):
     proxy_url = urlparse(proxy)
-    connector = ProxyConnector.from_url(proxy)
+    try:
+        connector = ProxyConnector.from_url(proxy)
+    except:
+        logging.error(f"Error parsing proxy URL: {proxy}")
+        return url, proxy, 9999999, False
     if ".255:" in proxy:
         return url, proxy, 9999999, False
     try:

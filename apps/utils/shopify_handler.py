@@ -68,10 +68,7 @@ class ShopifyClient:
         self.api_key = api_key
         self.api_scert = api_scert
         self.access_token = access_token
-        logging.info(shop_url)
-        logging.info(api_key)
         self.session = None
-        logging.info(self.check_shop())
 
     def check_shop(self):
         # 检查秘钥地址是否正确
