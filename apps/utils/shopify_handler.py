@@ -522,3 +522,11 @@ if __name__ == '__main__':
     syncclient = SyncClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
     print(syncclient.list_orders())
     print(syncclient.list_products())
+    for o in Orders.objects.all():
+        if o.shopify_order_id:
+            order_info = {
+                "id": o.shopify_order_id,
+                "tags": "delivered"
+            }
+            print(order_info)
+            syncclient.update_order(order_info)
