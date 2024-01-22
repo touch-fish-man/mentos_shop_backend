@@ -430,4 +430,6 @@ if __name__ == "__main__":
 108.181.57.189"""
     for s in servers.split("\n"):
         client = KaxyClient(s)
-        print(client.get_server_info())
+        data=client.get_server_info()
+        if data:
+            print(data["data"]["cidr"])
