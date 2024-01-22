@@ -428,6 +428,7 @@ if __name__ == "__main__":
 156.255.213.8
 108.181.56.255
 108.181.57.189"""
+    rest=[]
     for s in servers.split("\n"):
         client = KaxyClient(s)
         data=client.get_server_info()
@@ -436,6 +437,9 @@ if __name__ == "__main__":
                 if "124.175.18" in x:
                     print(s)
                     print(x)
+                    rest.append((s,x))
                 if "124.175.19" in x:
                     print(s)
                     print(x)
+                    rest.append((s, x))
+    pprint(rest)
