@@ -432,4 +432,10 @@ if __name__ == "__main__":
         client = KaxyClient(s)
         data=client.get_server_info()
         if data:
-            print(data["data"]["cidr"])
+            for x in data["data"]["cidr"]:
+                if "124.175.18" in x:
+                    print(s)
+                    print(x)
+                if "124.175.19" in x:
+                    print(s)
+                    print(x)
