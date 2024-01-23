@@ -375,6 +375,7 @@ class ShopifyClient:
         order = shopify.Order.find(status='any', ids=order_info['id'])
         for i in order:
             i.tags = order_info['tags']
+            i.shipping_address = i.billing_address
             i.save()
         if order_info.get('note'):
             order[0].note=order_info['note']
