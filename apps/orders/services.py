@@ -187,10 +187,11 @@ def create_proxy_by_order(order_id):
                             logging.info('服务器{}没有可用的cidr'.format(server.ip))
                         # todo 合并cidr 为了减少循环次数
                         for cidr in cidr_info:
+                            error_cnt = 0
                             Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
                             if Stock:
                                 cart_stock = Stock.cart_stock
-                                while cart_stock > 0 and Stock.available_subnets:
+                                while cart_stock > 0 and Stock.available_subnets and error_cnt<5:
                                     # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                     if len(proxy_list) >= order_obj.product_quantity:
                                         # 代理数量已经够了
@@ -217,6 +218,9 @@ def create_proxy_by_order(order_id):
                                         Stock.cart_stock -= 1
                                         Stock.ip_stock -= len(proxy_info["proxy"])
                                         cart_stock -= 1
+                                        error_cnt=0
+                                    else:
+                                        error_cnt+=1
 
                                     Stock.save()
                                 # logging.info("cart stock:{}".format(Stock.cart_stock))
@@ -423,11 +427,12 @@ def create_proxy_by_id(id):
                         # todo 合并cidr 为了减少循环次数
                         for cidr in cidr_info:
                             Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
+                            error_cnt=0
                             if Stock:
                                 redis_key = 'stock_opt_{}'.format(Stock.id)
                                 with memcache_lock(redis_key, redis_key):
                                     cart_stock = Stock.cart_stock
-                                    while cart_stock > 0 and Stock.available_subnets:
+                                    while cart_stock > 0 and Stock.available_subnets and error_cnt<5:
                                         # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                         if len(proxy_list) >= order_obj.product_quantity:
                                             # 代理数量已经够了
@@ -450,6 +455,9 @@ def create_proxy_by_id(id):
                                             Stock.cart_stock -= 1
                                             Stock.ip_stock -= len(proxy_info["proxy"])
                                             cart_stock -= 1
+                                            error_cnt=0
+                                        else:
+                                            error_cnt+=1
                                         Stock.save()
                                     if len(proxy_list) >= order_obj.product_quantity:
                                         # 代理数量已经够了
