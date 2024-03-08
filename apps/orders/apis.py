@@ -134,6 +134,12 @@ class OrdersApi(ComModelViewSet):
                 tzinfo=datetime.timezone.utc)
         except ValueError:
             return ErrorResponse(data={}, msg="过期时间格式错误")
+        logging.info("expired_at:{}".format(expired_at))
+        now = datetime.datetime.now(datetime.timezone.utc)
+        logging.info("now:{}".format(now))
+        now_8 = now + datetime.timedelta(hours=8)
+        logging.info("now_8:{}".format(now_8))
+
 
         if expired_at < datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8):
             return ErrorResponse(data={}, msg="过期时间不能小于当前时间")
