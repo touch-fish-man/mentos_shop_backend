@@ -141,7 +141,7 @@ class OrdersApi(ComModelViewSet):
         logging.info("now_8:{}".format(now_8))
 
 
-        if expired_at < datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=8):
+        if expired_at < datetime.datetime.now(datetime.timezone.utc):
             return ErrorResponse(data={}, msg="过期时间不能小于当前时间")
 
         try:
