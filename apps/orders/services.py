@@ -18,7 +18,9 @@ from django.utils import timezone
 
 from apps.core.cache_lock import memcache_lock
 
-lock_id="create_order"
+lock_id = "create_order"
+
+
 def verify_webhook(request):
     shopify_hmac_header = request.META.get("HTTP_X_SHOPIFY_HMAC_SHA256")
     encoded_secret = settings.SHOPIFY_WEBHOOK_KEY.encode("utf-8")
@@ -30,6 +32,7 @@ def verify_webhook(request):
     computed_hmac = base64.b64encode(digest)
     return hmac.compare_digest(computed_hmac, shopify_hmac_header.encode("utf-8"))
 
+
 def change_shopify_order_info(order_info):
     shop_url = settings.SHOPIFY_SHOP_URL
     api_key = settings.SHOPIFY_API_KEY
@@ -37,6 +40,8 @@ def change_shopify_order_info(order_info):
     private_app_password = settings.SHOPIFY_APP_KEY
     shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
     shopify_client.update_order(order_info)
+
+
 def shopify_order(data):
     """
     Format the order data to be sent to the client
@@ -115,7 +120,7 @@ def get_checkout_link(request):
             "note": "order_id_{}".format(order_id),
             'attributes': {"order_id": order_id, "renewal": request.data.get("renewal", "0")},
             "ref": "mentosproxy_web",
-            "access_token":"b1eadac0d1d5d003be6ed95eb9997022"
+            "access_token": "b1eadac0d1d5d003be6ed95eb9997022"
         }
         checkout_link = ShopifyClient.get_checkout_link(settings.SHOPIFY_SHOP_URL, check_info)
         new_order.checkout_url = checkout_link
@@ -125,7 +130,7 @@ def get_checkout_link(request):
         return None, None
 
 
-def get_renew_checkout_link(order_id,request):
+def get_renew_checkout_link(order_id, request):
     user = request.user
     user_level = user.level
     level_code_obj = LevelCode.objects.filter(level=user_level).first()
@@ -188,10 +193,11 @@ def create_proxy_by_order(order_id):
                         # todo 合并cidr 为了减少循环次数
                         for cidr in cidr_info:
                             error_cnt = 0
-                            Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
+                            Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
+                                                              cart_step=cart_step).first()
                             if Stock:
                                 cart_stock = Stock.cart_stock
-                                while cart_stock > 0 and Stock.available_subnets and error_cnt<5:
+                                while cart_stock > 0 and Stock.available_subnets and error_cnt < 5:
                                     # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                     if len(proxy_list) >= order_obj.product_quantity:
                                         # 代理数量已经够了
@@ -204,9 +210,9 @@ def create_proxy_by_order(order_id):
                                     prefix = Stock.get_next_subnet()
                                     try:
                                         proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
-                                                                                       acl_value)
+                                                                                           acl_value)
                                     except Exception as e:
-                                        msg="服务器{}创建代理失败:{}".format(server.ip, e)
+                                        msg = "服务器{}创建代理失败:{}".format(server.ip, e)
                                         return False, msg
                                     if proxy_info["proxy"]:
                                         logging.info("创建代理成功:{}".format(len(proxy_info["proxy"])))
@@ -218,9 +224,9 @@ def create_proxy_by_order(order_id):
                                         Stock.cart_stock -= 1
                                         Stock.ip_stock -= len(proxy_info["proxy"])
                                         cart_stock -= 1
-                                        error_cnt=0
+                                        error_cnt = 0
                                     else:
-                                        error_cnt+=1
+                                        error_cnt += 1
 
                                     Stock.save()
                                 # logging.info("cart stock:{}".format(Stock.cart_stock))
@@ -237,16 +243,19 @@ def create_proxy_by_order(order_id):
                         ip, port, user, password = proxy.split(":")
                         server_ip = server_list[idx]
                         Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
-                                             order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,ip_stock_id=stock_list[idx],subnet=subnet_list[idx]).save()
+                                             order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
+                                             ip_stock_id=stock_list[idx], subnet=subnet_list[idx]).save()
                     # 更新订单状态
                     order_obj.order_status = 4
                     order_obj.delivery_status = 1
                     order_obj.delivery_num = len(proxy_list)
                     order_obj.save()
-                    variant_obj.save() # 更新套餐库存
+                    variant_obj.save()  # 更新套餐库存
                     email_template = settings.EMAIL_TEMPLATES.get("delivery")
                     subject = email_template.get('subject')
-                    html_message = email_template.get('html').replace('{{order_id}}', str(order_pk)).replace('{{proxy_number}}',str(len(proxy_list))).replace('{{product}}',str(product_name)).replace('{{proxy_expired_at}}',proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
+                    html_message = email_template.get('html').replace('{{order_id}}', str(order_pk)).replace(
+                        '{{proxy_number}}', str(len(proxy_list))).replace('{{product}}', str(product_name)).replace(
+                        '{{proxy_expired_at}}', proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
                     logging.info("order_id:{} delivery success".format(order_pk))
@@ -259,6 +268,8 @@ def create_proxy_by_order(order_id):
         logging.info('订单不存在')
         msg = '订单不存在'
     return False, msg
+
+
 def reset_proxy_by_order(order_id):
     """
     根据订单创建代理
@@ -303,11 +314,12 @@ def reset_proxy_by_order(order_id):
                             logging.info('服务器{}没有可用的cidr'.format(server.ip))
                         # todo 合并cidr 为了减少循环次数
                         for cidr in cidr_info:
-                            Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
-                            error_cnt=0
+                            Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
+                                                              cart_step=cart_step).first()
+                            error_cnt = 0
                             if Stock:
                                 cart_stock = Stock.cart_stock
-                                while cart_stock > 0 and Stock.available_subnets and error_cnt<5:
+                                while cart_stock > 0 and Stock.available_subnets and error_cnt < 5:
                                     logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                     if len(proxy_list) >= order_obj.product_quantity:
                                         # 代理数量已经够了
@@ -328,9 +340,9 @@ def reset_proxy_by_order(order_id):
                                         Stock.ip_stock -= len(proxy_info["proxy"])
                                         cart_stock -= 1
                                         Stock.save()
-                                        error_cnt=0
+                                        error_cnt = 0
                                     else:
-                                        error_cnt+=1
+                                        error_cnt += 1
                                 # logging.info("cart stock:{}".format(Stock.cart_stock))
                             else:
                                 logging.info("no stock")
@@ -351,7 +363,7 @@ def reset_proxy_by_order(order_id):
                     order_obj.order_status = 4
                     order_obj.delivery_status = 1
                     order_obj.delivery_num = len(proxy_list)
-                    order_obj.reset_time=timezone.now()
+                    order_obj.reset_time = timezone.now()
                     order_obj.save()
                     variant_obj.save()  # 更新套餐库存
                     email_template = settings.EMAIL_TEMPLATES.get("delivery")
@@ -362,7 +374,7 @@ def reset_proxy_by_order(order_id):
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
                     logging.info("order_id:{} delivery success".format(order_pk))
-                    logging.info("-"*50)
+                    logging.info("-" * 50)
                     return True
             else:
                 logging.info('套餐不存在')
@@ -382,7 +394,6 @@ def create_proxy_by_id(id):
     ret_proxy_list = []
     msg = ''
 
-
     logging.info('重置订单:{}'.format(id))
 
     if order_obj:
@@ -392,7 +403,7 @@ def create_proxy_by_id(id):
             if order_obj.expired_at < datetime.datetime.now(timezone.utc):
                 logging.info('订单过期')
                 msg = 'order expired'
-                return False,ret_proxy_list,msg
+                return False, ret_proxy_list, msg
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
             user_email = order_user_obj.email
@@ -405,7 +416,7 @@ def create_proxy_by_id(id):
                     # 库存不足
                     logging.info('库存不足')
                     msg = 'stock not enough'
-                    return False,ret_proxy_list,msg
+                    return False, ret_proxy_list, msg
                 server_group = variant_obj.server_group
                 acl_group = variant_obj.acl_group
                 cart_step = variant_obj.cart_step  # 购物车步长
@@ -426,13 +437,14 @@ def create_proxy_by_id(id):
                             logging.info('服务器{}没有可用的cidr'.format(server.ip))
                         # todo 合并cidr 为了减少循环次数
                         for cidr in cidr_info:
-                            Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],cart_step=cart_step).first()
-                            error_cnt=0
+                            Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
+                                                              cart_step=cart_step).first()
+                            error_cnt = 0
                             if Stock:
                                 redis_key = 'stock_opt_{}'.format(Stock.id)
                                 with memcache_lock(redis_key, redis_key):
                                     cart_stock = Stock.cart_stock
-                                    while cart_stock > 0 and Stock.available_subnets and error_cnt<5:
+                                    while cart_stock > 0 and Stock.available_subnets and error_cnt < 5:
                                         # logging.info("cart_stock:{} cidr id:{}".format(cart_stock, cidr['id']))
                                         if len(proxy_list) >= order_obj.product_quantity:
                                             # 代理数量已经够了
@@ -441,7 +453,7 @@ def create_proxy_by_id(id):
                                         kaxy_client = KaxyClient(server.ip)
                                         if not kaxy_client.status:
                                             msg = "服务器{}创建代理失败:无法连接代理服务器api".format(server.ip)
-                                            return False,ret_proxy_list,msg
+                                            return False, ret_proxy_list, msg
                                         prefix = Stock.get_next_subnet()
                                         proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, prefix,
                                                                                            acl_value)
@@ -455,9 +467,9 @@ def create_proxy_by_id(id):
                                             Stock.cart_stock -= 1
                                             Stock.ip_stock -= len(proxy_info["proxy"])
                                             cart_stock -= 1
-                                            error_cnt=0
+                                            error_cnt = 0
                                         else:
-                                            error_cnt+=1
+                                            error_cnt += 1
                                         Stock.save()
                                     if len(proxy_list) >= order_obj.product_quantity:
                                         # 代理数量已经够了
@@ -469,9 +481,10 @@ def create_proxy_by_id(id):
                     for idx, proxy in enumerate(proxy_list):
                         ip, port, user, password = proxy.split(":")
                         server_ip = server_list[idx]
-                        p_obj=Proxy.objects.create(ip=ip, port=port, username=user, password=password, server_ip=server_ip,
-                                             order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
-                                             ip_stock_id=stock_list[idx], subnet=subnet_list[idx])
+                        p_obj = Proxy.objects.create(ip=ip, port=port, username=user, password=password,
+                                                     server_ip=server_ip,
+                                                     order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
+                                                     ip_stock_id=stock_list[idx], subnet=subnet_list[idx])
                         p_obj.save()
                         ret_proxy_list.append(p_obj.id)
 
@@ -484,23 +497,24 @@ def create_proxy_by_id(id):
                     variant_obj.save()  # 更新套餐库存
                     email_template = settings.EMAIL_TEMPLATES.get("delivery")
                     subject = email_template.get('subject')
-                    html_message = email_template.get('html').replace('{{order_id}}', str(id)).replace('{{proxy_number}}',
-                                                                                                        str(len(proxy_list))).replace(
+                    html_message = email_template.get('html').replace('{{order_id}}', str(id)).replace(
+                        '{{proxy_number}}',
+                        str(len(proxy_list))).replace(
                         '{{product}}', str(product_name)).replace('{{proxy_expired_at}}',
                                                                   proxy_expired_at.strftime('%Y-%m-%d %H:%M:%S'))
                     from_email = email_template.get('from_email')
                     send_success = send_email_api(user_email, subject, from_email, html_message)
                     logging.info("order_id:{} delivery success".format(id))
-                    logging.info("-"*50)
-                    return True,ret_proxy_list,''
+                    logging.info("-" * 50)
+                    return True, ret_proxy_list, ''
             else:
                 logging.info('套餐不存在')
                 msg = 'variant not exist'
-                return False,ret_proxy_list,msg
+                return False, ret_proxy_list, msg
     else:
         logging.info('订单不存在')
         msg = 'order not exist'
-    return False,ret_proxy_list,msg
+    return False, ret_proxy_list, msg
 
 
 def renew_proxy_by_order(order_id):
@@ -533,9 +547,9 @@ def change_order_proxy(order_id):
 
 
 # 创建发货线程
-def webhook_handle_thread(order_info,order_id):
+def webhook_handle_thread(order_info, order_id):
     # 因调用kaxy接口时间较长，所以使用线程处理,指定线程名称，如果有相同名称的线程，不会创建新的线程
-    thred_name = 'webhook_handle_'+str(order_id)
+    thred_name = 'webhook_handle_' + str(order_id)
     threads = threading.enumerate()
     for thread in threads:
         if thread.name == thred_name:
@@ -569,12 +583,12 @@ def webhook_handle(order_info):
                 order.shopify_order_id = shpify_order_id  # shopify订单id
                 order.shopify_order_number = shopify_order_number  # shopify订单号
                 order.save()
-                user_email=User.objects.filter(id=order.uid).first().email
+                user_email = User.objects.filter(id=order.uid).first().email
 
                 # 生成代理，修改订单状态
                 if renewal_status == "1":
                     # 续费
-                    order_process_ret,msg = renew_proxy_by_order(order_id)
+                    order_process_ret, msg = renew_proxy_by_order(order_id)
                 else:
                     # 新订
                     # if user_email.lower() != email.lower():
@@ -583,13 +597,13 @@ def webhook_handle(order_info):
                     #     order_info = {"id": shpify_order_id, "tags": "delivery_fail", "note": "邮箱不匹配"}
                     #     t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
                     #     return
-                    order_process_ret,msg = create_proxy_by_order(order_id)
+                    order_process_ret, msg = create_proxy_by_order(order_id)
                 Orders.objects.filter(order_id=order_id).update(shopify_order_number=shopify_order_number)
                 if order_process_ret:
-                    order_info={"id":shpify_order_id,"tags": "delivered"}
+                    order_info = {"id": shpify_order_id, "tags": "delivered"}
                     if renewal_status == "1":
                         order_info["tags"] += ",renew"
-                    t1=threading.Thread(target=change_shopify_order_info,args=(order_info,)).start()
+                    t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
                     # 修改优惠券状态
                     for discount_code in discount_codes:
                         coupon = CouponCode.objects.filter(code=discount_code).first()
@@ -612,7 +626,8 @@ def webhook_handle(order_info):
                                                            reason=PointRecord.REASON_DICT["invite_buy"])
                                 logging.info("invite user reward points success")
                     # 增加用户等级积分
-                    order_user.level_points += int(float(order.product_total_price) * float(settings.BILLING_RATE))  # 等级积分
+                    order_user.level_points += int(
+                        float(order.product_total_price) * float(settings.BILLING_RATE))  # 等级积分
                     order_user.save()
                     # 更新用户等级
                     order_user.update_level()
@@ -631,6 +646,8 @@ def webhook_handle(order_info):
                 t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,))
     except Exception as e:
         logging.exception(e)
+
+
 def delete_proxy_by_order_pk(order_id):
     """
     删除订单所有代理

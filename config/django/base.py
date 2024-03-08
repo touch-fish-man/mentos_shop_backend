@@ -127,7 +127,8 @@ DATABASES = {
         'HOST': 'rm-0xifvzx2x3769byjm.mysql.rds.aliyuncs.com',
         'PORT': 3066,
         'OPTIONS': {'charset': 'utf8mb4'},
-        "ATOMIC_REQUESTS": False}
+        "ATOMIC_REQUESTS": False},
+        "OPTIONS": {'init_command': 'SET @connection_name = "django";'},
 
 }
 

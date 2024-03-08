@@ -322,6 +322,9 @@ class Proxy(BaseModel):
             models.Index(fields=['username'], name='username_index'),
             models.Index(fields=['order'], name='order_id_index'),
             models.Index(fields=['expired_at'], name='expired_at_index'),
+            models.Index(fields=['ip_stock_id'], name='proxy_ip_stock_id_index'),
+            models.Index(fields=['order_id'], name='proxy_order_id_index'),
+            models.Index(fields=['user_id'], name='proxy_user_id_index'),
         ]
 
     def __str__(self):

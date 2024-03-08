@@ -35,3 +35,4 @@ uvicorn
 eventlet
 loguru
 sentry-sdk
+aiohttp_proxy
