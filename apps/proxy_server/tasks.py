@@ -31,7 +31,8 @@ os.environ['SSL_CERT_FILE'] = certifi.where()
 # List of URLs to be checked
 urls = ['http://httpbin.org/get', 'http://www.google.com', "https://icanhazip.com/", "https://jsonip.com/",
         "https://api.seeip.org/jsonip", "https://api.geoiplookup.net/?json=true"]
-URLS = ['https://www.google.com', "https://global.bing.com/?setlang=en&cc=US", "https://checkip.amazonaws.com",'http://httpbin.org/get']
+URLS = ['https://www.google.com', "https://global.bing.com/?setlang=en&cc=US", "https://checkip.amazonaws.com",
+        'http://httpbin.org/get']
 netloc_models = {
     "www.google.com": "google_delay",
     "global.bing.com": "bing_delay",
@@ -41,7 +42,6 @@ netloc_models = {
     "api.geoiplookup.net": "geoiplookup_delay",
     "checkip.amazonaws.com": "amazon_delay",
     "httpbin.org": "httpbin_delay",
-    "api.geoiplookup.net": "httpbin_delay",
 }
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from django.core.cache import cache
@@ -213,7 +213,10 @@ def read_proxies(proxy_file, batch_size=100):
         if batch:
             yield batch
 
+
 sslcontext = ssl.create_default_context(cafile=certifi.where())
+
+
 async def fetch_using_proxy(url, proxy):
     proxy_url = urlparse(proxy)
     try:
@@ -225,8 +228,8 @@ async def fetch_using_proxy(url, proxy):
         return url, proxy, 9999999, False
     try:
         start_time = time.perf_counter()
-        async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:  
-            async with session.get(url,ssl=sslcontext) as response:
+        async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:
+            async with session.get(url, ssl=sslcontext) as response:
                 await response.read()
                 latency = round((time.perf_counter() - start_time) * 1000)  # Latency in milliseconds
                 # logging.info(f'URL: {url}, Proxy: {proxy}, Latency: {latency}, Status: {response.status}')
@@ -256,16 +259,17 @@ def get_proxies(order_id=None, id=None, status=None):
     if status is not None:
         filter_dict['status'] = status
     proxies = Proxy.objects.filter(**filter_dict).values_list('ip', 'port', 'username', 'password', 'id')
-    proxies_dict={}
+    proxies_dict = {}
     for p in proxies:
-        p=list(p)
+        p = list(p)
         proxy_str = f"http://{p[2]}:{p[3]}@{p[0]}:{p[1]}"
         proxies_dict[proxy_str] = p[4]
-    if order_id ==None and id==None and status==None:
+    if order_id == None and id == None and status == None:
         proxies_list = sorted(list(proxies_dict.keys()))
         with open('/opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt', 'w') as f:
             f.write('\n'.join(proxies_list))
     return proxies_dict
+
 
 class AsyncCounter:
     def __init__(self):
@@ -276,6 +280,8 @@ class AsyncCounter:
         async with self._lock:
             self.count += 1
             return self.count
+
+
 async def check_proxies_from_db(order_id):
     proxies = get_proxies(order_id=order_id)  # 假设这是您之前定义的函数
     semaphore = asyncio.Semaphore(800)
@@ -289,13 +295,13 @@ async def check_proxies_from_db(order_id):
             result = await fetch_using_proxy(url, proxy)
             current_count = await counter.increment()
             progress.update(task_id, advance=1)
-            if current_count/total*100%10==0:
+            if current_count / total * 100 % 10 == 0:
                 logging.info(f"检查代理进度:{current_count}/{total}")
             return result
 
     with Progress() as progress:
         task_id = progress.add_task("[green]检测代理中...", total=len(proxies) * len(URLS))
-        tasks = [bounded_fetch(url, proxy, progress, task_id, len(proxies) * len(URLS), progress_counter) 
+        tasks = [bounded_fetch(url, proxy, progress, task_id, len(proxies) * len(URLS), progress_counter)
                  for proxy in proxies.keys() for url in URLS]
 
         for task in asyncio.as_completed(tasks):
@@ -319,21 +325,20 @@ async def check_proxies_from_db(order_id):
     return fail_list, total_count
 
 
-
 @shared_task(name='check_proxy_status')
 def check_proxy_status(order_id=None):
     """
     检查代理状态,每4个小时检查一次
     """
     logging.info("==========check_proxy_status==========")
-    s=time.time()
+    s = time.time()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    fail_list,total_count = loop.run_until_complete(check_proxies_from_db(order_id))
+    fail_list, total_count = loop.run_until_complete(check_proxies_from_db(order_id))
     loop.close()
-    e=time.time()
-    print(f"检查代理状态,总数:{total_count},失败数:{len(fail_list)},耗时:{e-s}s")
-    return {"total_count":total_count,"status": 1,"cost_time":e-s,"fail_list": fail_list}
+    e = time.time()
+    print(f"检查代理状态,总数:{total_count},失败数:{len(fail_list)},耗时:{e - s}s")
+    return {"total_count": total_count, "status": 1, "cost_time": e - s, "fail_list": fail_list}
 
 
 @shared_task(name="cleanup_sessions")
@@ -376,3 +381,36 @@ def delete_user_from_server(server_ip=None, username=None):
                 kaxy_client.del_user(user)
                 kaxy_client.del_acl(user)
         cache.delete("del_user_list")
+
+
+@shared_task(name='add_blacklist')
+def add_blacklist(server_groups, domains):
+    """
+    添加黑名单
+    """
+    from apps.proxy_server.models import ServerGroupThrough
+    server_ids = ServerGroupThrough.objects.filter(server_group_id__in=server_groups).values_list('server_id',
+                                                                                                  flat=True)
+    server_list = Server.objects.filter(id__in=server_ids).values_list('ip', flat=True)
+    for server in server_list:
+        kaxy_client = KaxyClient(server)
+        domains_s = domains.split(',')
+        kaxy_client.add_domain_blacklist(domains_s)
+    return {"status": 1}
+
+
+@shared_task(name='remove_blacklist')
+def remove_blacklist(server_groups, domains):
+    """
+    移除黑名单
+    """
+    from apps.proxy_server.models import ServerGroupThrough
+    server_ids = ServerGroupThrough.objects.filter(server_group_id__in=server_groups).values_list('server_id',
+                                                                                                  flat=True)
+    result_json = {}
+    server_list = Server.objects.filter(id__in=server_ids).values_list('ip', flat=True)
+    for server in server_list:
+        kaxy_client = KaxyClient(server)
+        domains_s = domains.split(',')
+        kaxy_client.del_domain_blacklist(domains_s)
+    return {"status": 1}
