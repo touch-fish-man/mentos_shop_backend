@@ -450,7 +450,7 @@ def acl_task():
     if action == "add":
         task_name = click.prompt("任务名")
         task_type = click.prompt("任务类型", type=click.Choice(["everyday", "once"]))
-        time_s = click.prompt("时间", type=click.DateTime(), default=datetime.datetime.now())
+        time_s = click.prompt("时间", type=click.DateTime(), default=datetime.datetime.utcnow())
         delay = click.prompt("延迟(分钟)", type=int, default=60)
         table = Table(show_header=True, header_style="bold magenta", title="服务器组列表")
         table.add_column("服务器组ID")
@@ -460,6 +460,7 @@ def acl_task():
         console.print(table)
         server_group = click.prompt("服务器组ID:1,2,3", default="")
         content = click.prompt("内容",default="baidu.com,google.com")
+        time_s = time_s.replace(tzinfo=datetime.timezone.utc)
         AclTasks.objects.create(task_name=task_name, task_type=task_type, time=time_s, delay=delay, content=content, server_group=server_group)
     else:
         task_id = click.prompt("任务ID")
