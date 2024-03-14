@@ -29,7 +29,8 @@ from apps.orders.services import create_proxy_by_id
 import click
 from apps.orders.tasks import delete_proxy_expired
 import subprocess
-from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule,ClockedSchedule
+from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule, ClockedSchedule
+
 
 @click.group()
 def cli():
@@ -444,10 +445,11 @@ def acl_task():
     table.add_column("内容")
     from apps.proxy_server.models import AclTasks
     for acl_tasks in AclTasks.objects.all():
-        table.add_row(str(acl_tasks.id), acl_tasks.task_name, acl_tasks.task_type, acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
+        table.add_row(str(acl_tasks.id), acl_tasks.task_name, acl_tasks.task_type,
+                      acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
                       acl_tasks.server_group, acl_tasks.content)
     console.print(table)
-    action=click.prompt("添加/删除任务", type=click.Choice(["add", "delete"]), default="add")
+    action = click.prompt("添加/删除任务", type=click.Choice(["add", "delete"]), default="add")
     if action == "add":
         task_name = click.prompt("任务名")
         task_type = click.prompt("任务类型", type=click.Choice(["everyday", "once"]))
@@ -460,24 +462,31 @@ def acl_task():
             table.add_row(str(server_group.id), server_group.name)
         console.print(table)
         server_group = click.prompt("服务器组ID:1,2,3", default="")
-        content = click.prompt("内容",default="baidu.com,google.com")
+        content = click.prompt("内容", default="baidu.com,google.com")
         time_s = time_s.replace(tzinfo=datetime.timezone.utc)
-        task_id=AclTasks.objects.create(task_name=task_name, task_type=task_type, time=time_s, delay=delay, content=content, server_group=server_group).id
+        task_id = AclTasks.objects.create(task_name=task_name, task_type=task_type, time=time_s, delay=delay,
+                                          content=content, server_group=server_group).id
         task_name += str(task_id)
         if task_type == "everyday":
-            crontab = CrontabSchedule.objects.create(minute=time_s.minute, hour=time_s.hour, day_of_week="*", day_of_month="*", month_of_year="*")
-            PeriodicTask.objects.create(crontab=crontab, name=task_name+"add", task="tasks.add_blacklist", args=json.dumps([server_group, content]))
+            crontab = CrontabSchedule.objects.create(minute=time_s.minute, hour=time_s.hour, day_of_week="*",
+                                                     day_of_month="*", month_of_year="*")
+            PeriodicTask.objects.create(crontab=crontab, name=task_name + "add", task="add_blacklist",
+                                        args=json.dumps([server_group, content]))
             delete_tims = time_s + datetime.timedelta(minutes=delay)
-            crontab = CrontabSchedule.objects.create(minute=delete_tims.minute, hour=delete_tims.hour, day_of_week="*", day_of_month="*", month_of_year="*")
-            PeriodicTask.objects.create(crontab=crontab, name=task_name+"remove", task="tasks.remove_blacklist", args=json.dumps([server_group, content]))
+            crontab = CrontabSchedule.objects.create(minute=delete_tims.minute, hour=delete_tims.hour, day_of_week="*",
+                                                     day_of_month="*", month_of_year="*")
+            PeriodicTask.objects.create(crontab=crontab, name=task_name + "remove", task="remove_blacklist",
+                                        args=json.dumps([server_group, content]))
         else:
             clocked = ClockedSchedule.objects.create(clocked_time=time_s)
-            PeriodicTask.objects.create(clocked=clocked, name=task_name+"add", task="tasks.add_blacklist", args=json.dumps([server_group, content]),enabled=True,
-        one_off=True)
+            PeriodicTask.objects.create(clocked=clocked, name=task_name + "add", task="add_blacklist",
+                                        args=json.dumps([server_group, content]), enabled=True,
+                                        one_off=True)
             delete_tims = time_s + datetime.timedelta(minutes=delay)
             clocked = ClockedSchedule.objects.create(clocked_time=delete_tims)
-            PeriodicTask.objects.create(clocked=clocked, name=task_name+"remove", task="remove_blacklist", args=json.dumps([server_group, content]),enabled=True,
-        one_off=True)
+            PeriodicTask.objects.create(clocked=clocked, name=task_name + "remove", task="remove_blacklist",
+                                        args=json.dumps([server_group, content]), enabled=True,
+                                        one_off=True)
     else:
         task_id = click.prompt("任务ID")
         task_name = AclTasks.objects.filter(id=task_id).first().task_name + str(task_id)
@@ -492,7 +501,8 @@ def acl_task():
     table.add_column("服务器组")
     table.add_column("内容")
     for acl_tasks in AclTasks.objects.all():
-        table.add_row(str(acl_tasks.id), acl_tasks.task_name, acl_tasks.task_type, acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
+        table.add_row(str(acl_tasks.id), acl_tasks.task_name, acl_tasks.task_type,
+                      acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
                       acl_tasks.server_group, acl_tasks.content)
     console.print(table)
 
