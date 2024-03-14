@@ -35,8 +35,9 @@ class AclGroup(BaseModel):
             self.save()
         else:
             super().delete(using, keep_parents)
+
     @classmethod
-    def get_acl_values(cls,acls_objs=None):
+    def get_acl_values(cls, acls_objs=None):
         acl_value = []
         if acls_objs:
             acls = acls_objs
@@ -48,6 +49,7 @@ class AclGroup(BaseModel):
         acl_value.sort()
         acl_value = '\n'.join(acl_value)
         return acl_value
+
 
 class Acls(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL名')
@@ -332,8 +334,9 @@ class Proxy(BaseModel):
 
     def get_proxy_str(self):
         return f"{self.username}:{self.password}@{self.ip}:{self.port}"
-    def save( self, force_insert=False, force_update=False, using=None, update_fields=None):
-        if self.httpbin_delay == self.amazon_delay== self.bing_delay == self.google_delay == 9999999:
+
+    def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
+        if self.httpbin_delay == self.amazon_delay == self.bing_delay == self.google_delay == 9999999:
             self.status = False
         else:
             self.status = True
@@ -373,3 +376,18 @@ def _mymodel_delete(sender, instance, **kwargs):
                 variant = Variant.objects.filter(id=stock.variant_id).first()
                 if variant:
                     variant.save()
+
+
+class AclTasks(BaseModel):
+    task_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务ID')
+    task_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务名')
+    task_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务类型')
+    time = models.DateTimeField(blank=True, null=True, verbose_name='时间')
+    delay = models.IntegerField(blank=True, null=True, verbose_name='延迟')
+    content = models.TextField(blank=True, null=True, verbose_name='内容')
+
+    class Meta:
+        db_table = 'acl_tasks'
+        verbose_name = 'ACL任务'
+        verbose_name_plural = 'ACL任务'
+        managed = True
