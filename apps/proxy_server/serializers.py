@@ -255,3 +255,18 @@ class ServerUpdateSerializer(CommonSerializer):
                 logging.error("Traceback:{}".format(result.traceback))
                 raise CustomValidationError("更新商品库存失败,请修改后重试:{}".format(error_msg))
         return instance
+class CidrSerializer(CommonSerializer):
+    class Meta:
+        model = Cidr
+        fields = ('id', 'cidr', 'ip_count','available_acl')
+        extra_kwargs = {
+            'ip_count': {'read_only': True},
+            "cidr": {'read_only': True},
+            'id': {'read_only': True}
+        }
+    def validate(self, attrs):
+        try:
+            ipaddress.ip_network(attrs['cidr'])
+        except Exception:
+            raise CustomValidationError("cidr格式错误")
+        return attrs

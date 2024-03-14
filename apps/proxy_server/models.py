@@ -144,6 +144,7 @@ def cidr_ip_count(cidr):
 class Cidr(BaseModel):
     cidr = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR')
     ip_count = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
+    available_acl = models.CharField(max_length=255, blank=True, null=True, verbose_name='可用ACL')
 
     class Meta:
         db_table = 'cidr'

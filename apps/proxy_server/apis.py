@@ -13,6 +13,7 @@ from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
 from django.conf import settings
 from django.core.cache import cache
+from apps.proxy_server.serializers import CidrSerializer
 import logging
 
 
@@ -262,3 +263,21 @@ class ServerGroupApi(ComModelViewSet):
     ordering_fields = ('id', 'name', 'created_at')
     search_fields = ('name', 'description')  # 搜索字段
     filterset_fields = ['id', 'name', 'description']  # 过滤字段
+
+class CidrApi(ComModelViewSet):
+    """
+    CIDR
+    list: CIDR列表
+    create: 创建CIDR
+    update: 更新CIDR
+    retrieve: CIDR详情
+    destroy: 删除CIDR
+    """
+    permission_classes = [IsSuperUser]
+    queryset = Cidr.objects.all()
+    serializer_class = CidrSerializer
+    ordering_fields = ('id', 'cidr', 'created_at')
+    search_fields = ('cidr',)  # 搜索字段
+    filterset_fields = ['id', 'cidr', 'ip_count']  # 过滤字段
+    create_serializer_class = CidrSerializer
+    update_serializer_class = CidrSerializer
