@@ -388,6 +388,7 @@ def add_blacklist(server_groups, domains):
     """
     添加黑名单
     """
+    server_groups = server_groups.split(',')
     from apps.proxy_server.models import ServerGroupThrough
     server_ids = ServerGroupThrough.objects.filter(server_group_id__in=server_groups).values_list('server_id',
                                                                                                   flat=True)
@@ -404,6 +405,7 @@ def remove_blacklist(server_groups, domains):
     """
     移除黑名单
     """
+    server_groups = server_groups.split(',')
     from apps.proxy_server.models import ServerGroupThrough
     server_ids = ServerGroupThrough.objects.filter(server_group_id__in=server_groups).values_list('server_id',
                                                                                                   flat=True)
