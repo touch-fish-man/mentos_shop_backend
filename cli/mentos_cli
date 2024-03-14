@@ -472,10 +472,12 @@ def acl_task():
             PeriodicTask.objects.create(crontab=crontab, name=task_name+"remove", task="tasks.remove_blacklist", args=json.dumps([server_group, content]))
         else:
             clocked = ClockedSchedule.objects.create(clocked_time=time_s)
-            PeriodicTask.objects.create(clocked=clocked, name=task_name+"add", task="tasks.add_blacklist", args=json.dumps([server_group, content]))
+            PeriodicTask.objects.create(clocked=clocked, name=task_name+"add", task="tasks.add_blacklist", args=json.dumps([server_group, content]),enabled=True,
+        one_off=True)
             delete_tims = time_s + datetime.timedelta(minutes=delay)
             clocked = ClockedSchedule.objects.create(clocked_time=delete_tims)
-            PeriodicTask.objects.create(clocked=clocked, name=task_name+"remove", task="remove_blacklist", args=json.dumps([server_group, content]))
+            PeriodicTask.objects.create(clocked=clocked, name=task_name+"remove", task="remove_blacklist", args=json.dumps([server_group, content]),enabled=True,
+        one_off=True)
     else:
         task_id = click.prompt("任务ID")
         task_name = AclTasks.objects.filter(id=task_id).first().task_name + str(task_id)
