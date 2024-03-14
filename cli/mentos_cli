@@ -474,7 +474,7 @@ def acl_task():
     table.add_column("服务器组")
     table.add_column("内容")
     for acl_tasks in AclTasks.objects.all():
-        table.add_row(acl_tasks.task_id, acl_tasks.task_name, acl_tasks.task_type, acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
+        table.add_row(str(acl_tasks.id), acl_tasks.task_name, acl_tasks.task_type, acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
                       acl_tasks.server_group, acl_tasks.content)
     console.print(table)
 
