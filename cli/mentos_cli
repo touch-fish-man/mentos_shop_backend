@@ -465,6 +465,13 @@ def acl_task():
         task_id = click.prompt("任务ID")
         AclTasks.objects.filter(id=task_id).delete()
     table = Table(show_header=True, header_style="bold magenta", title="任务列表")
+    table.add_column("任务ID")
+    table.add_column("任务名")
+    table.add_column("任务类型")
+    table.add_column("时间")
+    table.add_column("延迟(分钟)")
+    table.add_column("服务器组")
+    table.add_column("内容")
     for acl_tasks in AclTasks.objects.all():
         table.add_row(acl_tasks.task_id, acl_tasks.task_name, acl_tasks.task_type, acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
                       acl_tasks.server_group, acl_tasks.content)
