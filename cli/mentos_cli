@@ -545,8 +545,11 @@ def update():
     """
     更新代码重新部署
     """
-    os.system("git pull")
-    os.system("supervisorctl restart all")
+    subprocess.Popen("git pull", shell=True)
+    if "Already up to date" in os.popen("git pull").read():
+        print("没有改动")
+    else:
+        os.system("supervisorctl restart all")
 
 
 cli_all = click.CommandCollection(sources=[cli])
