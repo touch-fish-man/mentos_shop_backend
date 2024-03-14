@@ -384,6 +384,7 @@ class AclTasks(BaseModel):
     task_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务类型')
     time = models.DateTimeField(blank=True, null=True, verbose_name='时间')
     delay = models.IntegerField(blank=True, null=True, verbose_name='延迟')
+    server_group = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器组')
     content = models.TextField(blank=True, null=True, verbose_name='内容')
 
     class Meta:

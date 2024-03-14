@@ -5,6 +5,8 @@ import string
 
 import os
 import sys
+import uuid
+
 import requests
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -14,6 +16,7 @@ from rich.console import Console
 from rich.progress import track
 import ipaddress
 from apps.core.cache_lock import memcache_lock
+from rich.table import Table
 
 console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
@@ -25,6 +28,7 @@ from apps.orders.services import create_proxy_by_id
 import click
 from apps.orders.tasks import delete_proxy_expired
 import subprocess
+
 
 @click.group()
 def cli():
@@ -270,6 +274,7 @@ def check_all_proxy():
     from apps.proxy_server.tasks import check_proxy_status
     check_proxy_status.delay()
 
+
 @cli.command()
 @click.option('--server_ip', default=None, help='服务器IP')
 def change_proxy(server_ip):
@@ -375,11 +380,11 @@ def logs(log_type="server"):
 
 @cli.command()
 @click.option('-d', default=0, help='是否去重')
-@click.option('-s','--status', default=None ,help='状态')
+@click.option('-s', '--status', default=None, help='状态')
 @click.option('-u', "--username", default=None, help='用户名')
 @click.option('-o', "--order_id", default=None, help='订单id')
 @click.option('-ip', "--server_ip", default=None, help='服务器ip')
-def export_all_proxy(d, username, order_id, server_ip,status):
+def export_all_proxy(d, username, order_id, server_ip, status):
     """
     导出所有代理
     """
@@ -416,11 +421,54 @@ def export_all_proxy(d, username, order_id, server_ip,status):
         f.write("\n".join(sorted(proxies_1)))
     with open("/opt/mentos_shop_backend/logs/ip_port_user_pwd.txt", "w") as f:
         f.write("\n".join(proxies_2))
-    cmd="nohup /opt/mubeng -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt -e /opt/mentos_shop_backend/logs/error.txt &"
+    cmd = "nohup /opt/mubeng -f /opt/mentos_shop_backend/logs/http_user_pwd_ip_port.txt -c -o /opt/mentos_shop_backend/logs/alive.txt -e /opt/mentos_shop_backend/logs/error.txt &"
     try:
         subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     except Exception as e:
         pass
+
+
+@cli.command()
+def acl_task():
+    """
+    acl计划任务
+    """
+    table = Table(show_header=True, header_style="bold magenta", title="任务列表")
+    table.add_column("任务ID")
+    table.add_column("任务名")
+    table.add_column("任务类型")
+    table.add_column("时间")
+    table.add_column("延迟(分钟)")
+    table.add_column("服务器组")
+    table.add_column("内容")
+    from apps.proxy_server.models import AclTasks
+    for acl_tasks in AclTasks.objects.all():
+        table.add_row(str(acl_tasks.id), acl_tasks.task_name, acl_tasks.task_type, acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
+                      acl_tasks.server_group, acl_tasks.content)
+    console.print(table)
+    action=click.prompt("添加/删除任务", type=click.Choice(["add", "delete"]), default="add")
+    if action == "add":
+        task_name = click.prompt("任务名")
+        task_type = click.prompt("任务类型", type=click.Choice(["everyday", "once"]))
+        time_s = click.prompt("时间", type=click.DateTime(), default=datetime.datetime.now())
+        delay = click.prompt("延迟(分钟)", type=int, default=60)
+        table = Table(show_header=True, header_style="bold magenta", title="服务器组列表")
+        table.add_column("服务器组ID")
+        table.add_column("服务器组名")
+        for server_group in ServerGroup.objects.all():
+            table.add_row(str(server_group.id), server_group.name)
+        console.print(table)
+        server_group = click.prompt("服务器组ID:1,2,3", default="")
+        content = click.prompt("内容",default="baidu.com,google.com")
+        AclTasks.objects.create(task_name=task_name, task_type=task_type, time=time_s, delay=delay, content=content, server_group=server_group)
+    else:
+        task_id = click.prompt("任务ID")
+        AclTasks.objects.filter(id=task_id).delete()
+    table = Table(show_header=True, header_style="bold magenta", title="任务列表")
+    for acl_tasks in AclTasks.objects.all():
+        table.add_row(acl_tasks.task_id, acl_tasks.task_name, acl_tasks.task_type, acl_tasks.time.strftime("%Y-%m-%d %H:%M:%S"), str(acl_tasks.delay),
+                      acl_tasks.server_group, acl_tasks.content)
+    console.print(table)
 
 
 @cli.command()
