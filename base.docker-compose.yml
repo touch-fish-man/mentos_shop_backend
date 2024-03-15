@@ -22,8 +22,8 @@ services:
     container_name: redis-server
     image: 'redis:latest'
     restart: always
-#    volumes: # 配置数据卷
-#      - /opt/mentos_shop_backend/config/redis/:/usr/local/etc/redis/
+    volumes: # 配置数据卷
+      - /opt/mentos_shop_backend/config/redis/:/usr/local/etc/redis/
     command: /bin/sh -c "echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf && redis-server /usr/local/etc/redis/redis.conf --requirepass xB8U0Q6gyrMpRYA7 --appendonly yes"
     privileged: true
     networks:
