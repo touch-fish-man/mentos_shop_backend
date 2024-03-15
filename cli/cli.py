@@ -13,6 +13,7 @@ def update_dist():
     """
     os.system("rm -rf /opt/mentos_shop_backend/dist/*")
     os.system("wget  https://zlp-1251420975.cos.accelerate.myqcloud.com/vue/dist.zip -O /tmp/dist.zip")
+    os.system("mkdir -p /opt/mentos_shop_backend")
     os.system("unzip /tmp/dist.zip -d /opt/mentos_shop_backend/dist/")
     os.system("rm -rf /tmp/dist.zip")
 
@@ -83,8 +84,9 @@ def install():
     部署项目
     """
     os.system("git pull")
-    os.system("cp -r config/* /opt/mentos_shop_backend/config/")
-    os.system("cp -r src/* /opt/mentos_shop_backend/src/")
+    os.system("mkdir -p /opt/mentos_shop_backend/")
+    os.system("cp -r config /opt/mentos_shop_backend/")
+    os.system("cp -r src /opt/mentos_shop_backend/")
     update_dist()
     os.system("docker-compose build --no-cache")
     os.system("docker-compose down")
