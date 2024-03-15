@@ -19,7 +19,7 @@ services:
       network:
         ipv4_address: 177.8.0.15
   redis:
-    container_name: redis.local
+    container_name: redis-server
     image: 'redis:latest'
     restart: always
 #    volumes: # 配置数据卷
