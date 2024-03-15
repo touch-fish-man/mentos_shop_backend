@@ -22,7 +22,7 @@ import urllib
 from django.core.cache import cache
 import logging
 
-from ..users.services import get_client_ip, get_ip_location
+from apps.users.services import get_client_ip, get_ip_location
 
 
 class LoginApi(APIView):

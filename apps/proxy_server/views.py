@@ -1,7 +1,7 @@
 import ipaddress
 
 from apps.core.json_response import SuccessResponse, ErrorResponse
-from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup
+from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup,Cidr
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
     ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer, AclGroupSerializer, ServerGroupSerializer, \
     AclGroupCreateSerializer, ServerGroupUpdateSerializer, ServerGroupCreateSerializer, AclGroupUpdateSerializer
@@ -15,7 +15,7 @@ from django.conf import settings
 from django.core.cache import cache
 from apps.proxy_server.serializers import CidrSerializer
 import logging
-
+import json
 
 class AclsApi(ComModelViewSet):
     """

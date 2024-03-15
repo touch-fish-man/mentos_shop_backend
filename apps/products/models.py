@@ -66,6 +66,10 @@ class Option(BaseModel):
     option_type = models.CharField(max_length=255, verbose_name='选项类型', blank=True, null=True)  # 时间 1 其他0
     shopify_option_id = models.CharField(max_length=255, verbose_name='shopify选项id')
 
+class ComponentVariant(BaseModel):
+    """
+    组件变体
+    """
 
 class Variant(BaseModel):
     """

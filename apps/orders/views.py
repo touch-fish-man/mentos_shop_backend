@@ -26,7 +26,6 @@ from apps.orders.services import create_proxy_by_order
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.models import Product, Variant
 from django.core.exceptions import ObjectDoesNotExist
-import concurrent.futures
 
 
 class OrdersApi(ComModelViewSet):

@@ -1,5 +1,5 @@
 from django.urls import path
-from .apis import  EmailValidateApi, ResetPasswordApi, \
+from .views import  EmailValidateApi, ResetPasswordApi, \
     ChangePasswordApi, ResetPasswordVerifyApi, UserApi,RebateRecordApi,InviteLogApi,InviteCodeAPIView,BotWebHookAPIView
 from rest_framework import routers
 

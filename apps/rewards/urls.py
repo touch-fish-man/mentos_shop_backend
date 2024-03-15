@@ -1,5 +1,5 @@
 from django.urls import path
-from .apis import  CouponCodeViewSet, PointRecordViewSet, GiftCardViewSet,LevelCodeViewSet
+from .views import  CouponCodeViewSet, PointRecordViewSet, GiftCardViewSet,LevelCodeViewSet
 from rest_framework import routers
 
 router = routers.DefaultRouter()

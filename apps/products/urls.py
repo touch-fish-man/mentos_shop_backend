@@ -1,4 +1,4 @@
-from .apis import ProductViewSet,ProductCollectionViewSet,ProductTagViewSet
+from .views import ProductViewSet,ProductCollectionViewSet,ProductTagViewSet
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'products', ProductViewSet)

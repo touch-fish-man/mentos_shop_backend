@@ -1,5 +1,5 @@
 from django.urls import path
-from .apis import LoginApi,LogoutApi,DiscordOauth2LoginApi,DiscordOauth2RedirectApi,DiscordBindRedirectApi,CaptchaApi,ApiLogin
+from .views import LoginApi,LogoutApi,DiscordOauth2LoginApi,DiscordOauth2RedirectApi,DiscordBindRedirectApi,CaptchaApi,ApiLogin
 urlpatterns = [
     path("login", LoginApi.as_view(), name="login"),
     path("logout", LogoutApi.as_view(), name="logout"),

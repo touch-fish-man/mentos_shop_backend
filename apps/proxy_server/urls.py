@@ -1,5 +1,5 @@
 from django.urls import path
-from .apis import AclsApi,ProxyServerApi,AclGroupApi,ServerGroupApi
+from .views import AclsApi,ProxyServerApi,AclGroupApi,ServerGroupApi
 from rest_framework import routers
 
 router = routers.DefaultRouter()

@@ -201,6 +201,22 @@ class ServerCidrThrough(BaseModel):
         verbose_name_plural = '服务器与CIDR关系'
 
 
+class ComponentStock(BaseModel):
+    component = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='配件')
+    cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
+    stock = models.IntegerField(blank=True, null=True, verbose_name='库存')
+    class Meta:
+        db_table = 'component_stock'
+        verbose_name = '配件库存'
+        verbose_name_plural = '配件库存'
+        indexes = [
+            models.Index(fields=['id', 'component', 'stock'], name='component_stock_index'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['component'], name='component_stock_pk')
+        ]
+
+
 # 库存表
 class ProxyStock(BaseModel):
     cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
@@ -307,6 +323,7 @@ class Proxy(BaseModel):
     proxy_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='类型', default='http')
     server_ip = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器IP')
     order = models.ForeignKey('orders.Orders', on_delete=models.CASCADE, blank=True, null=True, verbose_name='订单')
+    local_variant_id = models.IntegerField(blank=True, null=True, verbose_name='本地变体ID')
     expired_at = models.DateTimeField(blank=True, null=True, verbose_name='过期时间')
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, blank=True, null=True, verbose_name='用户')
     subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='subnet')  # 用于存储所所属子网
@@ -362,6 +379,7 @@ def _mymodel_delete(sender, instance, **kwargs):
     if Proxy.objects.filter(username=instance.username, server_ip=instance.server_ip).count() == 0:
         from .tasks import delete_user_from_server
         task_i = delete_user_from_server.apply(args=(instance.server_ip, instance.username))
+    order_id=instance.order_id
     stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
     redis_key = 'stock_opt_{}'.format(instance.ip_stock_id)
     # 归还子网,归还库存
@@ -372,9 +390,12 @@ def _mymodel_delete(sender, instance, **kwargs):
                 logging.info('归还子网{},归还库存{}'.format(instance.subnet, instance.ip_stock_id))
                 stock.return_subnet(instance.subnet)
                 stock.return_stock()
+                # 订单表中获取本地变体id
+                from apps.orders.models import Orders
                 from apps.products.models import Variant
                 # 更新库存
-                variant = Variant.objects.filter(id=stock.variant_id).first()
+                order = Orders.objects.filter(id=order_id).first()
+                variant = Variant.objects.filter(id=order.local_variant_id).first()
                 if variant:
                     variant.save()
 

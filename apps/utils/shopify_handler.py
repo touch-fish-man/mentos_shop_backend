@@ -356,6 +356,7 @@ class ShopifyClient:
         product.published_scope = product_info['published_scope']
         return product.save()
 
+
     def update_product(self, product_info):
         product = shopify.Product.find(product_info['id'])
         product.title = product_info['title']
@@ -380,6 +381,25 @@ class ShopifyClient:
         if order_info.get('note'):
             order[0].note=order_info['note']
             order[0].save()
+    def create_variant(self, variant_info):
+        variant = shopify.Variant()
+        variant.product_id = variant_info['product_id']
+        variant.title = variant_info['title']
+        variant.price = variant_info['price']
+        variant.sku = variant_info['sku']
+        variant.position = variant_info['position']
+        variant.option1 = variant_info['option1']
+        variant.option2 = variant_info['option2']
+        variant.option3 = variant_info['option3']
+        variant.taxable = variant_info['taxable']
+        variant.barcode = variant_info['barcode']
+        variant.grams = variant_info['grams']
+        variant.inventory_quantity = variant_info['inventory_quantity']
+        variant.inventory_management = variant_info['inventory_management']
+        variant.inventory_policy = variant_info['inventory_policy']
+        variant.fulfillment_service = variant_info['fulfillment_service']
+        variant.requires_shipping = variant_info['requires_shipping']
+        return variant.save()
 
 
 
@@ -521,13 +541,25 @@ if __name__ == '__main__':
     SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     syncclient = SyncClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
-    print(syncclient.list_orders())
-    print(syncclient.list_products())
-    for o in Orders.objects.all():
-        if o.shopify_order_id:
-            order_info = {
-                "id": o.shopify_order_id,
-                "tags": "delivered"
-            }
-            print(order_info)
-            syncclient.update_order(order_info)
+    products_id="8258943287580"
+    # create variant
+    variant_info = {
+        "product_id": products_id,
+        "title": "Default Title",
+        "price": "0.01",
+        "sku": "test",
+        "position": 1,
+        "option1": "Default Title",
+        "option2": "",
+        "option3": "",
+        "taxable": True,
+        "barcode": "",
+        "grams": 0,
+        "inventory_quantity": 100,
+        "inventory_management": "shopify",
+        "inventory_policy": "deny",
+        "fulfillment_service": "manual",
+        "requires_shipping": True
+    }
+    print(syncclient.create_variant(variant_info))
+    print(syncclient.get_product_variants(products_id))

@@ -1,5 +1,5 @@
 from django.urls import path
-from apps.tickets.apis import TicketsApi, FQA
+from apps.tickets.views import TicketsApi, FQA
 from rest_framework import routers
 
 router = routers.DefaultRouter()
