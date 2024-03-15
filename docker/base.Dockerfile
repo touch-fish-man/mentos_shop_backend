@@ -15,4 +15,4 @@ RUN python manage.py migrate
 COPY config/supervisord_mentos.conf /opt/
 RUN chmod -R a+x /opt/mentos_shop_backend/config
 COPY config/supervisord.conf /etc/supervisor/supervisord.conf
-RUN python /opt/mentos_shop_backend/mocks/init_data.py
+#RUN python /opt/mentos_shop_backend/mocks/init_data.py
