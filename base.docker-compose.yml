@@ -1,23 +1,23 @@
 version: '3'
 services:
-#  ngnix:
-#    container_name: nginx
-#    image: nginx:latest
-#    restart: always
-#    environment:
-#      - TZ=Asia/Shanghai
-#    ports:
-#      - "80:80"
-#      - "443:443"
-#    volumes:
-#      - /opt/mentos_shop_backend/config/nginx/:/etc/nginx/conf.d/
-#      - /opt/mentos_shop_backend/config/nginx/cert:/etc/nginx/cert
-#      - /opt/mentos_shop_backend/dist:/opt/dist
-#      - /opt/geofeed:/opt/geofeed
-#    privileged: true
-#    networks:
-#      network:
-#        ipv4_address: 177.8.0.15
+  ngnix:
+    container_name: nginx
+    image: nginx:latest
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /opt/mentos_shop_backend/config/nginx/:/etc/nginx/conf.d/
+      - /opt/mentos_shop_backend/config/nginx/cert:/etc/nginx/cert
+      - /opt/mentos_shop_backend/dist:/opt/dist
+      - /opt/geofeed:/opt/geofeed
+    privileged: true
+    networks:
+      network:
+        ipv4_address: 177.8.0.15
     
   # db:
   #   container_name: mentos_db

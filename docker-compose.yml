@@ -1,18 +1,9 @@
 version: '3'
 services:
   redis:
-    container_name: redis.local
-    image: 'redis:latest'
-    restart: always
-    volumes: # 配置数据卷
-      - /opt/mentos_shop_backend/config/redis/:/usr/local/etc/redis/
-    command: /bin/sh -c "echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf && redis-server /usr/local/etc/redis/redis.conf --appendonly yes"
-    privileged: true
-    networks:
-      network:
-        ipv4_address: 177.8.0.14
-    ports:
-      - 6379:6379
+    extends:
+      service: redis
+      file: base.docker-compose.yml
   mentos:
     restart: always
     container_name: mentos
