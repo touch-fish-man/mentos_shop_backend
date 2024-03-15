@@ -1,5 +1,18 @@
 version: '3'
 services:
+  redis:
+    container_name: redis.local
+    image: 'redis:latest'
+    restart: always
+    volumes: # 配置数据卷
+      - /opt/mentos_shop_backend/config/redis/:/usr/local/etc/redis/
+    command: /bin/sh -c "echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf && redis-server /usr/local/etc/redis/redis.conf --appendonly yes"
+    privileged: true
+    networks:
+      network:
+        ipv4_address: 177.8.0.14
+    ports:
+      - 6379:6379
   mentos:
     restart: always
     container_name: mentos
@@ -18,6 +31,8 @@ services:
     environment:
       - DJANGO_ENV=prod
     command: sh config/docker-entrypoint.sh
+    depends_on:
+      - redis
 #  mentos_test:
 #    restart: always
 #    container_name: mentos_test
