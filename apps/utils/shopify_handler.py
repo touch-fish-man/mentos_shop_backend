@@ -405,7 +405,7 @@ class ShopifyClient:
         add_option = []
         original_option = product.to_dict()['options'] #[{'id': 10472464679196, 'product_id': 8258943287580, 'name': 'Size', 'position': 1, 'values': ['30', 'Default Title', '60', '90']}]
         for option in original_option:
-            if option['name'] not in [i['name'] for i in option_info]:
+            if option['name'] != option_info['name']:
                 tmp_option = {
                     "name": option['name'],
                     "values": option['values']
