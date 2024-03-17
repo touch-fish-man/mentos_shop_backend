@@ -413,6 +413,7 @@ class ShopifyClient:
             new_option.name = option_info['name']
             new_option.values = option_info.get('values', [])
             product.options.append(new_option)
+        pprint(product.options)
 
         # 保存产品以更新选项
         success = product.save()
