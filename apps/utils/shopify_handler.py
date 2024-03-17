@@ -567,7 +567,7 @@ if __name__ == '__main__':
                 "L"
             ]
         }
-    print(syncclient.add_option(products_id, option_info))
+    print(syncclient.update_option(products_id, option_info))
     # option_info = {
     #         "name": "Color",
     #         "values": [
