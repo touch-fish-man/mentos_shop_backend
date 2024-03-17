@@ -412,7 +412,7 @@ class ShopifyClient:
                 }
                 add_option.append(tmp_option)
         add_option.extend([option_info])
-        # pprint(add_option)
+        pprint(add_option)
         product.options = add_option
         return product.save()
 
@@ -559,7 +559,7 @@ if __name__ == '__main__':
     products_id="9118146887964"
     # add_option
     option_info = {
-            "name": "Size",
+            "name": "Siz1e",
             "values": [
                 "S",
                 "M",
@@ -567,12 +567,12 @@ if __name__ == '__main__':
             ]
         }
     print(syncclient.add_option(products_id, option_info))
-    option_info = {
-            "name": "Color",
-            "values": [
-                "Red",
-                "Blue",
-                "Green"
-            ]
-        }
-    print(syncclient.add_option(products_id, option_info))
+    # option_info = {
+    #         "name": "Color",
+    #         "values": [
+    #             "Red",
+    #             "Blue",
+    #             "Green"
+    #         ]
+    #     }
+    # print(syncclient.add_option(products_id, option_info))
