@@ -410,7 +410,8 @@ class ShopifyClient:
         for option in original_options:
             if option.name == option_info['name']:
                 option.values = option_info['values']
-        product.save()
+        pprint(product.to_dict())
+        pprint(product.save())
 
 
 
