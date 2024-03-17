@@ -402,8 +402,11 @@ class ShopifyClient:
         return variant.save()
     def add_option(self, product_id, option_info):
         product = shopify.Product.find(product_id)
-
-        product.options+=option_info
+        original_option = product.to_dict()['options']
+        for option in option_info:
+            if option not in original_option:
+                original_option.append(option)
+        product.options = original_option
         return product.save()
 
 
