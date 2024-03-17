@@ -401,21 +401,16 @@ class ShopifyClient:
         variant.requires_shipping = variant_info['requires_shipping']
         return variant.save()
 
-    def add_option(self, product_id, option_info):
+    def update_option(self, product_id, option_info):
         product = shopify.Product.find(product_id)
         original_options = product.options  # 直接使用 product.options 获取原有选项列表
         pprint(original_options)
 
-        # 检查是否已存在同名选项
-        if not any(option.name == option_info['name'] for option in original_options):
-            # 创建并添加新选项
-            new_option = shopify.Option()
-            new_option.name = option_info['name']
-            new_option.values = option_info.get('values', [])
-            product.options.append(new_option)
-        pprint(product.options)
-
-        # 保存产品以更新选项
+        # 添加新选项
+        new_option = shopify.Option()
+        new_option.name = option_info['name']
+        new_option.values = option_info['values']
+        product.options.append(new_option)  # 保存产品以更新选项
         success = product.save()
         if success:
             print("Option added successfully.")
