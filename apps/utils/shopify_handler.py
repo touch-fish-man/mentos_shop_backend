@@ -407,16 +407,11 @@ class ShopifyClient:
         pprint(original_options)
 
         # 添加新选项
-        new_option = shopify.Option()
-        new_option.name = option_info['name']
-        new_option.values = option_info['values']
-        product.options.append(new_option)  # 保存产品以更新选项
-        success = product.save()
-        if success:
-            print("Option added successfully.")
-        else:
-            print("Failed to add option.")
-        return success
+        for option in original_options:
+            if option.name == option_info['name']:
+                option.values = option_info['values']
+        product.save()
+
 
 
 class SyncClient(ShopifyClient):
