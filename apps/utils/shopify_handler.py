@@ -402,12 +402,17 @@ class ShopifyClient:
         return variant.save()
     def add_option(self, product_id, option_info):
         product = shopify.Product.find(product_id)
-        original_option = product.to_dict()['options']
-        print(original_option)
-        for option in option_info:
-            if option not in original_option:
-                original_option.append(option)
-        product.options = original_option
+        add_option = []
+        original_option = product.to_dict()['options'] #[{'id': 10472464679196, 'product_id': 8258943287580, 'name': 'Size', 'position': 1, 'values': ['30', 'Default Title', '60', '90']}]
+        for option in original_option:
+            if option['name'] not in [i['name'] for i in option_info]:
+                tmp_option = {
+                    "name": option['name'],
+                    "values": option['values']
+                }
+                add_option.append(tmp_option)
+        add_option.extend(option_info)
+        product.options = add_option
         return product.save()
 
 
@@ -552,8 +557,7 @@ if __name__ == '__main__':
     syncclient = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
     products_id="8258943287580"
     # add_option
-    option_info = [
-        {
+    option_info = {
             "name": "Size",
             "values": [
                 "S",
@@ -561,10 +565,8 @@ if __name__ == '__main__':
                 "L"
             ]
         }
-    ]
     print(syncclient.add_option(products_id, option_info))
-    option_info = [
-        {
+    option_info = {
             "name": "Color",
             "values": [
                 "Red",
@@ -572,5 +574,4 @@ if __name__ == '__main__':
                 "Green"
             ]
         }
-    ]
     print(syncclient.add_option(products_id, option_info))
