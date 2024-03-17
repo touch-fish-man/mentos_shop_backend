@@ -403,6 +403,7 @@ class ShopifyClient:
     def add_option(self, product_id, option_info):
         product = shopify.Product.find(product_id)
         original_option = product.to_dict()['options']
+        print(original_option)
         for option in option_info:
             if option not in original_option:
                 original_option.append(option)
