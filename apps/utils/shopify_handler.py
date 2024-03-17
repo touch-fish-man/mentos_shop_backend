@@ -400,6 +400,10 @@ class ShopifyClient:
         variant.fulfillment_service = variant_info['fulfillment_service']
         variant.requires_shipping = variant_info['requires_shipping']
         return variant.save()
+    def add_option(self, product_id, option_info):
+        product = shopify.Product.find(product_id)
+        product.options = option_info
+        return product.save()
 
 
 
@@ -542,24 +546,15 @@ if __name__ == '__main__':
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     syncclient = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
     products_id="8258943287580"
-    # create variant
-    variant_info = {
-        "product_id": products_id,
-        "title": "acl",
-        "price": "0.01",
-        "sku": "",
-        "position": 0,
-        "option1": "Default Title",
-        "option2": "",
-        "option3": "",
-        "taxable": True,
-        "barcode": "",
-        "grams": 0,
-        "inventory_quantity": 100,
-        "inventory_management": "shopify",
-        "inventory_policy": "deny",
-        "fulfillment_service": "manual",
-        "requires_shipping": True
-    }
-    print(syncclient.create_variant(variant_info))
-    print(syncclient.get_product_variants(products_id))
+    # add_option
+    option_info = [
+        {
+            "name": "Size",
+            "values": [
+                "S",
+                "M",
+                "L"
+            ]
+        }
+    ]
+    print(syncclient.add_option(products_id, option_info))
