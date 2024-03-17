@@ -555,7 +555,7 @@ if __name__ == '__main__':
     products_id="9118146887964"
     # add_option
     option_info = {
-            "name": "Size222",
+            "name": "Size",
             "values": [
                 "S",
                 "M",
