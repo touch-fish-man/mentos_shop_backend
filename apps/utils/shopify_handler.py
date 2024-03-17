@@ -400,22 +400,27 @@ class ShopifyClient:
         variant.fulfillment_service = variant_info['fulfillment_service']
         variant.requires_shipping = variant_info['requires_shipping']
         return variant.save()
+
     def add_option(self, product_id, option_info):
         product = shopify.Product.find(product_id)
-        add_option = []
-        original_option = product.to_dict()['options'] #[{'id': 10472464679196, 'product_id': 8258943287580, 'name': 'Size', 'position': 1, 'values': ['30', 'Default Title', '60', '90']}]
-        for option in original_option:
-            if option['name'] != option_info['name']:
-                tmp_option = {
-                    "name": option['name'],
-                    "values": option['values']
-                }
-                add_option.append(tmp_option)
-        add_option.extend([option_info])
-        pprint(add_option)
-        product.options = [option_info]
-        return product.save()
+        original_options = product.options  # 直接使用 product.options 获取原有选项列表
+        pprint(original_options)
 
+        # 检查是否已存在同名选项
+        if not any(option.name == option_info['name'] for option in original_options):
+            # 创建并添加新选项
+            new_option = shopify.Option()
+            new_option.name = option_info['name']
+            new_option.values = option_info.get('values', [])
+            product.add_option(new_option)
+
+        # 保存产品以更新选项
+        success = product.save()
+        if success:
+            print("Option added successfully.")
+        else:
+            print("Failed to add option.")
+        return success
 
 
 class SyncClient(ShopifyClient):
