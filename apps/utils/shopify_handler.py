@@ -403,6 +403,7 @@ class ShopifyClient:
     def add_option(self, product_id, option_info):
         product = shopify.Product.find(product_id)
         add_option = []
+        pprint(product.to_dict())
         original_option = product.to_dict()['options'] #[{'id': 10472464679196, 'product_id': 8258943287580, 'name': 'Size', 'position': 1, 'values': ['30', 'Default Title', '60', '90']}]
         for option in original_option:
             if option['name'] != option_info['name']:
