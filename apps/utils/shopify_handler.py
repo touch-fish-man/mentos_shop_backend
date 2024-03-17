@@ -413,6 +413,7 @@ class ShopifyClient:
                 }
                 add_option.append(tmp_option)
         add_option.extend(option_info)
+        pprint(add_option)
         product.options = add_option
         return product.save()
 
