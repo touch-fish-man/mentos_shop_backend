@@ -409,7 +409,7 @@ class ShopifyClient:
         # 添加新选项
         for option in original_options:
             if option.name == option_info['name']:
-                option.values = option_info['values']
+                option.option_values = option_info['values']
         pprint(product.to_dict())
         pprint(product.save())
 
