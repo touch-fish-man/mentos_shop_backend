@@ -559,3 +559,14 @@ if __name__ == '__main__':
         }
     ]
     print(syncclient.add_option(products_id, option_info))
+    option_info = [
+        {
+            "name": "Color",
+            "values": [
+                "Red",
+                "Blue",
+                "Green"
+            ]
+        }
+    ]
+    print(syncclient.add_option(products_id, option_info))
