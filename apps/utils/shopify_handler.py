@@ -412,7 +412,7 @@ class ShopifyClient:
             new_option = shopify.Option()
             new_option.name = option_info['name']
             new_option.values = option_info.get('values', [])
-            product.add_option(new_option)
+            product.options.append(new_option)
 
         # 保存产品以更新选项
         success = product.save()
@@ -564,7 +564,7 @@ if __name__ == '__main__':
     products_id="9118146887964"
     # add_option
     option_info = {
-            "name": "Size",
+            "name": "Size222",
             "values": [
                 "S",
                 "M",
