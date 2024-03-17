@@ -413,7 +413,7 @@ class ShopifyClient:
                 add_option.append(tmp_option)
         add_option.extend([option_info])
         pprint(add_option)
-        product.options = add_option
+        product.options = [option_info]
         return product.save()
 
 
@@ -559,7 +559,7 @@ if __name__ == '__main__':
     products_id="9118146887964"
     # add_option
     option_info = {
-            "name": "Siz1e",
+            "name": "Size",
             "values": [
                 "S",
                 "M",
