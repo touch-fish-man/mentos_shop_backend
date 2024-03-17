@@ -1,7 +1,7 @@
 import ipaddress
 
 from apps.core.json_response import SuccessResponse, ErrorResponse
-from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup,Cidr
+from apps.proxy_server.models import Acls, Server, Proxy, AclGroup, ServerGroup, Cidr
 from apps.proxy_server.serializers import AclsSerializer, AclsCreateSerializer, AclsUpdateSerializer, \
     ServerSerializer, ServerCreateSerializer, ServerUpdateSerializer, AclGroupSerializer, ServerGroupSerializer, \
     AclGroupCreateSerializer, ServerGroupUpdateSerializer, ServerGroupCreateSerializer, AclGroupUpdateSerializer
@@ -16,6 +16,7 @@ from django.core.cache import cache
 from apps.proxy_server.serializers import CidrSerializer
 import logging
 import json
+
 
 class AclsApi(ComModelViewSet):
     """
@@ -157,7 +158,7 @@ class ProxyServerApi(ComModelViewSet):
         logging.info("need_reset_user_list:{}".format(need_reset_user_list))
         request_data = []
         redis_key = "proxy:reset_tasks:{}".format(server_ip)
-        tasks_ids=redis_conn.lrange(redis_key, 0, -1)
+        tasks_ids = redis_conn.lrange(redis_key, 0, -1)
         if len(tasks_ids):
             from celery.result import AsyncResult
             for tasks_id in tasks_ids:
@@ -169,7 +170,7 @@ class ProxyServerApi(ComModelViewSet):
         for username, order_id in need_reset_user_list.items():
             request_data.append([order_id, username, server_ip])
             from .tasks import reset_proxy_fn
-            task_i = reset_proxy_fn.delay(order_id,username, server_ip)
+            task_i = reset_proxy_fn.delay(order_id, username, server_ip)
             tasks_ids_list.append(task_i.id)
         if len(tasks_ids_list) > 0:
             redis_conn.rpush(redis_key, *tasks_ids_list)
@@ -220,7 +221,7 @@ class ProxyServerApi(ComModelViewSet):
         if not api:
             return ErrorResponse('参数错误')
         try:
-            error_msg,api_resp = kaxy_client.request("post", api_ur, json=json_input)
+            error_msg, api_resp = kaxy_client.request("post", api_ur, json=json_input)
             api_resp = api_resp.json()
         except:
             api_resp = {"message": "请求失败"}
@@ -263,6 +264,7 @@ class ServerGroupApi(ComModelViewSet):
     ordering_fields = ('id', 'name', 'created_at')
     search_fields = ('name', 'description')  # 搜索字段
     filterset_fields = ['id', 'name', 'description']  # 过滤字段
+
 
 class CidrApi(ComModelViewSet):
     """

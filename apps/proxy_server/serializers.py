@@ -162,7 +162,7 @@ class ServerCreateSerializer(CommonSerializer):
         except Exception:
             return CustomValidationError("ip地址格式错误")
         try:
-            c_client = KaxyClient(attrs['ip'],clean_fail_cnt=True)
+            c_client = KaxyClient(attrs['ip'], clean_fail_cnt=True)
             if not c_client.status:
                 raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
             server_cidrs = c_client.get_cidr()
@@ -216,7 +216,7 @@ class ServerUpdateSerializer(CommonSerializer):
         # 检查cidr是否在代理服务器的cidr范围内
         cidrs = attrs['cidrs']
         try:
-            c_client = KaxyClient(attrs['ip'],clean_fail_cnt=True)
+            c_client = KaxyClient(attrs['ip'], clean_fail_cnt=True)
             if not c_client.status:
                 raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
             server_cidrs = c_client.get_cidr()
@@ -255,18 +255,15 @@ class ServerUpdateSerializer(CommonSerializer):
                 logging.error("Traceback:{}".format(result.traceback))
                 raise CustomValidationError("更新商品库存失败,请修改后重试:{}".format(error_msg))
         return instance
+
+
 class CidrSerializer(CommonSerializer):
     class Meta:
         model = Cidr
-        fields = ('id', 'cidr', 'ip_count','available_acl')
+        fields = ('id', 'cidr', 'ip_count', 'available_acl')
         extra_kwargs = {
             'ip_count': {'read_only': True},
             "cidr": {'read_only': True},
             'id': {'read_only': True}
         }
-    def validate(self, attrs):
-        try:
-            ipaddress.ip_network(attrs['cidr'])
-        except Exception:
-            raise CustomValidationError("cidr格式错误")
-        return attrs
+
