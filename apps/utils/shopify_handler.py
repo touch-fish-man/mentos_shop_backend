@@ -540,15 +540,15 @@ if __name__ == '__main__':
     SHOPIFY_API_KEY = '07616114a90f98723b476cc38ad7f22a'
     SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
-    syncclient = SyncClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
+    syncclient = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
     products_id="8258943287580"
     # create variant
     variant_info = {
         "product_id": products_id,
-        "title": "Default Title",
+        "title": "acl",
         "price": "0.01",
-        "sku": "test",
-        "position": 1,
+        "sku": "",
+        "position": 0,
         "option1": "Default Title",
         "option2": "",
         "option3": "",
