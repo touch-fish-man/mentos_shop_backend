@@ -556,7 +556,7 @@ if __name__ == '__main__':
     SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     syncclient = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
-    products_id="8258943287580"
+    products_id="9118146887964"
     # add_option
     option_info = {
             "name": "Size",
