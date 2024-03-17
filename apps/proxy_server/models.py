@@ -141,10 +141,20 @@ def cidr_ip_count(cidr):
         return 0
 
 
+class CidrAclThrough(BaseModel):
+    cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
+    acl = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='ACL')
+
+    class Meta:
+        db_table = 'cidr_acl_through'
+        verbose_name = 'CIDR与ACL关系'
+        verbose_name_plural = 'CIDR与ACL关系'
+
+
 class Cidr(BaseModel):
     cidr = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR')
     ip_count = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
-    available_acl = models.CharField(max_length=255, blank=True, null=True, verbose_name='可用ACL')
+    available_acl = models.ManyToManyField('Acls', verbose_name='ACL', through='CidrAclThrough')
 
     class Meta:
         db_table = 'cidr'
@@ -205,6 +215,7 @@ class ComponentStock(BaseModel):
     component = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='配件')
     cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
     stock = models.IntegerField(blank=True, null=True, verbose_name='库存')
+
     class Meta:
         db_table = 'component_stock'
         verbose_name = '配件库存'
@@ -379,7 +390,7 @@ def _mymodel_delete(sender, instance, **kwargs):
     if Proxy.objects.filter(username=instance.username, server_ip=instance.server_ip).count() == 0:
         from .tasks import delete_user_from_server
         task_i = delete_user_from_server.apply(args=(instance.server_ip, instance.username))
-    order_id=instance.order_id
+    order_id = instance.order_id
     stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
     redis_key = 'stock_opt_{}'.format(instance.ip_stock_id)
     # 归还子网,归还库存

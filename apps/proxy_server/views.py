@@ -13,7 +13,7 @@ from apps.core.permissions import IsAuthenticated
 from apps.utils.kaxy_handler import KaxyClient
 from django.conf import settings
 from django.core.cache import cache
-from apps.proxy_server.serializers import CidrSerializer
+from apps.proxy_server.serializers import CidrSerializer,CidrUpdateSerializer
 import logging
 import json
 
@@ -282,4 +282,4 @@ class CidrApi(ComModelViewSet):
     search_fields = ('cidr',)  # 搜索字段
     filterset_fields = ['id', 'cidr', 'ip_count']  # 过滤字段
     create_serializer_class = CidrSerializer
-    update_serializer_class = CidrSerializer
+    update_serializer_class = CidrUpdateSerializer
