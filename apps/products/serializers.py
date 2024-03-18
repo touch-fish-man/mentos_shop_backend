@@ -66,12 +66,12 @@ class VariantCreateSerializer(serializers.ModelSerializer):
     cart_step = serializers.IntegerField(required=True)
     variant_price = serializers.FloatField(required=True)
     server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
-    acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
+    # acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
 
     class Meta:
         model = Variant
         fields = (
-            "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
+            "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'cart_step', 'is_active',
             'variant_price',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
 
@@ -89,19 +89,19 @@ class VariantCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         variant = Variant.objects.create(**validated_data)
-        cidr_ids, ip_count = self.get_cidr(validated_data.get('server_group'))
-        acl_group_id = validated_data.get('acl_group').id
-        for idx, cidr_id in enumerate(cidr_ids):
-            cart_stock = ip_count[idx] // validated_data.get('cart_step')
-            if ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=acl_group_id, cart_step=validated_data.get('cart_step',8)).exists():
-                # 如果已经存在，就不创建了
-                continue
-            porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx],
-                                                    cart_step=validated_data.get('cart_step'), cart_stock=cart_stock)
-            subnets = porxy_stock.gen_subnets()
-            porxy_stock.subnets = ",".join(subnets)
-            porxy_stock.available_subnets = porxy_stock.subnets
-            porxy_stock.save()
+        # cidr_ids, ip_count = self.get_cidr(validated_data.get('server_group'))
+        # # acl_group_id = validated_data.get('acl_group').id
+        # for idx, cidr_id in enumerate(cidr_ids):
+        #     cart_stock = ip_count[idx] // validated_data.get('cart_step')
+        #     if ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=acl_group_id, cart_step=validated_data.get('cart_step',8)).exists():
+        #         # 如果已经存在，就不创建了
+        #         continue
+        #     porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id, ip_stock=ip_count[idx],
+        #                                             cart_step=validated_data.get('cart_step'), cart_stock=cart_stock)
+        #     subnets = porxy_stock.gen_subnets()
+        #     porxy_stock.subnets = ",".join(subnets)
+        #     porxy_stock.available_subnets = porxy_stock.subnets
+        #     porxy_stock.save()
         variant.save()
         return variant
 
