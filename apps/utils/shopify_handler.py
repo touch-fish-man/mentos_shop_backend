@@ -245,7 +245,11 @@ class ShopifyClient:
         products = shopify.Product.find()
         product_list = []
         for product in products:
-            product_list.append(product.to_dict())
+            product_dict=product.to_dict()
+            for option in product_dict['options']:
+                if option['name'] == 'acl_count':
+                    product_list.append(product_dict)
+                    break
         return product_list
 
     def list_product_variants(self):
@@ -552,24 +556,5 @@ if __name__ == '__main__':
     SHOPIFY_API_KEY = '07616114a90f98723b476cc38ad7f22a'
     SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
-    syncclient = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
-    products_id="9118146887964"
-    # add_option
-    option_info = {
-            "name": "Size",
-            "values": [
-                "S",
-                "M",
-                "L"
-            ]
-        }
-    print(syncclient.update_option(products_id, option_info))
-    # option_info = {
-    #         "name": "Color",
-    #         "values": [
-    #             "Red",
-    #             "Blue",
-    #             "Green"
-    #         ]
-    #     }
-    # print(syncclient.add_option(products_id, option_info))
+    client = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
+    pprint(client.list_products())

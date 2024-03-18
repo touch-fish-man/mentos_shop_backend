@@ -211,23 +211,6 @@ class ServerCidrThrough(BaseModel):
         verbose_name_plural = '服务器与CIDR关系'
 
 
-class ComponentStock(BaseModel):
-    component = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='配件')
-    cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
-    stock = models.IntegerField(blank=True, null=True, verbose_name='库存')
-
-    class Meta:
-        db_table = 'component_stock'
-        verbose_name = '配件库存'
-        verbose_name_plural = '配件库存'
-        indexes = [
-            models.Index(fields=['id', 'component', 'stock'], name='component_stock_index'),
-        ]
-        constraints = [
-            models.UniqueConstraint(fields=['component'], name='component_stock_pk')
-        ]
-
-
 # 库存表
 class ProxyStock(BaseModel):
     cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')

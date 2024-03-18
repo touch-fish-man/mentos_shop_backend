@@ -66,17 +66,6 @@ class Option(BaseModel):
     option_type = models.CharField(max_length=255, verbose_name='选项类型', blank=True, null=True)  # 时间 1 其他0
     shopify_option_id = models.CharField(max_length=255, verbose_name='shopify选项id')
 
-class ComponentStock(BaseModel):
-    """
-    组件库存
-    """
-    acl = models.ForeignKey('proxy_server.Acls', on_delete=models.CASCADE, related_name='components')
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='components')
-    option_value1 = models.CharField(max_length=255, verbose_name='选项1', blank=True, null=True)
-    option_value2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
-    stock = models.IntegerField(verbose_name='库存', default=0)  # ip数量
-    cart_step = models.IntegerField(default=8, verbose_name='购物车步长')
-
 class Variant(BaseModel):
     """
     商品变体
