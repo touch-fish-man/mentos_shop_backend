@@ -92,7 +92,7 @@ class ShopifyClient:
         yield self.session
 
     @LruCache()
-    def get_products(self, format=False):
+    def get_products(self, format=False,only_acl=False):
         product_list = []
         for product in shopify.Product.find():
             if format:
@@ -101,7 +101,13 @@ class ShopifyClient:
                 product_dict = product.to_dict()
             time.sleep(0.5)
             product_dict["product_collections"] = self.format_collection_info(product.collections())
-            product_list.append(product_dict)
+            if only_acl:
+                for option in product.options:
+                    if option.name == 'acl_count':
+                        product_list.append(product_dict)
+                        break
+            else:
+                product_list.append(product_dict)
         return product_list
 
     def format_variant_info(self, variant):

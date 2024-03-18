@@ -41,7 +41,7 @@ class ProductViewSet(ComModelViewSet):
         api_scert = settings.SHOPIFY_API_SECRET
         private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
-        product_dict = shopify_client.get_products(format=True)
+        product_dict = shopify_client.get_products(format=True,only_acl=True)
         return SuccessResponse(data=product_dict)
 
     @action(methods=['get'], detail=False, url_path='get_recommend_product', url_name='get_recommend_product')
