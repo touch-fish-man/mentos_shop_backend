@@ -211,6 +211,15 @@ class ServerCidrThrough(BaseModel):
         verbose_name_plural = '服务器与CIDR关系'
 
 
+class ProductStock(BaseModel):
+    cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
+    acl = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='ACL')
+    cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
+    ip_stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
+    subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
+    available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网')
+
+
 # 库存表
 class ProxyStock(BaseModel):
     cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
@@ -321,12 +330,14 @@ class Proxy(BaseModel):
     expired_at = models.DateTimeField(blank=True, null=True, verbose_name='过期时间')
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, blank=True, null=True, verbose_name='用户')
     subnet = models.CharField(max_length=255, blank=True, null=True, verbose_name='subnet')  # 用于存储所所属子网
-    ip_stock_id = models.IntegerField(blank=True, null=True, verbose_name='IP库存ID')
+    ip_stock_id = models.IntegerField(blank=True, null=True, verbose_name='IP库存ID')  # 已废弃
     status = models.BooleanField(default=True, verbose_name='状态')  # 用于判断是否有效
     bing_delay = models.IntegerField(blank=True, null=True, verbose_name='bing延迟')
     amazon_delay = models.IntegerField(blank=True, null=True, verbose_name='amazon延迟')
     google_delay = models.IntegerField(blank=True, null=True, verbose_name='google延迟')
     httpbin_delay = models.IntegerField(blank=True, null=True, verbose_name='httpbin延迟')
+    product_stock_ids = models.TextField(blank=True, null=True, verbose_name='产品库存ID')  # 回收库存时使用
+    old_flag = models.BooleanField(default=False, verbose_name='旧标记')  # 用于判断是否是旧的代理
 
     class Meta:
         db_table = 'proxy'

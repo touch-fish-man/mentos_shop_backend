@@ -7,9 +7,9 @@ from apps.core.models import BaseModel
 from django.db import models
 from django.db import IntegrityError
 
-
 from apps.core.validators import CustomValidationError
 from apps.proxy_server.models import ProxyStock, ServerGroupThrough, ServerCidrThrough, Cidr
+
 
 class ProductTag(BaseModel):
     tag_name = models.CharField(max_length=255, verbose_name='标签名')
@@ -22,6 +22,7 @@ class ProductTag(BaseModel):
             self.save()
         else:
             return super().delete(using=None, keep_parents=False)
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         cache_key = 'product_tags'
@@ -45,10 +46,11 @@ class ProductCollection(BaseModel):
             self.save()
         else:
             return super().delete(using=None, keep_parents=False)
+
     def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
+            self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        cache_key ='product_collections'
+        cache_key = 'product_collections'
         if cache.get(cache_key):
             cache.delete(cache_key)
         return super().save(force_insert, force_update, using, update_fields)
@@ -66,6 +68,7 @@ class Option(BaseModel):
     option_type = models.CharField(max_length=255, verbose_name='选项类型', blank=True, null=True)  # 时间 1 其他0
     shopify_option_id = models.CharField(max_length=255, verbose_name='shopify选项id')
 
+
 class Variant(BaseModel):
     """
     商品变体
@@ -81,7 +84,7 @@ class Variant(BaseModel):
         (512, 512),
         (1024, 1024)
     )
-    stock_ids=[]
+    stock_ids = []
 
     shopify_variant_id = models.CharField(max_length=255, verbose_name='shopify变体id')
     variant_name = models.CharField(max_length=255, verbose_name='变体名')
@@ -111,7 +114,7 @@ class Variant(BaseModel):
         stocks_dict = {stock.cidr_id: stock for stock in stocks}
         try:
 
-            for idx,cidr_id in enumerate(cidr_ids):
+            for idx, cidr_id in enumerate(cidr_ids):
                 stock_obj = stocks_dict.get(cidr_id)
                 if stock_obj:
                     self.stock_ids.append(stock_obj.id)
@@ -125,7 +128,8 @@ class Variant(BaseModel):
                     logging.info(cart_step)
                     logging.info(acl_group)
                     cart_stock = ip_count[idx] // cart_step
-                    porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group, ip_stock=ip_count[idx], cart_stock=cart_stock)
+                    porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group,
+                                                            ip_stock=ip_count[idx], cart_stock=cart_stock)
                     subnets = porxy_stock.gen_subnets()
                     porxy_stock.subnets = ",".join(subnets)
                     porxy_stock.available_subnets = porxy_stock.subnets
@@ -149,14 +153,13 @@ class Variant(BaseModel):
             server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
                                                                                                         flat=True)
             cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
-            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('id','ip_count')
+            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('id', 'ip_count')
             ip_count_dict = dict(ip_count)
             ip_count = [ip_count_dict.get(cidr_id) for cidr_id in cidr_ids]
 
             return cidr_ids, ip_count
         else:
             return cidr_ids, []
-
 
     def update_stock(self):
         get_stock = self.get_stock()
@@ -188,18 +191,21 @@ class Product(BaseModel):
     # variants = models.ManyToManyField(Variant)
     # variant_options = models.ManyToManyField(Option)
     active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
+
     def delete(self, using=None, keep_parents=False):
         self.soft_delete = True
         self.save()
 
     def variants(self):
         return Variant.objects.filter(product_id=self.id)
+
     @property
     def is_active(self):
         return Variant.objects.filter(product_id=self.id, is_active=True).exists()
 
     def variant_options(self):
         return Option.objects.filter(product_id=self.id)
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         super().save(force_insert=False, force_update=False, using=None,
