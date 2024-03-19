@@ -211,25 +211,47 @@ class ServerCidrThrough(BaseModel):
         verbose_name_plural = '服务器与CIDR关系'
 
 
-class ProductStock(BaseModel):
+class ProductCidr(BaseModel):
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, blank=True, null=True,
+                                verbose_name='产品')
+    option1 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项1')  # acl id
+    option2 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项2')
+    option3 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项3')
     cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
-    acl = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='ACL')
+
+    class Meta:
+        db_table = 'product_cidr_through'
+        verbose_name = '产品与CIDR关系'
+        verbose_name_plural = '产品与CIDR关系'
+
+
+class ProductStock(BaseModel):
+    """
+    产品库存表
+    """
+    product = models.ForeignKey('products.Product', on_delete=models.CASCADE, blank=True, null=True,
+                                verbose_name='产品')
+    option1 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项1')  # acl id
+    option2 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项2')
+    option3 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项3')
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
-    ip_stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
-    subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
-    available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网')
+    stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
 
 
 # 库存表
 class ProxyStock(BaseModel):
+    """
+    用于网段库存共享
+    """
     cidr = models.ForeignKey('Cidr', on_delete=models.CASCADE, blank=True, null=True, verbose_name='CIDR')
     acl_group = models.ForeignKey('AclGroup', on_delete=models.CASCADE, blank=True, null=True, verbose_name='ACL组')
+    acl = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='ACL')
     ip_stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
     variant_id = models.IntegerField(blank=True, null=True, verbose_name='变体ID')
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
     cart_stock = models.IntegerField(blank=True, null=True, verbose_name='购物车库存')
     subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
-    available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网')
+    available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网') # 168.75.4.0/24,168.75.5.0/24,168.75.6.0/24,168.75.7.0/24
 
     class Meta:
         db_table = 'ip_stock'
@@ -337,6 +359,8 @@ class Proxy(BaseModel):
     google_delay = models.IntegerField(blank=True, null=True, verbose_name='google延迟')
     httpbin_delay = models.IntegerField(blank=True, null=True, verbose_name='httpbin延迟')
     product_stock_ids = models.TextField(blank=True, null=True, verbose_name='产品库存ID')  # 回收库存时使用
+    cidr_ids = models.TextField(blank=True, null=True, verbose_name='CIDR ID')  # 回收库存时使用
+    acl_ids = models.TextField(blank=True, null=True, verbose_name='ACL ID')  # 回收库存时使用
     old_flag = models.BooleanField(default=False, verbose_name='旧标记')  # 用于判断是否是旧的代理
 
     class Meta:

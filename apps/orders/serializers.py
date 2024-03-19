@@ -10,8 +10,6 @@ class OrdersSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-
-
 class OrdersUpdateSerializer(serializers.ModelSerializer):
     order_id = serializers.IntegerField(required=True, write_only=True)
     status = serializers.IntegerField(required=False)
@@ -26,12 +24,15 @@ class OrdersListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Orders
         fields = "__all__"
+
+
 class OrdersStatusSerializer(serializers.ModelSerializer):
     order_id = serializers.IntegerField(required=True)
 
     class Meta:
         model = Orders
         fields = ["order_id", "pay_status"]
+
 
 class ProxyListSerializer(serializers.ModelSerializer):
     class Meta:

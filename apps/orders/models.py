@@ -83,6 +83,9 @@ class Orders(BaseModel):
     reset_time = models.DateTimeField(verbose_name='重置时间', null=True, blank=True)
     # 变体名称
     variant_name = models.CharField(max_length=255, verbose_name='变体名称', null=True, blank=True)
+    option1 = models.CharField(max_length=255, verbose_name='选项1', null=True, blank=True)
+    option2 = models.CharField(max_length=255, verbose_name='选项2', null=True, blank=True)
+    option3 = models.CharField(max_length=255, verbose_name='选项3', null=True, blank=True)
     old_flag = models.IntegerField(verbose_name='老订单标记', default=0)
 
     class Meta:

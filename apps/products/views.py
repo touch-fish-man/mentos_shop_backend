@@ -1,6 +1,10 @@
-from .models import Product, Variant, ProductCollection, ProductTag
-from .serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, ProductTagSerializer, \
-    ProductCreateSerializer,ProductUpdateSerializer
+from apps.products.models import Product, Variant, ProductCollection, ProductTag
+
+from apps.products.serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, \
+    ProductTagSerializer, \
+    ProductCreateSerializer, ProductUpdateSerializer
+from apps.products.services import get_price, get_stock, get_variant_info
+from apps.proxy_server.models import ProductStock
 from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient, SyncClient
 from rest_framework.decorators import action
@@ -9,6 +13,8 @@ from django.conf import settings
 from apps.core.permissions import IsAuthenticated, IsSuperUser
 from rest_framework.permissions import AllowAny
 from django.core.cache import cache
+
+
 class ProductViewSet(ComModelViewSet):
     """
     商品列表
@@ -19,7 +25,8 @@ class ProductViewSet(ComModelViewSet):
     destroy:删除
     get_recommend_product:获取推荐商品
     """
-    queryset = Product.objects.filter(soft_delete=False).all().prefetch_related('product_collections', 'product_tags', 'variants')
+    queryset = Product.objects.filter(soft_delete=False).all().prefetch_related('product_collections', 'product_tags',
+                                                                                'variants')
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
     update_serializer_class = ProductUpdateSerializer
@@ -41,7 +48,7 @@ class ProductViewSet(ComModelViewSet):
         api_scert = settings.SHOPIFY_API_SECRET
         private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
-        product_dict = shopify_client.get_products(format=True,only_acl=True)
+        product_dict = shopify_client.get_products(format=True, only_acl=True)
         return SuccessResponse(data=product_dict)
 
     @action(methods=['get'], detail=False, url_path='get_recommend_product', url_name='get_recommend_product')
@@ -63,7 +70,7 @@ class ProductViewSet(ComModelViewSet):
         if get_data:
             return SuccessResponse(data=get_data)
         else:
-            products = Product.objects.filter(product_tags__in=tags,soft_delete=False).distinct()
+            products = Product.objects.filter(product_tags__in=tags, soft_delete=False).distinct()
             serializer = self.get_serializer(products, many=True)
             get_data = serializer.data
             cache.set(key, get_data, timeout=60 * 60 * 8)
@@ -73,6 +80,40 @@ class ProductViewSet(ComModelViewSet):
                 serializer = self.get_serializer(page, many=True)
                 return self.get_paginated_response(serializer.data)
             return SuccessResponse(data=serializer.data)
+
+    @action(methods=['get'], detail=False, url_path='stock', url_name='stock')
+    def stock(self, request):
+        product_id = request.query_params.get('product_id')
+        option1 = request.query_params.get('option1')
+        option2 = request.query_params.get('option2')
+        option3 = request.query_params.get('option3')
+        if not product_id:
+            return ErrorResponse(msg='product_id不能为空')
+        product_stock = get_stock(product_id, option1, option2, option3)
+        return SuccessResponse(data=product_stock)
+
+    @action(methods=['get'], detail=False, url_path='price', url_name='price')
+    def price(self, request):
+        product_id = request.query_params.get('product_id')
+        option1 = request.query_params.get('option1')
+        option2 = request.query_params.get('option2')
+        option3 = request.query_params.get('option3')
+        if not product_id:
+            return ErrorResponse(msg='product_id不能为空')
+        price = get_price(product_id, option1, option2, option3)
+        return SuccessResponse(data=price)
+
+    @action(methods=['get'], detail=False, url_path='variant_info', url_name='variant_info')
+    def variant_info(self, request):
+        product_id = request.query_params.get('product_id')
+        option1 = request.query_params.get('option1')
+        option2 = request.query_params.get('option2')
+        option3 = request.query_params.get('option3')
+        if not product_id:
+            return ErrorResponse(msg='product_id不能为空')
+        variant_info = get_variant_info(product_id, option1, option2, option3)
+        return SuccessResponse(data=variant_info)
+
     def list(self, request, *args, **kwargs):
         # 使用redi缓存
         key = 'products'
@@ -94,6 +135,7 @@ class ProductViewSet(ComModelViewSet):
             serializer = self.get_serializer(queryset, many=True)
             get_data = serializer.data
             cache.set(key, get_data, timeout=60 * 60 * 8)
+
 
 class ProductCollectionViewSet(ComModelViewSet):
     """
@@ -122,6 +164,7 @@ class ProductCollectionViewSet(ComModelViewSet):
             return SuccessResponse(msg='同步成功')
         else:
             return ErrorResponse(msg='同步失败')
+
     def list(self, request, *args, **kwargs):
         # 使用redi缓存
         cache_key = 'product_collections'
@@ -139,7 +182,6 @@ class ProductCollectionViewSet(ComModelViewSet):
             cache.set(cache_key, data, timeout=60 * 60 * 24)
             return LimitOffsetResponse(data=data, msg="Success")
         return LimitOffsetResponse(data=data, msg="Success")
-
 
     def get_permissions(self):
         if self.action == 'list':
@@ -180,8 +222,9 @@ class ProductTagViewSet(ComModelViewSet):
         if self.action == 'list':
             self.permission_classes = []
         return super(ProductTagViewSet, self).get_permissions()
+
     def list(self, request, *args, **kwargs):
-        # 使用redi缓存
+        # 使用redis缓存
         cache_key = 'product_tags'
         data = cache.get(cache_key)
         data = None

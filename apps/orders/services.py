@@ -9,16 +9,29 @@ from apps.utils.shopify_handler import ShopifyClient
 from django.conf import settings
 from apps.rewards.models import LevelCode, CouponCode, PointRecord
 from .models import Orders
-from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock
+from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock, Acls, ProductCidr, ProductStock
 from apps.products.models import Product, Variant
 from apps.utils.kaxy_handler import KaxyClient
 from apps.users.models import User, InviteLog
 from apps.users.services import send_email_api
 from django.utils import timezone
-
+from django.db.models import Q
+from ipaddress import ip_network
 from apps.core.cache_lock import memcache_lock
 
 lock_id = "create_order"
+
+
+def get_white_acl(acl_ids):
+    """
+    使用黑名单实现白名单
+    """
+    white_acl = Acls.objects.filter(~Q(id__in=acl_ids)).all()
+    white_acl_list = {"ids": [], "acl_value": []}
+    for acl in white_acl:
+        white_acl_list.get("ids").append(acl.id)
+        white_acl_list.get("acl_value").append(acl.acl_value)
+    return white_acl_list
 
 
 def verify_webhook(request):
@@ -86,10 +99,13 @@ def get_checkout_link(request):
     product_obj = Product.objects.filter(id=order_info_dict["product_id"]).first()
     if product_obj:
         order_info_dict["product_name"] = product_obj.product_name
-    option_selected = request.data.get("option_selected")
-    variant_obj = Variant.objects.filter(product=order_info_dict["product_id"], variant_option1=option_selected[0])
-    if len(option_selected) == 2:
-        variant_obj = variant_obj.filter(variant_option2=option_selected[1])
+    option_selected = request.data.get("option_selected").split(";")  # 1,2,1;1;0
+    acl_selected = option_selected[0]
+    variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
+    variant_option3 = option_selected[2] if len(option_selected) > 2 else ""
+    acl_count = len(acl_selected.split(',')) if acl_selected else 0
+    variant_obj = Variant.objects.filter(product=order_info_dict["product_id"], variant_option1=acl_count,
+                                         variant_option2=variant_option2, variant_option3=variant_option3)
     # 查询产品信息
     variant_obj = variant_obj.first()
     if variant_obj:
@@ -106,6 +122,9 @@ def get_checkout_link(request):
         order_info_dict["expired_at"] = expired_at
         order_info_dict["proxy_num"] = order_info_dict["product_quantity"]
         order_info_dict["proxy_time"] = proxy_time
+        order_info_dict["option1"] = acl_selected
+        order_info_dict["option2"] = variant_option2
+        order_info_dict["option3"] = variant_option3
         new_order = Orders.objects.create(**order_info_dict)
         order_id = new_order.order_id
         if level_code_obj:
@@ -149,6 +168,49 @@ def get_renew_checkout_link(order_id, request):
         return None, None
 
 
+def sort_cidr(cidr_list):
+    parsed_ip_networks = [ip_network(ip) for ip in cidr_list]
+    sorted_ip_networks = sorted(parsed_ip_networks, key=lambda net: int(net.network_address))
+    sorted_ip_networks_cidr = [str(net) for net in sorted_ip_networks]
+    return sorted_ip_networks_cidr
+
+
+def sort_cidr_cmp(cidr1, cidr2):
+    return int(ip_network(cidr1).network_address) - int(ip_network(cidr2).network_address)
+
+
+def get_available_cidrs(acl_ids, cidr_ids, cart_step):
+    """
+    获取可发货的cidr，寻找在指定的acl_ids和cidr_ids中的可用子网交集，并记录它们的proxy_stock_id。
+    """
+    available_cidrs = {}  # 结果列表
+
+    # 对于每个CIDR ID
+    for cidr_id in cidr_ids:
+        # 使用字典记录每个CIDR对应的ProxyStock ID列表
+        subnet_proxy_stock_map = {}
+
+        # 对于每个ACL ID
+        for acl_id in acl_ids:
+            # 查询对应的ProxyStock对象
+            proxy_stocks = ProxyStock.objects.filter(acl_id=acl_id, cidr_id=cidr_id, cart_step=cart_step).all()
+
+            for proxy_stock in proxy_stocks:
+                # 解析可用子网字符串
+                available_subnets = proxy_stock.available_subnets.split(',')
+                for subnet in available_subnets:
+                    subnet_proxy_stock_map[subnet] = subnet_proxy_stock_map.get(subnet, set()).add(proxy_stock.id)
+        # 确定所有ACL ID中共有的子网，并添加到结果列表中
+        for subnet, proxy_stock_ids in subnet_proxy_stock_map.items():
+            if len(proxy_stock_ids) == len(acl_ids):
+                available_cidrs[proxy_stock_ids] = available_cidrs.get(proxy_stock_ids, set()).add(subnet)
+    for proxy_stock_ids, subnets in available_cidrs.items():
+        available_cidrs[proxy_stock_ids] = sort_cidr(list(subnets))
+    available_cidrs_list = list(available_cidrs.items())
+    available_cidrs_list.sort(key=lambda x: sort_cidr_cmp(x[1][0], x[1][-1]))
+    return available_cidrs_list
+
+
 def create_proxy_by_order(order_id):
     """
     根据订单创建代理
@@ -165,6 +227,16 @@ def create_proxy_by_order(order_id):
             order_pk = order_obj.id
             product_name = order_obj.product_name
             proxy_username = order_user + order_id[:6]  # 生成代理用户名
+            acl_ids = order_obj.option1.split(',')
+            white_acl_list = get_white_acl(acl_ids)
+            acl_value = "\n".join(white_acl_list.get("acl_value"))
+            cidr_obj = ProductCidr.objects.filter(product_id=order_obj.product_id, option1=order_obj.option1,
+                                                  option2=order_obj.option2, option3=order_obj.option3).first()
+            cidr_list = []
+            if cidr_obj:
+                cidr_list = cidr_obj.cidr.split(',')
+            # acl id + cidr id+ cart_step
+
             variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
             if variant_obj:
                 if variant_obj.variant_stock < order_obj.product_quantity:
@@ -175,7 +247,6 @@ def create_proxy_by_order(order_id):
                 server_group = variant_obj.server_group
                 acl_group = variant_obj.acl_group
                 cart_step = variant_obj.cart_step  # 购物车步长
-                acl_value = acl_group.acl_value  # 获取acl组的acl值
                 server_group_obj = ServerGroup.objects.filter(id=server_group.id).first()
                 proxy_expired_at = order_obj.expired_at  # 代理过期时间
                 proxy_list = []
@@ -191,9 +262,9 @@ def create_proxy_by_order(order_id):
                         if not len(cidr_info):
                             logging.info('服务器{}没有可用的cidr'.format(server.ip))
                         # todo 合并cidr 为了减少循环次数
-                        for cidr in cidr_info:
+                        for cidr_id in cidr_list:
                             error_cnt = 0
-                            Stock = ProxyStock.objects.filter(acl_group=acl_group.id, cidr=cidr['id'],
+                            Stock = ProxyStock.objects.filter(acl_id=acl_group.id, cidr_id=cidr_id,
                                                               cart_step=cart_step).first()
                             if Stock:
                                 cart_stock = Stock.cart_stock
@@ -528,7 +599,6 @@ def renew_proxy_by_order(order_id):
             proxy.expired_at += datetime.timedelta(days=order_obj.proxy_time)
             proxy.save()
         order_obj.expired_at += datetime.timedelta(days=order_obj.proxy_time)
-        order_obj.renew_status = 0
         order_obj.save()
         return True, ''
     return False, '订单不存在无法续费'
@@ -577,7 +647,7 @@ def webhook_handle(order_info):
             if order:
                 if renewal_status == "1":
                     order.pay_amount = float(order.pay_amount) + float(pay_amount)
-                    order.renew_status = 1
+                    order.renew_status += 1
                 order.pay_amount = float(pay_amount)  # 支付金额
                 order.pay_status = 1  # 已支付
                 order.shopify_order_id = shpify_order_id  # shopify订单id
