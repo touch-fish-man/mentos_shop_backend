@@ -237,6 +237,11 @@ class ProductStock(BaseModel):
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
     stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
 
+    class Meta:
+        db_table = 'product_stock'
+        verbose_name = '产品库存'
+        verbose_name_plural = '产品库存'
+
 
 # 库存表
 class ProxyStock(BaseModel):
