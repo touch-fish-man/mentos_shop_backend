@@ -190,6 +190,25 @@ class Variant(BaseModel):
                      update_fields=None)
 
 
+class ExtendedVariant(BaseModel):
+    """
+    商品变体扩展
+    """
+    shopify_variant_id = models.CharField(max_length=255, verbose_name='shopify变体id')
+    old_variant = models.ForeignKey('Variant', on_delete=models.CASCADE, related_name='old_variants')
+    variant_name = models.CharField(max_length=255, verbose_name='变体名')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='extended_variants')
+    variant_option1 = models.CharField(max_length=255, verbose_name='选项1', blank=True, null=True)
+    variant_option2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
+    variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
+    variant_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='价格')
+
+    class Meta:
+        db_table = 'extended_variant'
+        verbose_name = '商品变体扩展'
+        verbose_name_plural = '商品变体扩展'
+
+
 class Product(BaseModel):
     """
     商品

@@ -10,7 +10,7 @@ from django.conf import settings
 from apps.rewards.models import LevelCode, CouponCode, PointRecord
 from .models import Orders
 from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock, Acls, ProductStock
-from apps.products.models import Product, Variant
+from apps.products.models import Product, Variant,ExtendedVariant
 from apps.utils.kaxy_handler import KaxyClient
 from apps.users.models import User, InviteLog
 from apps.users.services import send_email_api
@@ -104,16 +104,17 @@ def get_checkout_link(request):
     variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
     variant_option3 = option_selected[2] if len(option_selected) > 2 else ""
     acl_count = len(acl_selected.split(',')) if acl_selected else 0
-    variant_obj = Variant.objects.filter(product=order_info_dict["product_id"], variant_option1=acl_count,
+    variant_obj = ExtendedVariant.objects.filter(product=order_info_dict["product_id"], variant_option1=acl_count,
                                          variant_option2=variant_option2, variant_option3=variant_option3)
     # 查询产品信息
     variant_obj = variant_obj.first()
     if variant_obj:
+        original_variant_obj = variant_obj.old_variant
         order_info_dict["variant_id"] = variant_obj.shopify_variant_id
         order_info_dict["product_price"] = variant_obj.variant_price
         order_info_dict["local_variant_id"] = variant_obj.id
         order_info_dict["variant_name"] = variant_obj.variant_name
-        proxy_time = variant_obj.proxy_time
+        proxy_time = original_variant_obj.proxy_time
         order_info_dict["product_total_price"] = order_info_dict["product_price"] * int(
             order_info_dict["product_price"])
         order_info_dict["product_type"] = Product.objects.filter(

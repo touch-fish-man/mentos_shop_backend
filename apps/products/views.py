@@ -84,12 +84,11 @@ class ProductViewSet(ComModelViewSet):
     @action(methods=['get'], detail=False, url_path='stock', url_name='stock')
     def stock(self, request):
         product_id = request.query_params.get('product_id')
-        option1 = request.query_params.get('option1')
         option2 = request.query_params.get('option2')
         option3 = request.query_params.get('option3')
         if not product_id:
             return ErrorResponse(msg='product_id不能为空')
-        product_stock = get_stock(product_id, option1, option2, option3)
+        product_stock = get_stock(product_id, option2, option3)
         return SuccessResponse(data=product_stock)
 
     @action(methods=['get'], detail=False, url_path='price', url_name='price')

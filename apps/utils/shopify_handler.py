@@ -108,8 +108,8 @@ class ShopifyClient:
                         variants.append(variant)
                     else:
                         variants_other.append(variant)
-                product_dict["variants"]=variants
-                product_dict["variants_other"]=variants_other
+                product_dict["variants"] = variants
+                product_dict["variants_ext"] = variants_other
             if only_acl:
                 for option in product.options:
                     if option.name == 'acl_count':
