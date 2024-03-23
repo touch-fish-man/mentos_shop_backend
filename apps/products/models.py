@@ -69,6 +69,19 @@ class Option(BaseModel):
     shopify_option_id = models.CharField(max_length=255, verbose_name='shopify选项id')
 
 
+class VariantCidrThrough(BaseModel):
+    variant = models.ForeignKey('Variant', on_delete=models.CASCADE, blank=True, null=True,
+                                verbose_name='变体')
+    cidr = models.ForeignKey('proxy_server.Cidr', on_delete=models.CASCADE, blank=True, null=True,
+
+                             verbose_name='CIDR')
+
+    class Meta:
+        db_table = 'variant_cidr_through'
+        verbose_name = '变体与CIDR关系'
+        verbose_name_plural = '变体与CIDR关系'
+
+
 class Variant(BaseModel):
     """
     商品变体
@@ -103,6 +116,7 @@ class Variant(BaseModel):
     variant_option2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
     variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
     proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
+    cidrs = models.ManyToManyField('proxy_server.Cidr', through='VariantCidrThrough', related_name='cidrs')
 
     def get_stock(self):
         variant_stock = 0
@@ -191,6 +205,7 @@ class Product(BaseModel):
     # variants = models.ManyToManyField(Variant)
     # variant_options = models.ManyToManyField(Option)
     active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
+    valid = models.BooleanField(default=False, verbose_name='是否有效', blank=True, null=True)
 
     def delete(self, using=None, keep_parents=False):
         self.soft_delete = True

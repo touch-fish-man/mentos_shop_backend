@@ -62,9 +62,9 @@ class LruCache:
 
 
 class ShopifyClient:
-    def __init__(self, shop_url=None, api_key=None, api_scert=None, access_token=None, api_version=None):
+    def __init__(self, shop_url=None, api_key=None, api_scert=None, access_token=None, api_version='2024-01'):
         self.shop_url = shop_url
-        self.api_version = api_version if api_version else '2023-04'
+        self.api_version = api_version
         self.api_key = api_key
         self.api_scert = api_scert
         self.access_token = access_token
@@ -75,7 +75,7 @@ class ShopifyClient:
         # 检查秘钥地址是否正确
         try:
             self.__get_session()
-            print(shopify.Shop.current())
+            shopify.Shop.current()
             return True
         except Exception as e:
             return False
@@ -91,8 +91,7 @@ class ShopifyClient:
             self.__get_session()
         yield self.session
 
-    @LruCache()
-    def get_products(self, format=False,only_acl=False):
+    def get_products(self, format=False,only_acl=False,filter_variant=None):
         product_list = []
         for product in shopify.Product.find():
             if format:
@@ -101,6 +100,16 @@ class ShopifyClient:
                 product_dict = product.to_dict()
             time.sleep(0.5)
             product_dict["product_collections"] = self.format_collection_info(product.collections())
+            if filter_variant:
+                variants = []
+                variants_other = []
+                for variant in product_dict["variants"]:
+                    if variant["variant_option1"]=='0':
+                        variants.append(variant)
+                    else:
+                        variants_other.append(variant)
+                product_dict["variants"]=variants
+                product_dict["variants_other"]=variants_other
             if only_acl:
                 for option in product.options:
                     if option.name == 'acl_count':
@@ -563,4 +572,4 @@ if __name__ == '__main__':
     SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     client = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
-    pprint(client.list_products())
+    pprint(client.get_products(only_acl=True),filter_variant=True)

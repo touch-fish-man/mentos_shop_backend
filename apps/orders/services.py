@@ -9,7 +9,7 @@ from apps.utils.shopify_handler import ShopifyClient
 from django.conf import settings
 from apps.rewards.models import LevelCode, CouponCode, PointRecord
 from .models import Orders
-from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock, Acls, ProductCidr, ProductStock
+from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock, Acls, ProductStock
 from apps.products.models import Product, Variant
 from apps.utils.kaxy_handler import KaxyClient
 from apps.users.models import User, InviteLog
