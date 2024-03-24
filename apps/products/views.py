@@ -81,7 +81,7 @@ class ProductViewSet(ComModelViewSet):
                 return self.get_paginated_response(serializer.data)
             return SuccessResponse(data=serializer.data)
 
-    @action(methods=['get'], detail=False, url_path='stock', url_name='stock')
+    @action(methods=['post'], detail=False, url_path='stock', url_name='stock')
     def stock(self, request):
         product_id = request.data.get('product_id')
         option_selected = request.data.get("option_selected",[])
@@ -95,7 +95,7 @@ class ProductViewSet(ComModelViewSet):
         product_stock = get_stock(product_id, variant_option2, variant_option3)
         return SuccessResponse(data=product_stock)
 
-    @action(methods=['get'], detail=False, url_path='price', url_name='price')
+    @action(methods=['post'], detail=False, url_path='price', url_name='price')
     def price(self, request):
         product_id = request.data.get('product_id')
         option_selected = request.data.get("option_selected", [])
@@ -109,7 +109,7 @@ class ProductViewSet(ComModelViewSet):
         price = get_price(product_id, acl_selected, variant_option2, variant_option3)
         return SuccessResponse(data=price)
 
-    @action(methods=['get'], detail=False, url_path='variant_info', url_name='variant_info')
+    @action(methods=['post'], detail=False, url_path='variant_info', url_name='variant_info')
     def variant_info(self, request):
         option_selected = request.data.get("option_selected", [])
         product_id = request.data.get('product_id')
