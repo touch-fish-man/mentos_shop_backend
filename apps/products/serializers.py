@@ -234,6 +234,7 @@ class ProductSerializer(serializers.ModelSerializer):
             filtered_values = [val for val in option_values if val.get('option_value') in options[idx]]
             option['option_values'] = filtered_values
             variant_options_ret.append(option)
+        ret['variant_options'] = variant_options_ret
 
         return ret
 
