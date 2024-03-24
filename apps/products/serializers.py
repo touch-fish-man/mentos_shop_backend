@@ -224,12 +224,16 @@ class ProductSerializer(serializers.ModelSerializer):
                 options[1].add(v.get('variant_option2'))
             if v.get('variant_option3'):
                 options[2].add(v.get('variant_option3'))
+        variant_options_ret= []
 
         # 使用列表推导式过滤 variant_options
         for idx, option in enumerate(variant_options):
+            if option.get('option_name') == 'acl_count':
+                continue
             option_values = option.get('option_values', [])
             filtered_values = [val for val in option_values if val.get('option_value') in options[idx]]
             option['option_values'] = filtered_values
+            variant_options_ret.append(option)
 
         return ret
 
