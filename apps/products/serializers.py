@@ -272,7 +272,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             option_data['product'] = product
             if option_data.get('option_name') != 'acl_count':
                 other_options.append(copy.deepcopy(option_data))
-            OptionSerializer().create(option_data)
+            opt = OptionSerializer().create(option_data)
         acls = Acls.objects.all()
         base_variant_list = {}
         # 创建variant
@@ -283,8 +283,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             base_variant_list[key] = v
             cart_step = variant_data.get('cart_step', 8)
             cidrs = get_cidr(variant_data.get('server_group'))
-            for acl_i in Acls.objects.all():
-
+            for acl_i in acls:
                 ip_stock_objs = []
                 for cidr_i in cidrs:
                     v.cidrs.add(cidr_i)

@@ -83,31 +83,40 @@ class ProductViewSet(ComModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='stock', url_name='stock')
     def stock(self, request):
-        product_id = request.query_params.get('product_id')
-        option2 = request.query_params.get('option2')
-        option3 = request.query_params.get('option3')
+        product_id = request.data.get('product_id')
+        option_selected = request.data.get("option_selected",[])
+        if len(option_selected) < 2:
+            return ErrorResponse(msg='option_selected参数错误')
+        variant_option2 = option_selected[0]
+        variant_option3 = option_selected[1] if len(option_selected) > 1 else ""
         if not product_id:
             return ErrorResponse(msg='product_id不能为空')
-        product_stock = get_stock(product_id, option2, option3)
+        product_stock = get_stock(product_id, variant_option2, variant_option2)
         return SuccessResponse(data=product_stock)
 
     @action(methods=['get'], detail=False, url_path='price', url_name='price')
     def price(self, request):
-        product_id = request.query_params.get('product_id')
-        option1 = request.query_params.get('option1')
-        option2 = request.query_params.get('option2')
-        option3 = request.query_params.get('option3')
+        product_id = request.data.get('product_id')
+        option_selected = request.data.get("option_selected", [])
+        if len(option_selected) < 3:
+            return ErrorResponse(msg='option_selected参数错误')
+        acl_selected = option_selected[0]
+        variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
+        variant_option3 = option_selected[2] if len(option_selected) > 2 else ""
         if not product_id:
             return ErrorResponse(msg='product_id不能为空')
-        price = get_price(product_id, option1, option2, option3)
+        price = get_price(product_id, acl_selected, variant_option2, variant_option3)
         return SuccessResponse(data=price)
 
     @action(methods=['get'], detail=False, url_path='variant_info', url_name='variant_info')
     def variant_info(self, request):
-        product_id = request.query_params.get('product_id')
-        option1 = request.query_params.get('option1')
-        option2 = request.query_params.get('option2')
-        option3 = request.query_params.get('option3')
+        option_selected = request.data.get("option_selected", [])
+        product_id = request.data.get('product_id')
+        if len(option_selected) < 3:
+            return ErrorResponse(msg='option_selected参数错误')
+        option1 = option_selected[0]
+        option2 = option_selected[1]
+        option3 = option_selected[2]
         if not product_id:
             return ErrorResponse(msg='product_id不能为空')
         variant_info = get_variant_info(product_id, option1, option2, option3)

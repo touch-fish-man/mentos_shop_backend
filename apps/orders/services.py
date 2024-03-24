@@ -100,7 +100,7 @@ def get_checkout_link(request):
     product_obj = Product.objects.filter(id=order_info_dict["product_id"]).first()
     if product_obj:
         order_info_dict["product_name"] = product_obj.product_name
-    option_selected = request.data.get("option_selected").split(";")  # 1,2,1;1;0
+    option_selected = request.data.get("option_selected")
     acl_selected = option_selected[0]
     variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
     variant_option3 = option_selected[2] if len(option_selected) > 2 else ""

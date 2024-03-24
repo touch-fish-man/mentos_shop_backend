@@ -7,16 +7,24 @@ from apps.proxy_server.models import ProductStock, Acls, ProxyStock
 
 def get_price(product_id, option1, option2, option3):
     acl_count = len(option1.split(',')) if option1 else 0
-    product = ExtendedVariant.objects.filter(product_id=product_id, variant_option1=acl_count, variant_option2=option2,
-                                             variant_option3=option3).first()
+    product = ExtendedVariant.objects.filter(product_id=product_id, variant_option1=acl_count)
+    if option2:
+        product = product.filter(variant_option2=option2)
+    if option3:
+        product = product.filter(variant_option3=option3)
+    product = product.first()
     if not product:
         return 0
     return product.variant_price
 
 
 def get_stock(product_id, option2, option3):
-    product_stock = ProductStock.objects.filter(product_id=product_id, option2=option2,
-                                                option3=option3).all()
+    product_stock = ProductStock.objects.filter(product_id=product_id)
+    if option2:
+        product_stock = product_stock.filter(option2=option2)
+    if option3:
+        product_stock = product_stock.filter(option3=option3)
+    product_stock = product_stock.all()
     stocks = []
     for stock in product_stock:
         try:
@@ -68,8 +76,12 @@ def get_available_cidrs(acl_ids, cidr_ids, cart_step):
 def get_variant_info(product_id, option1, option2, option3):
     data = {"price": 0, "stock": 0, "local_variant_id": 0, "shopify_variant_id": "0"}
     acl_count = len(option1.split(',')) if option1 else 0
-    variant = ExtendedVariant.objects.filter(product_id=product_id, variant_option1=acl_count, variant_option2=option2,
-                                             variant_option3=option3).first()
+    variant = ExtendedVariant.objects.filter(product_id=product_id, variant_option1=acl_count)
+    if option2:
+        variant = variant.filter(variant_option2=option2)
+    if option3:
+        variant = variant.filter(variant_option3=option3)
+    variant = variant.first()
     cidr_list = []
     if variant:
         data['price'] = variant.variant_price
