@@ -37,7 +37,7 @@ class ProductViewSet(ComModelViewSet):
     unauthenticated_actions = ['list', 'get_recommend_product']
 
     def get_permissions(self):
-        if self.action in ['list', "get_recommend_product"]:
+        if self.action in ['list', "get_recommend_product", "stock", "price", "variant_info"]:
             return []
         return super(ProductViewSet, self).get_permissions()
 
