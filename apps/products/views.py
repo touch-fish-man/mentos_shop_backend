@@ -85,13 +85,14 @@ class ProductViewSet(ComModelViewSet):
     def stock(self, request):
         product_id = request.data.get('product_id')
         option_selected = request.data.get("option_selected",[])
-        if len(option_selected) < 2:
+        if len(option_selected) < 3:
             return ErrorResponse(msg='option_selected参数错误')
-        variant_option2 = option_selected[0]
-        variant_option3 = option_selected[1] if len(option_selected) > 1 else ""
+        acl_selected = option_selected[0]
+        variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
+        variant_option3 = option_selected[2] if len(option_selected) > 2 else ""
         if not product_id:
             return ErrorResponse(msg='product_id不能为空')
-        product_stock = get_stock(product_id, variant_option2, variant_option2)
+        product_stock = get_stock(product_id, variant_option2, variant_option3)
         return SuccessResponse(data=product_stock)
 
     @action(methods=['get'], detail=False, url_path='price', url_name='price')
