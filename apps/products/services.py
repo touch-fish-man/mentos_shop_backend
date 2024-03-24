@@ -1,5 +1,5 @@
 from apps.products.models import Variant,ExtendedVariant
-from apps.proxy_server.models import ProductStock
+from apps.proxy_server.models import ProductStock,Acls
 
 
 def get_price(product_id, option1, option2, option3):
@@ -15,8 +15,13 @@ def get_stock(product_id,option2, option3):
                                                 option3=option3).all()
     stocks = []
     for stock in product_stock:
+        try:
+            acl_name= Acls.objects.get(id=stock.acl_id).name
+        except:
+            acl_name = ''
         tmp_dict = {}
         tmp_dict['acl_id'] = stock.acl_id
+        tmp_dict['acl_name'] = acl_name
         tmp_dict['option2'] = stock.option2
         tmp_dict['option3'] = stock.option3
         tmp_dict['stock'] = stock.stock
