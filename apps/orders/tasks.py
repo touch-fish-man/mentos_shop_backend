@@ -5,7 +5,7 @@ import json
 import pytz
 from celery.schedules import crontab
 from apps.orders.models import Orders
-from apps.orders.services import create_proxy_by_id
+from apps.orders.services import create_proxy
 from apps.proxy_server.models import Proxy
 from apps.users.models import User
 from apps.users.services import send_via_sendgrid, send_email_via_mailgun
@@ -186,4 +186,8 @@ def delivery_order(order_pk=None, order_id=None):
         if order:
             order_pk = order.id
     if order_pk:
-        create_proxy_by_id(order_pk)
+        filter_dict = {
+            'id': order_pk,
+            'pay_status': 1,
+        }
+        create_proxy(filter_dict)

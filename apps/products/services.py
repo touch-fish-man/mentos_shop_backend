@@ -58,11 +58,9 @@ def get_available_cidrs(acl_ids, cidr_ids, cart_step):
                 if subnet not in subnet_proxy_stock_map:
                     subnet_proxy_stock_map[subnet] = [set(), set()]
                 subnet_proxy_stock_map[subnet][0].add(acl_id)
-                subnet_proxy_stock_map[subnet][1].add((proxy_stock.id, acl_id))
+                subnet_proxy_stock_map[subnet][1].add((proxy_stock, acl_id))
                 if len(subnet_proxy_stock_map[subnet][0]) == len(acl_ids):
                     available_cidrs[subnet] = subnet_proxy_stock_map[subnet][1]
-    # 对结果 按照网络地址排序
-
     available_cidrs = OrderedDict(sorted(available_cidrs.items(), key=lambda x: int(ip_network(x[0]).network_address)))
     return available_cidrs
 

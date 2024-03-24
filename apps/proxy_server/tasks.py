@@ -17,7 +17,9 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_page
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import os
-from apps.orders.services import create_proxy_by_id
+
+from apps.core.cache_lock import memcache_lock
+from apps.orders.services import create_proxy
 from apps.proxy_server.models import Proxy
 from apps.proxy_server.models import Server
 from apps.utils.kaxy_handler import KaxyClient
@@ -81,39 +83,42 @@ def check_server_status(faild_count=5):
 
 
 @shared_task(name='reset_proxy')
-def reset_proxy_fn(order_id, username, server_ip):
-    ret_json = {}
-    logging.info("==========create_proxy_by_id {}==========".format(order_id))
-    delete_proxy_list = []
-    server_ip_username = Proxy.objects.filter(order_id=order_id).values_list('server_ip', 'username').distinct()
-    for server_ip, username in server_ip_username:
-        server_exists = Server.objects.filter(ip=server_ip).exists()
-        if not server_exists:
-            continue
-        kaxy_client = KaxyClient(server_ip)
-        kaxy_client.del_user(username)
-    re_create_ret, ret_proxy_list, msg = create_proxy_by_id(order_id)
-    if re_create_ret:
-        new_proxy = Proxy.objects.filter(username=username).all()
-        for p in new_proxy:
-            if p.id not in ret_proxy_list and len(ret_proxy_list) > 0:
-                p.delete()
-        ret_json['code'] = 200
-        ret_json['message'] = 'success'
-        ret_json['data'] = {}
-        ret_json['data']['delete_proxy_list'] = delete_proxy_list
-        ret_json['data']['order_id'] = order_id
-        ret_json['data']['re_create'] = re_create_ret
-        logging.info("==========create_proxy_by_id success==========")
-        return ret_json
-    else:
-        ret_json['code'] = 500
-        ret_json['message'] = msg
-        ret_json['data'] = {}
-        ret_json['data']['re_create'] = re_create_ret
-        ret_json['data']['order_id'] = order_id
-        logging.info("==========create_proxy_by_id faild==========")
-        return ret_json
+def reset_proxy_fn(order_id, username):
+    lock_id = "reset_proxy"
+    with memcache_lock(lock_id, order_id) as acquired:
+        ret_json = {}
+        logging.info("==========create_proxy_by_id {}==========".format(order_id))
+        delete_proxy_list = []
+        server_ip_username = Proxy.objects.filter(order_id=order_id).values_list('server_ip', 'username').distinct()
+        for server_ip, username in server_ip_username:
+            server_exists = Server.objects.filter(ip=server_ip).exists()
+            if not server_exists:
+                continue
+            kaxy_client = KaxyClient(server_ip)
+            kaxy_client.del_user(username)
+        filter_dict = {"id": order_id,"pay_status":1}
+        re_create_ret, ret_proxy_list, msg = create_proxy(filter_dict)
+        if re_create_ret:
+            new_proxy = Proxy.objects.filter(username=username).all()
+            for p in new_proxy:
+                if p.id not in ret_proxy_list and len(ret_proxy_list) > 0:
+                    p.delete()
+            ret_json['code'] = 200
+            ret_json['message'] = 'success'
+            ret_json['data'] = {}
+            ret_json['data']['delete_proxy_list'] = delete_proxy_list
+            ret_json['data']['order_id'] = order_id
+            ret_json['data']['re_create'] = re_create_ret
+            logging.info("==========create_proxy_by_id success==========")
+            return ret_json
+        else:
+            ret_json['code'] = 500
+            ret_json['message'] = msg
+            ret_json['data'] = {}
+            ret_json['data']['re_create'] = re_create_ret
+            ret_json['data']['order_id'] = order_id
+            logging.info("==========create_proxy_by_id faild==========")
+            return ret_json
 
 
 @shared_task(name='delete_proxy_by_id')

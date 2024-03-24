@@ -29,3 +29,5 @@ class memcache_lock:
     def release(self):
         if cache.get(self.lock_id) == self.oid:
             cache.delete(self.lock_id)
+    def is_locked(self):
+        return cache.get(self.lock_id) == self.oid

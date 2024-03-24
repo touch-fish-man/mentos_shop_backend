@@ -16,8 +16,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, \
-    reset_proxy_by_order, create_proxy_by_id, delete_proxy_by_order_pk
+from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, create_proxy, delete_proxy_by_order_pk
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -25,6 +24,8 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.models import Product, Variant
 from django.core.exceptions import ObjectDoesNotExist
+
+from ..core.cache_lock import memcache_lock
 
 
 class OrdersApi(ComModelViewSet):
@@ -156,15 +157,11 @@ class OrdersApi(ComModelViewSet):
             order = order.first()
             order_id = order.order_id
             # 删除代理
-            for t in threading.enumerate():
-                if t.name == "reset_{}".format(order_id):
-                    return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
-            for p_i in Proxy.objects.filter(order_id=order_pk).all():
-                p_i.delete()
-
-            # 重新创建代理
-            t1 = threading.Thread(target=reset_proxy_by_order, args=(order_id,),
-                                  name="reset_{}".format(order_id)).start()
+            lock_id = "reset_proxy"
+            if memcache_lock(lock_id, order_id).is_locked():
+                return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
+            from apps.proxy_server.tasks import reset_proxy_fn
+            reset_proxy_fn.delay(order_id, order.username)
 
         else:
             return ErrorResponse(data={}, msg="订单不存在")
@@ -228,8 +225,12 @@ class OrdersApi(ComModelViewSet):
                     if t.name == "onkey_reset_{}".format(order_id):
                         return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
                 Proxy.objects.filter(order_id=order_id).all().delete()
+                filter_dict = {
+                    'id': order_id,
+                    'pay_status': 1,
+                }
                 # 重新创建代理
-                t1 = threading.Thread(target=create_proxy_by_id, args=(order_id,),
+                t1 = threading.Thread(target=create_proxy, args=(filter_dict,),
                                       name="onkey_reset_{}".format(order_id)).start()
 
             else:
