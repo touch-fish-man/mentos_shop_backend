@@ -30,17 +30,14 @@ def get_stock(product_id,option2, option3):
 
 
 def get_variant_info(product_id, option1, option2, option3):
-    data = {}
+    data = {"price": 0, "stock": 0, "local_variant_id": 0, "shopify_variant_id": "0"}
     acl_count = len(option1.split(',')) if option1 else 0
     variant = ExtendedVariant.objects.filter(product_id=product_id, variant_option1=acl_count, variant_option2=option2, variant_option3=option3).first()
     if variant:
-        price=variant.variant_price
-    else:
-        price = 0
-    acl_list=option1.split(',')
-    stock = 1024
-    data['price'] = price
-    data['stock'] = stock
+        data['price'] = variant.variant_price
+    acl_list = option1.split(',')
+    stock = ProductStock.objects.filter(product_id=product_id, option2=option2, option3=option3, acl_id__in=acl_list).all().values_list('stock', flat=True)
+    data["stock"] = sum(stock) if stock else 0
     data["local_variant_id"] = variant.id
     data["shopify_variant_id"] = variant.shopify_variant_id
     return data
