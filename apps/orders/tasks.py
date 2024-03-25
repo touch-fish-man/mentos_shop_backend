@@ -206,7 +206,7 @@ def update_shopify_product():
     api_scert = settings.SHOPIFY_API_SECRET
     private_app_password = settings.SHOPIFY_APP_KEY
     shopify_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
-    product_dict = shopify_client.get_products(format=True, only_acl=True, filter_variant=True)
+    product_dict = shopify_client.get_products(format=True)
     data = json.dumps(product_dict)
     cache.set('shopify_product_info', data, 60 * 60 * 24)
     collection_data = shopify_client.sync_product_collections()

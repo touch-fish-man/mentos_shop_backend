@@ -53,7 +53,7 @@ class ProductViewSet(ComModelViewSet):
         api_scert = settings.SHOPIFY_API_SECRET
         private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
-        product_dict = shopify_client.get_products(format=True, only_acl=True, filter_variant=True)
+        product_dict = shopify_client.get_products(format=True)
         cache.set('shopify_product_info', json.dumps(product_dict), timeout=60 * 60 * 24)
         return SuccessResponse(data=product_dict)
 
