@@ -15,6 +15,11 @@ class AclsSerializer(CommonSerializer):
     class Meta:
         model = Acls
         fields = '__all__'
+        extra_kwargs = {
+        "id": {'read_only': True},
+        "created_at": {'read_only': True},
+        "updated_at": {'read_only': True}
+    }
 class AclsCidrSerializer(CommonSerializer):
     class Meta:
         model = Acls
