@@ -260,6 +260,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         product_collections_data = validated_data.pop('product_collections')
         product_tags_data = validated_data.pop('product_tags')
         options_data = validated_data.pop('variant_options')
+        variants_data_ext = copy.deepcopy(variants_data)
         product = Product.objects.create(**validated_data)
         # 创建option
         for option_data in options_data:
@@ -268,12 +269,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         acls = Acls.objects.all()
         base_variant_list = {}
         # 创建variant
-        for variant_data in variants_data:
+        for idx,variant_data in enumerate(variants_data):
             variant_data['product'] = product
             v = VariantCreateSerializer().create(variant_data)
-            key = "|".join([str(v.variant_option2), str(v.variant_option3)])
-            base_variant_list[key] = v
+            variants_data_ext[idx]['old_variant'] = v
+            variants_data_ext[idx]['product'] = product
             cart_step = variant_data.get('cart_step', 8)
+            # ExtendedVariantCreateSerializer().create(variants_data_ext)
             cidrs = get_cidr(variant_data.get('server_group'))
             for acl_i in acls:
                 ip_stock_objs = []
@@ -301,12 +303,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
                     stock += ip_stock_obj.ip_stock
                 product_stock.stock = stock
                 product_stock.save()
-        # # 创建extended_variant
-        # for variant_ext_data in variants_ext_data:
-        #     key = "|".join([str(variant_ext_data.get('variant_option2')), str(variant_ext_data.get('variant_option3'))])
-        #     variant_ext_data['product'] = product
-        #     variant_ext_data['old_variant'] = base_variant_list.get(key)
-        #     ExtendedVariantCreateSerializer().create(variant_ext_data)
         # 创建product_collection
         for product_collection_data in product_collections_data:
             product_collection = ProductCollectionSerializer().create(product_collection_data)
