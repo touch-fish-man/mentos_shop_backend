@@ -10,7 +10,7 @@ from django.conf import settings
 from apps.rewards.models import LevelCode, CouponCode, PointRecord
 from .models import Orders
 from apps.proxy_server.models import Server, Proxy, ServerGroup, ProxyStock, Acls, ProductStock, ServerCidrThrough
-from apps.products.models import Product, Variant, ExtendedVariant
+from apps.products.models import Product, Variant
 from apps.utils.kaxy_handler import KaxyClient
 from apps.users.models import User, InviteLog
 from apps.users.services import send_email_api
@@ -207,13 +207,12 @@ def create_proxy_by_order_obj(order_obj):
             white_acl_list = get_white_acl(acl_ids)
             acl_value = "\n".join(white_acl_list.get("acl_value"))
             cidr_list = get_available_cidrs(acl_ids, order_obj.option2, order_obj.option3)
-            variant_obj = ExtendedVariant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
+            variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
             if variant_obj:
-                old_variant_obj = variant_obj.old_variant
-                proxy_expired_at = old_variant_obj.expired_at  # 代理过期时间
-                product_quantity = old_variant_obj.product_quantity
-                cart_step = old_variant_obj.cart_step
-                for cidr in old_variant_obj.cidrs.all():
+                proxy_expired_at = variant_obj.expired_at  # 代理过期时间
+                product_quantity = variant_obj.product_quantity
+                cart_step = variant_obj.cart_step
+                for cidr in variant_obj.cidrs.all():
                     cidr_list.append(cidr.id)
                 available_cidrs = get_available_cidrs(acl_ids, cidr_list, cart_step)
                 if len(available_cidrs) * cart_step < product_quantity:

@@ -1,7 +1,7 @@
 from ipaddress import ip_network
 from pprint import pprint
 from collections import OrderedDict
-from apps.products.models import Variant, ExtendedVariant
+from apps.products.models import Variant
 from apps.proxy_server.models import ProductStock, Acls, ProxyStock
 
 

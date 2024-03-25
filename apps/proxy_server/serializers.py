@@ -15,6 +15,10 @@ class AclsSerializer(CommonSerializer):
     class Meta:
         model = Acls
         fields = '__all__'
+class AclsCidrSerializer(CommonSerializer):
+    class Meta:
+        model = Acls
+        fields = ('id', 'name')
 
 
 class AclsGroupSerializer(CommonSerializer):
@@ -258,7 +262,7 @@ class ServerUpdateSerializer(CommonSerializer):
 
 
 class CidrSerializer(CommonSerializer):
-    available_acl = AclsGroupSerializer(many=True)
+    available_acl = AclsCidrSerializer(many=True)
 
     class Meta:
         model = Cidr

@@ -4,7 +4,7 @@ from pprint import pprint
 
 from apps.core.validators import CustomValidationError
 from rest_framework import serializers
-from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue, ExtendedVariant
+from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue
 from apps.proxy_server.models import Acls, Cidr, ProxyStock
 from apps.proxy_server.serializers import ServersGroupSerializer, AclsGroupSerializer, AclGroup, ServerGroup
 from apps.proxy_server.models import ServerGroupThrough, ServerCidrThrough, ProductStock
@@ -96,21 +96,6 @@ class VariantCreateSerializer(serializers.ModelSerializer):
         return variant
 
 
-class ExtendedVariantCreateSerializer(serializers.ModelSerializer):
-    shopify_variant_id = serializers.CharField(required=True)
-
-    class Meta:
-        model = ExtendedVariant
-        fields = ('shopify_variant_id', 'old_variant', 'variant_name', 'product', 'variant_option1', 'variant_option2',
-                  'variant_option3', 'variant_price')
-
-    def create(self, validated_data):
-        data_dict = {}
-        for key in self.Meta.fields:
-            if key in validated_data:
-                data_dict[key] = validated_data[key]
-        variant = ExtendedVariant.objects.create(**data_dict)
-        return variant
 
 
 class ProductTagSerializer(serializers.ModelSerializer):
