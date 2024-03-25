@@ -297,6 +297,7 @@ class ShopifyProductWebhookApi(APIView):
         # 验证签名
         if not verify_webhook(request):
             return ErrorResponse(data={}, msg="签名验证失败")
+        logging.info("shopify产品回调信息:{}".format(request.data))
         from apps.orders.tasks import update_shopify_product
         update_shopify_product.delay()
 
