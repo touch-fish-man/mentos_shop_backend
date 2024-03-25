@@ -1,12 +1,11 @@
 import json
 
-from apps.products.models import Product, Variant, ProductCollection, ProductTag
+from apps.products.models import Product, ProductCollection, ProductTag
 
 from apps.products.serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, \
     ProductTagSerializer, \
     ProductCreateSerializer, ProductUpdateSerializer
-from apps.products.services import get_price, get_stock, get_variant_info
-from apps.proxy_server.models import ProductStock
+from apps.products.services import get_stock, get_variant_info
 from apps.core.viewsets import ComModelViewSet
 from apps.utils.shopify_handler import ShopifyClient, SyncClient
 from rest_framework.decorators import action
@@ -27,8 +26,9 @@ class ProductViewSet(ComModelViewSet):
     destroy:删除
     get_recommend_product:获取推荐商品
     """
-    queryset = Product.objects.filter(soft_delete=False).filter(valid=True).all().prefetch_related('product_collections', 'product_tags',
-                                                                                'variants')
+    queryset = Product.objects.filter(soft_delete=False).filter(valid=True).all().prefetch_related(
+        'product_collections', 'product_tags',
+        'variants')
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
     update_serializer_class = ProductUpdateSerializer
@@ -53,7 +53,8 @@ class ProductViewSet(ComModelViewSet):
         api_scert = settings.SHOPIFY_API_SECRET
         private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
-        product_dict = shopify_client.get_products(format=True, only_acl=True,filter_variant=True)
+        product_dict = shopify_client.get_products(format=True, only_acl=True, filter_variant=True)
+        cache.set('shopify_product_info', json.dumps(product_dict), timeout=60 * 60 * 24)
         return SuccessResponse(data=product_dict)
 
     @action(methods=['get'], detail=False, url_path='get_recommend_product', url_name='get_recommend_product')
@@ -89,43 +90,31 @@ class ProductViewSet(ComModelViewSet):
     @action(methods=['post'], detail=False, url_path='stock', url_name='stock')
     def stock(self, request):
         product_id = request.data.get('product_id')
-        option_selected = request.data.get("option_selected",[])
+        option_selected = request.data.get("option_selected", {})
         if len(option_selected) < 3:
             return ErrorResponse(msg='option_selected参数错误')
-        acl_selected = option_selected[0]
-        variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
-        variant_option3 = option_selected[2] if len(option_selected) > 2 else ""
+        variant_option1 = option_selected.get('option1', "")
+        variant_option2 = option_selected.get('option2', "")
+        variant_option3 = option_selected.get('option3', "")
+        acl_selected = option_selected.get('acl_selected', [])
         if not product_id:
             return ErrorResponse(msg='product_id不能为空')
-        product_stock = get_stock(product_id, variant_option2, variant_option3)
+        product_stock = get_stock(product_id, variant_option1, variant_option2, variant_option3)
         return SuccessResponse(data=product_stock)
-
-    @action(methods=['post'], detail=False, url_path='price', url_name='price')
-    def price(self, request):
-        product_id = request.data.get('product_id')
-        option_selected = request.data.get("option_selected", [])
-        if len(option_selected) < 3:
-            return ErrorResponse(msg='option_selected参数错误')
-        acl_selected = option_selected[0]
-        variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
-        variant_option3 = option_selected[2] if len(option_selected) > 2 else ""
-        if not product_id:
-            return ErrorResponse(msg='product_id不能为空')
-        price = get_price(product_id, acl_selected, variant_option2, variant_option3)
-        return SuccessResponse(data=price)
 
     @action(methods=['post'], detail=False, url_path='variant_info', url_name='variant_info')
     def variant_info(self, request):
-        option_selected = request.data.get("option_selected", [])
+        option_selected = request.data.get("option_selected", {})
         product_id = request.data.get('product_id')
         if len(option_selected) < 3:
             return ErrorResponse(msg='option_selected参数错误')
-        option1 = option_selected[0]
-        option2 = option_selected[1]
-        option3 = option_selected[2]
+        variant_option1 = option_selected.get('option1', "")
+        variant_option2 = option_selected.get('option2', "")
+        variant_option3 = option_selected.get('option3', "")
+        acl_selected = option_selected.get('acl_selected', [])
         if not product_id:
             return ErrorResponse(msg='product_id不能为空')
-        variant_info = get_variant_info(product_id, option1, option2, option3)
+        variant_info = get_variant_info(product_id, variant_option1, variant_option2, variant_option3, acl_selected)
         return SuccessResponse(data=variant_info)
 
     def list(self, request, *args, **kwargs):

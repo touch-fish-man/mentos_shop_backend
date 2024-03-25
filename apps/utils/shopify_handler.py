@@ -91,32 +91,26 @@ class ShopifyClient:
             self.__get_session()
         yield self.session
 
-    def get_products(self, format=False,only_acl=False,filter_variant=None):
+    def get_products(self, format=False,exclude={"is_acl":[True]}):
         product_list = []
         for product in shopify.Product.find():
             if format:
                 product_dict = self.format_product_info(product.to_dict())
             else:
                 product_dict = product.to_dict()
-            time.sleep(0.5)
-            product_dict["product_collections"] = self.format_collection_info(product.collections())
-            if filter_variant:
-                variants = []
-                variants_other = []
-                for variant in product_dict["variants"]:
-                    if variant["variant_option1"]=='0':
-                        variants.append(variant)
-                    else:
-                        variants_other.append(variant)
-                product_dict["variants"] = variants
-                product_dict["variants_ext"] = variants_other
-            if only_acl:
-                for option in product.options:
-                    if option.name == 'acl_count':
-                        product_list.append(product_dict)
+            time.sleep(0.25)
+            for m in product.metafields():
+                product_dict[m.key] = m.value
+            drop=False
+            if exclude:
+                for e_k,e_v in exclude.items():
+                    if product_dict.get(e_k,"") in e_v:
+                        drop=True
                         break
-            else:
-                product_list.append(product_dict)
+            if drop:
+                continue
+            product_dict["product_collections"] = self.format_collection_info(product.collections())
+            product_list.append(product_dict)
         return product_list
 
     def format_variant_info(self, variant):
@@ -261,10 +255,7 @@ class ShopifyClient:
         product_list = []
         for product in products:
             product_dict=product.to_dict()
-            for option in product_dict['options']:
-                if option['name'] == 'acl_count':
-                    product_list.append(product_dict)
-                    break
+            product_list.append(product_dict)
         return product_list
 
     def list_product_variants(self):
@@ -572,4 +563,5 @@ if __name__ == '__main__':
     SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     client = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
-    pprint(client.get_products(only_acl=True),filter_variant=True)
+    exclude={"is_acl":["",False]}
+    pprint(client.get_products(exclude=exclude))

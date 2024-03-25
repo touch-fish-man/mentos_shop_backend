@@ -228,8 +228,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
         # 使用列表推导式过滤 variant_options
         for idx, option in enumerate(variant_options):
-            if option.get('option_name') == 'acl_count':
-                continue
             option_values = option.get('option_values', [])
             filtered_values = [val for val in option_values if val.get('option_value') in options[idx]]
             option['option_values'] = filtered_values
@@ -266,12 +264,9 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         product_tags_data = validated_data.pop('product_tags')
         options_data = validated_data.pop('variant_options')
         product = Product.objects.create(**validated_data)
-        other_options = []
         # 创建option
         for option_data in options_data:
             option_data['product'] = product
-            if option_data.get('option_name') != 'acl_count':
-                other_options.append(copy.deepcopy(option_data))
             opt = OptionSerializer().create(option_data)
         acls = Acls.objects.all()
         base_variant_list = {}

@@ -100,22 +100,22 @@ def get_checkout_link(request):
     product_obj = Product.objects.filter(id=order_info_dict["product_id"]).first()
     if product_obj:
         order_info_dict["product_name"] = product_obj.product_name
-    option_selected = request.data.get("option_selected")
-    acl_selected = option_selected[0]
-    variant_option2 = option_selected[1] if len(option_selected) > 1 else ""
-    variant_option3 = option_selected[2] if len(option_selected) > 2 else ""
-    acl_count = len(acl_selected.split(',')) if acl_selected else 0
-    variant_obj = ExtendedVariant.objects.filter(product=order_info_dict["product_id"], variant_option1=acl_count,
-                                                 variant_option2=variant_option2, variant_option3=variant_option3)
+    option_selected = request.data.get("option_selected", {})
+    acl_selected = option_selected.get("acl_selected", [])
+    variant_option1 = option_selected.get("option1", "")
+    variant_option2 = option_selected.get("option2", "")
+    variant_option3 = option_selected.get("option3", "")
+    variant_obj = Variant.objects.filter(product=order_info_dict["product_id"], variant_option1=variant_option1,
+                                         variant_option2=variant_option2, variant_option3=variant_option3)
+    acl_variant_ids = Acls.objects.filter(id__in=acl_selected).all().values_list("shopify_variant_id", flat=True)
     # 查询产品信息
     variant_obj = variant_obj.first()
     if variant_obj:
-        original_variant_obj = variant_obj.old_variant
         order_info_dict["variant_id"] = variant_obj.shopify_variant_id
         order_info_dict["product_price"] = variant_obj.variant_price
         order_info_dict["local_variant_id"] = variant_obj.id
         order_info_dict["variant_name"] = variant_obj.variant_name
-        proxy_time = original_variant_obj.proxy_time
+        proxy_time = variant_obj.proxy_time
         order_info_dict["product_total_price"] = order_info_dict["product_price"] * int(
             order_info_dict["product_price"])
         order_info_dict["product_type"] = Product.objects.filter(
@@ -124,9 +124,10 @@ def get_checkout_link(request):
         order_info_dict["expired_at"] = expired_at
         order_info_dict["proxy_num"] = order_info_dict["product_quantity"]
         order_info_dict["proxy_time"] = proxy_time
-        order_info_dict["option1"] = acl_selected
+        order_info_dict["option1"] = variant_option1
         order_info_dict["option2"] = variant_option2
         order_info_dict["option3"] = variant_option3
+        order_info_dict["acl_selected"] = ",".join(acl_selected)
         new_order = Orders.objects.create(**order_info_dict)
         order_id = new_order.order_id
         if level_code_obj:
@@ -134,6 +135,9 @@ def get_checkout_link(request):
         else:
             code = None
         cart_quantity_pairs = ["{}:{}".format(order_info_dict["variant_id"], order_info_dict["product_quantity"])]
+        # 添加acl_variant_id
+        for acl_variant_id in acl_variant_ids:
+            cart_quantity_pairs.append("{}:{}".format(acl_variant_id, order_info_dict["product_quantity"]))
         check_info = {
             "cart_quantity_pairs": cart_quantity_pairs,
             "discount": code,
