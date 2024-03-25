@@ -273,15 +273,12 @@ class CidrSerializer(CommonSerializer):
             'id': {'read_only': True}
         }
 
-
 class CidrUpdateSerializer(CommonSerializer):
-    available_acl = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
+    available_acl = AclsCidrSerializer(many=True)
 
     class Meta:
         model = Cidr
-        fields = ('id', 'cidr', 'ip_count')
+        fields = ('id', 'available_acl')
         extra_kwargs = {
-            'ip_count': {'read_only': True},
-            "cidr": {'read_only': True},
             'id': {'read_only': True}
         }

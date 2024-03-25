@@ -55,7 +55,7 @@ class Acls(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
     acl_value = models.TextField(blank=True, null=True, verbose_name='ACL值')
-    shopify_variant_id = models.IntegerField(blank=True, null=True, verbose_name='Shopify变体ID')
+    shopify_variant_id = models.CharField(blank=True, null=True, verbose_name='Shopify变体ID', max_length=255)
     price = models.FloatField(blank=True, null=True, verbose_name='价格')
 
     class Meta:
