@@ -1,3 +1,5 @@
+import json
+
 from apps.products.models import Product, Variant, ProductCollection, ProductTag
 
 from apps.products.serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, \
@@ -43,6 +45,9 @@ class ProductViewSet(ComModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='get_product_from_shopify', url_name='get_product_from_shopify')
     def get_product_from_shopify(self, request):
+        cache_data = cache.get('shopify_product_info')
+        if cache_data:
+            return SuccessResponse(data=json.loads(cache_data))
         shop_url = settings.SHOPIFY_SHOP_URL
         api_key = settings.SHOPIFY_API_KEY
         api_scert = settings.SHOPIFY_API_SECRET

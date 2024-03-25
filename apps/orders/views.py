@@ -16,7 +16,8 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
     OrdersStatusSerializer, ProxyListSerializer
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
-from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, create_proxy, delete_proxy_by_order_pk
+from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, \
+    create_proxy, delete_proxy_by_order_pk
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -279,6 +280,25 @@ class ShopifyWebhookApi(APIView):
             webhook_handle_thread(order_info, order_id)
         else:
             logging.error("订单未支付", order_info)
+
+        return SuccessResponse()
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ShopifyProductWebhookApi(APIView):
+    """
+    shopify产品回调接口
+    """
+
+    def post(self, request):
+        #
+        # webhook回调
+        # 收到回调后，调用shopify接口，查询订单状态，如果是已付款，则更新本地订单状态
+        # 验证签名
+        if not verify_webhook(request):
+            return ErrorResponse(data={}, msg="签名验证失败")
+        from apps.orders.tasks import update_shopify_product
+        update_shopify_product.delay()
 
         return SuccessResponse()
 

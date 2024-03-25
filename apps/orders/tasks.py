@@ -13,6 +13,9 @@ from django.conf import settings
 from django.core.mail import send_mail
 from apps.utils.kaxy_handler import KaxyClient
 from celery import shared_task
+from django.core.cache import cache
+
+from apps.utils.shopify_handler import SyncClient
 
 
 @shared_task(name='precheck_order_expired')
@@ -191,3 +194,20 @@ def delivery_order(order_pk=None, order_id=None):
             'pay_status': 1,
         }
         create_proxy(filter_dict)
+
+
+@shared_task(name='update_shopify_product')
+def update_shopify_product():
+    """
+    更新shopify产品
+    """
+    shop_url = settings.SHOPIFY_SHOP_URL
+    api_key = settings.SHOPIFY_API_KEY
+    api_scert = settings.SHOPIFY_API_SECRET
+    private_app_password = settings.SHOPIFY_APP_KEY
+    shopify_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
+    product_dict = shopify_client.get_products(format=True, only_acl=True, filter_variant=True)
+    data = json.dumps(product_dict)
+    cache.set('shopify_product_info', data, 60 * 60 * 24)
+    collection_data = shopify_client.sync_product_collections()
+    tag_data = shopify_client.sync_product_tags()
