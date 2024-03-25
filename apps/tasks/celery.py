@@ -25,14 +25,14 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 
 # 设置定时任务
 app.conf.beat_schedule = {
-    '用户等级衰减': {
-        'task': 'update_user_level',
-        'schedule': crontab(hour=1, minute=0, day_of_month=1), # 每月1号凌晨1点执行
-    },
-    '同步用户信息至shopify': {
-        'task': 'sync_user_to_shopify',
-        'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
-    },
+    # '用户等级衰减': {
+    #     'task': 'update_user_level',
+    #     'schedule': crontab(hour=1, minute=0, day_of_month=1), # 每月1号凌晨1点执行
+    # },
+    # '同步用户信息至shopify': {
+    #     'task': 'sync_user_to_shopify',
+    #     'schedule': crontab(hour=1, minute=0), # 每天凌晨1点执行
+    # },
     '过期订单检查': {
         'task': 'check_order_expired',
         'schedule': 15000.0, # 每小时执行一次
