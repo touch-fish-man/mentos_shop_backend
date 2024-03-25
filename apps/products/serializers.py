@@ -1,5 +1,6 @@
 import copy
 import logging
+import threading
 from pprint import pprint
 
 from apps.core.validators import CustomValidationError
@@ -94,8 +95,6 @@ class VariantCreateSerializer(serializers.ModelSerializer):
 
         variant.save()
         return variant
-
-
 
 
 class ProductTagSerializer(serializers.ModelSerializer):
@@ -209,7 +208,7 @@ class ProductSerializer(serializers.ModelSerializer):
                 options[1].add(v.get('variant_option2'))
             if v.get('variant_option3'):
                 options[2].add(v.get('variant_option3'))
-        variant_options_ret= []
+        variant_options_ret = []
 
         # 使用列表推导式过滤 variant_options
         for idx, option in enumerate(variant_options):
@@ -222,6 +221,71 @@ class ProductSerializer(serializers.ModelSerializer):
         return ret
 
 
+class CreateProductOtherThread(threading.Thread):
+    def __init__(self, product_id, product_collections_data, product_tags_data, variants_data, options_data):
+        threading.Thread.__init__(self)
+        self.product_id = product_id
+        self.product_collections_data = product_collections_data
+        self.product_tags_data = product_tags_data
+        self.variants_data = variants_data
+        self.options_data = options_data
+
+    def run(self):
+        create_product_other(self.product_id, self.product_collections_data, self.product_tags_data, self.variants_data,
+                             self.options_data)
+
+
+def create_product_other(product_id, product_collections_data, product_tags_data, variants_data, options_data):
+    product = Product.objects.get(id=product_id)
+    # 创建option
+    for option_data in options_data:
+        option_data['product'] = product
+        opt = OptionSerializer().create(option_data)
+    acls = Acls.objects.all()
+    # 创建variant
+    for idx, variant_data in enumerate(variants_data):
+        variant_data['product'] = product
+        v = VariantCreateSerializer().create(variant_data)
+        cart_step = variant_data.get('cart_step', 8)
+        # ExtendedVariantCreateSerializer().create(variants_data_ext)
+        cidrs = get_cidr(variant_data.get('server_group'))
+        for acl_i in acls:
+            ip_stock_objs = []
+            for cidr_i in cidrs:
+                v.cidrs.add(cidr_i)
+                cart_stock = cidr_i.ip_count // cart_step
+                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl=acl_i, cart_step=cart_step)
+                if is_create:
+                    stock_obj.ip_stock = cidr_i.ip_count
+                    stock_obj.cart_stock = cart_stock
+                    subnets = stock_obj.gen_subnets()
+                    stock_obj.subnets = ",".join(subnets)
+                    stock_obj.available_subnets = stock_obj.subnets
+                    stock_obj.save()
+                ip_stock_objs.append(stock_obj)
+            product_stock = ProductStock.objects.create(product=product, acl_id=acl_i.id,
+                                                        option2=variant_data.get('variant_option2'),
+                                                        option3=variant_data.get('variant_option3'),
+                                                        cart_step=cart_step, old_variant_id=v.id,
+                                                        server_group=variant_data.get('server_group'))
+            stock = 0
+            for ip_stock_obj in ip_stock_objs:
+                product_stock.ip_stocks.add(ip_stock_obj)
+                stock += ip_stock_obj.ip_stock
+            product_stock.stock = stock
+            product_stock.save()
+    # 创建product_collection
+    for product_collection_data in product_collections_data:
+        product_collection = ProductCollectionSerializer().create(product_collection_data)
+        product.product_collections.add(product_collection)
+    # 创建product_tag
+    for product_tag_data in product_tags_data:
+        product_tag = ProductTagSerializer().create(product_tag_data)
+        product.product_tags.add(product_tag)
+    product.valid = True
+    product.save()
+
+
 class ProductCreateSerializer(serializers.ModelSerializer):
     product_collections = ProductCollectionSerializer(many=True, required=True)
     product_tags = ProductTagSerializer(many=True, required=True)
@@ -232,7 +296,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         model = Product
         fields = (
             'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
-            'variants','variant_options')
+            'variants', 'variant_options')
 
     def validate_product_collections(self, product_collections):
         if not product_collections:
@@ -240,64 +304,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         return product_collections
 
     def create(self, validated_data):  # 先创建variant,再创建product,再add
-        print(validated_data.keys())
         variants_data = validated_data.pop('variants')
         product_collections_data = validated_data.pop('product_collections')
         product_tags_data = validated_data.pop('product_tags')
         options_data = validated_data.pop('variant_options')
-        variants_data_ext = copy.deepcopy(variants_data)
-        product = Product.objects.create(**validated_data)
-        # 创建option
-        for option_data in options_data:
-            option_data['product'] = product
-            opt = OptionSerializer().create(option_data)
-        acls = Acls.objects.all()
-        base_variant_list = {}
-        # 创建variant
-        for idx,variant_data in enumerate(variants_data):
-            variant_data['product'] = product
-            v = VariantCreateSerializer().create(variant_data)
-            variants_data_ext[idx]['old_variant'] = v
-            variants_data_ext[idx]['product'] = product
-            cart_step = variant_data.get('cart_step', 8)
-            # ExtendedVariantCreateSerializer().create(variants_data_ext)
-            cidrs = get_cidr(variant_data.get('server_group'))
-            for acl_i in acls:
-                ip_stock_objs = []
-                for cidr_i in cidrs:
-                    v.cidrs.add(cidr_i)
-                    cart_stock = cidr_i.ip_count // cart_step
-                    stock_obj = ProxyStock.objects.filter(cidr=cidr_i, acl=acl_i, cart_step=cart_step).first()
-                    if not stock_obj:
-                        stock_obj = ProxyStock.objects.create(cidr=cidr_i, acl=acl_i, ip_stock=cidr_i.ip_count,
-                                                              cart_step=cart_step,
-                                                              cart_stock=cart_stock)
-                        subnets = stock_obj.gen_subnets()
-                        stock_obj.subnets = ",".join(subnets)
-                        stock_obj.available_subnets = stock_obj.subnets
-                        stock_obj.save()
-                    ip_stock_objs.append(stock_obj)
-                product_stock = ProductStock.objects.create(product=product, acl_id=acl_i.id,
-                                                            option2=variant_data.get('variant_option2'),
-                                                            option3=variant_data.get('variant_option3'),
-                                                            cart_step=cart_step, old_variant_id=v.id,
-                                                            server_group=variant_data.get('server_group'))
-                stock = 0
-                for ip_stock_obj in ip_stock_objs:
-                    product_stock.ip_stocks.add(ip_stock_obj)
-                    stock += ip_stock_obj.ip_stock
-                product_stock.stock = stock
-                product_stock.save()
-        # 创建product_collection
-        for product_collection_data in product_collections_data:
-            product_collection = ProductCollectionSerializer().create(product_collection_data)
-            product.product_collections.add(product_collection)
-        # 创建product_tag
-        for product_tag_data in product_tags_data:
-            product_tag = ProductTagSerializer().create(product_tag_data)
-            product.product_tags.add(product_tag)
-        product.valid = True
-        product.save()
+        product = Product.objects.create(**validated_data)  # 创建其他数据
+        CreateProductOtherThread(product.id, product_collections_data, product_tags_data, variants_data,
+                                 options_data).start()
         return product
 
 

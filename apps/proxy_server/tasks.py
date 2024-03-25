@@ -421,3 +421,10 @@ def remove_blacklist(server_groups, domains):
         domains_s = domains.split(',')
         kaxy_client.del_domain_blacklist(domains_s)
     return {"status": 1}
+@shared_task(name='create_product_oters')
+def create_product_oters():
+    """
+    创建产品订单
+    """
+    from apps.products.models import Product
+    from apps.orders.models import Orders
