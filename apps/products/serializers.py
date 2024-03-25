@@ -242,14 +242,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     product_tags = ProductTagSerializer(many=True, required=True)
     variants = VariantCreateSerializer(many=True, required=True)
     variant_options = OptionSerializer(many=True, required=True)
-    variants_ext = serializers.JSONField(write_only=True)
 
     class Meta:
         model = Product
         fields = (
             'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
-            'variants',
-            'variant_options', 'variants_ext')
+            'variants','variant_options')
 
     def validate_product_collections(self, product_collections):
         if not product_collections:
@@ -259,7 +257,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):  # 先创建variant,再创建product,再add
         print(validated_data.keys())
         variants_data = validated_data.pop('variants')
-        variants_ext_data = validated_data.pop('variants_ext')
         product_collections_data = validated_data.pop('product_collections')
         product_tags_data = validated_data.pop('product_tags')
         options_data = validated_data.pop('variant_options')
@@ -304,12 +301,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
                     stock += ip_stock_obj.ip_stock
                 product_stock.stock = stock
                 product_stock.save()
-        # 创建extended_variant
-        for variant_ext_data in variants_ext_data:
-            key = "|".join([str(variant_ext_data.get('variant_option2')), str(variant_ext_data.get('variant_option3'))])
-            variant_ext_data['product'] = product
-            variant_ext_data['old_variant'] = base_variant_list.get(key)
-            ExtendedVariantCreateSerializer().create(variant_ext_data)
+        # # 创建extended_variant
+        # for variant_ext_data in variants_ext_data:
+        #     key = "|".join([str(variant_ext_data.get('variant_option2')), str(variant_ext_data.get('variant_option3'))])
+        #     variant_ext_data['product'] = product
+        #     variant_ext_data['old_variant'] = base_variant_list.get(key)
+        #     ExtendedVariantCreateSerializer().create(variant_ext_data)
         # 创建product_collection
         for product_collection_data in product_collections_data:
             product_collection = ProductCollectionSerializer().create(product_collection_data)
