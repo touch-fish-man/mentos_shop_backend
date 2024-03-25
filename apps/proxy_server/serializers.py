@@ -279,7 +279,7 @@ class CidrSerializer(CommonSerializer):
         }
 
 class CidrUpdateSerializer(CommonSerializer):
-    available_acl = AclsCidrSerializer(many=True)
+    available_acl = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
 
     class Meta:
         model = Cidr
