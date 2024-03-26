@@ -87,8 +87,7 @@ def get_variant_info(product_id, option1, option2, option3, acl_selected):
         cart_step = variant.cart_step
         for cidr in variant.cidrs.all():
             cidr_list.append(cidr.id)
-        acl_list = option1.split(',')
-        available_cidrs_dict = get_available_cidrs(acl_list, cidr_list, cart_step)
+        available_cidrs_dict = get_available_cidrs(acl_selected, cidr_list, cart_step)
         stock = len(available_cidrs_dict) * cart_step
         data["stock"] = stock
         data["local_variant_id"] = variant.id
