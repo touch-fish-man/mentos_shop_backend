@@ -1,6 +1,8 @@
 import copy
+import json
 import logging
 import threading
+import time
 from pprint import pprint
 
 from apps.core.validators import CustomValidationError
@@ -10,6 +12,7 @@ from apps.proxy_server.models import Acls, Cidr, ProxyStock
 from apps.proxy_server.serializers import ServersGroupSerializer, AclsGroupSerializer, AclGroup, ServerGroup
 from apps.proxy_server.models import ServerGroupThrough, ServerCidrThrough, ProductStock
 from drf_writable_nested.serializers import WritableNestedModelSerializer
+from django.core.cache import caches
 
 
 class OptionValueSerializer(serializers.ModelSerializer):
@@ -41,13 +44,12 @@ class OptionSerializer(serializers.ModelSerializer):
 
 class VariantSerializer(serializers.ModelSerializer):
     server_group = ServersGroupSerializer()
-    acl_group = AclsGroupSerializer()
     variant_stock = serializers.CharField(read_only=True)
 
     class Meta:
         model = Variant
         fields = ("id",
-                  "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step',
+                  "shopify_variant_id", 'variant_name', 'variant_desc', 'server_group', 'cart_step',
                   'is_active',
                   'variant_price',
                   'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
@@ -114,13 +116,12 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     cart_step = serializers.IntegerField(required=True)
     variant_price = serializers.FloatField(required=True)
     server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
-    acl_group = serializers.PrimaryKeyRelatedField(queryset=AclGroup.objects.all(), required=True)
     shopify_variant_id = serializers.CharField(required=False)
     id = serializers.CharField(required=False)
 
     class Meta:
         model = Variant
-        fields = ('id', 'variant_name', 'variant_desc', 'server_group', 'acl_group', 'cart_step', 'is_active',
+        fields = ('id', 'variant_name', 'variant_desc', 'server_group', 'cart_step', 'is_active',
                   'variant_price', 'shopify_variant_id',
                   'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
         extra_kwargs = {
@@ -143,13 +144,12 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         cidr_ids, ip_count = self.get_cidr(attrs.get('server_group'))
-        acl_group_id = attrs.get('acl_group').id
         cart_step = attrs.get('cart_step')
         for idx, cidr_id in enumerate(cidr_ids):
             # 如果库存表不存在，就创建
-            if not ProxyStock.objects.filter(acl_group_id=acl_group_id, cidr_id=cidr_id, cart_step=cart_step).exists():
+            if not ProxyStock.objects.filter( cidr_id=cidr_id, cart_step=cart_step).exists():
                 cart_stock = ip_count[idx] // attrs.get('cart_step')
-                porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, acl_group_id=acl_group_id,
+                porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id,
                                                         ip_stock=ip_count[idx], cart_step=attrs.get('cart_step'),
                                                         cart_stock=cart_stock)
                 subnets = porxy_stock.gen_subnets()
@@ -193,6 +193,11 @@ class ProductSerializer(serializers.ModelSerializer):
             return "$0.0+"
 
     def to_representation(self, instance):
+        cache = caches['default']
+        cache_key = f"product_{instance.id}"
+        redis_client = cache.client.get_client()
+        if redis_client.hget("products", cache_key):
+            return json.loads(redis_client.hget("products", cache_key))
         ret = super().to_representation(instance)
 
         # 获取 variants 和 variant_options
@@ -217,7 +222,7 @@ class ProductSerializer(serializers.ModelSerializer):
             option['option_values'] = filtered_values
             variant_options_ret.append(option)
         ret['variant_options'] = variant_options_ret
-
+        redis_client.hset("products", cache_key, json.dumps(ret))
         return ret
 
 
@@ -264,6 +269,7 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                     stock_obj.save()
                 ip_stock_objs.append(stock_obj)
             product_stock = ProductStock.objects.create(product=product, acl_id=acl_i.id,
+                                                        option1=variant_data.get('variant_option1'),
                                                         option2=variant_data.get('variant_option2'),
                                                         option3=variant_data.get('variant_option3'),
                                                         cart_step=cart_step, old_variant_id=v.id,

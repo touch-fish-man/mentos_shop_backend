@@ -118,10 +118,6 @@ class ProductViewSet(ComModelViewSet):
         return SuccessResponse(data=variant_info)
 
     def list(self, request, *args, **kwargs):
-        # 使用redi缓存
-        key = 'products'
-        # 获取缓存数据
-        get_data = cache.get(key)
         get_data = None
         if get_data:
             return SuccessResponse(data=get_data)
@@ -129,15 +125,13 @@ class ProductViewSet(ComModelViewSet):
             queryset = self.filter_queryset(self.get_queryset())
 
             page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                get_data = serializer.data
-                cache.set(key, get_data, timeout=60 * 60 * 8)
-                return self.get_paginated_response(serializer.data)
-
-            serializer = self.get_serializer(queryset, many=True)
+            serializer = self.get_serializer(page, many=True)
             get_data = serializer.data
-            cache.set(key, get_data, timeout=60 * 60 * 8)
+
+            if page is not None:
+                return self.get_paginated_response(get_data)
+            else:
+                return SuccessResponse(data=get_data)
 
 
 class ProductCollectionViewSet(ComModelViewSet):
