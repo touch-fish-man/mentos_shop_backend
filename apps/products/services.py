@@ -83,7 +83,7 @@ def get_variant_info(product_id, option1, option2, option3, acl_selected):
         acls = Acls.objects.filter(id__in=acl_selected).all().values_list("price", flat=True)
         if acls:
             data["acl_price"] = sum(acls)  # acl的价格
-        data['price'] += data['base_price'] + data['acl_price']
+        data['price'] += float(data['base_price']) + float(data['acl_price'])
         cart_step = variant.cart_step
         for cidr in variant.cidrs.all():
             cidr_list.append(cidr.id)
