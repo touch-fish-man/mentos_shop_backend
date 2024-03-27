@@ -203,15 +203,15 @@ def create_proxy_by_order_obj(order_obj):
             order_pk = order_obj.id
             product_name = order_obj.product_name
             proxy_username = order_user + order_id[:6]  # 生成代理用户名
-            acl_ids = order_obj.option1.split(',')
+            acl_ids = order_obj.acl_selected.split(",")
             white_acl_list = get_white_acl(acl_ids)
             acl_value = "\n".join(white_acl_list.get("acl_value"))
-            cidr_list = get_available_cidrs(acl_ids, order_obj.option2, order_obj.option3)
             variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
             if variant_obj:
                 proxy_expired_at = variant_obj.expired_at  # 代理过期时间
                 product_quantity = variant_obj.product_quantity
                 cart_step = variant_obj.cart_step
+                cidr_list = []
                 for cidr in variant_obj.cidrs.all():
                     cidr_list.append(cidr.id)
                 available_cidrs = get_available_cidrs(acl_ids, cidr_list, cart_step)
