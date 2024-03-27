@@ -248,7 +248,7 @@ def create_proxy_by_order_obj(order_obj):
                                                      server_ip=server_ip,
                                                      order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
                                                      ip_stock_ids=stock_ids_str, subnet=cidr_str,
-                                                     acl_ids=",".join(acl_ids)).save()
+                                                     acl_ids=",".join(acl_ids))
                             proxy_id_list.append(p.id)
                         proxy_list.extend(proxy_info["proxy"])
                         for stock in stocks:
