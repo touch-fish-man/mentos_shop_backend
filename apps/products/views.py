@@ -1,6 +1,6 @@
 import json
 
-from apps.products.models import Product, ProductCollection, ProductTag
+from apps.products.models import Product, ProductCollection, ProductTag, Variant
 
 from apps.products.serializers import ProductSerializer, VariantSerializer, ProductCollectionSerializer, \
     ProductTagSerializer, \
@@ -14,6 +14,8 @@ from django.conf import settings
 from apps.core.permissions import IsAuthenticated, IsSuperUser
 from rest_framework.permissions import AllowAny
 from django.core.cache import cache
+from django.db import connection
+from django.db.models import Prefetch
 
 
 class ProductViewSet(ComModelViewSet):
@@ -27,8 +29,7 @@ class ProductViewSet(ComModelViewSet):
     get_recommend_product:获取推荐商品
     """
     queryset = Product.objects.filter(soft_delete=False).filter(valid=True).all().prefetch_related(
-        'product_collections', 'product_tags',
-        'variants')
+        'product_collections', 'product_tags',Prefetch('variants', queryset=Variant.objects.all()))
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
     update_serializer_class = ProductUpdateSerializer

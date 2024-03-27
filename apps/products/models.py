@@ -118,7 +118,7 @@ class Variant(BaseModel):
     proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
     cidrs = models.ManyToManyField('proxy_server.Cidr', through='VariantCidrThrough', related_name='cidrs')
 
-    def get_stock(self):
+    def count_stock(self):
         variant_stock = 0
         cart_step = self.cart_step
         acl_group = self.acl_group
@@ -176,7 +176,7 @@ class Variant(BaseModel):
             return cidr_ids, []
 
     def update_stock(self):
-        get_stock = self.get_stock()
+        get_stock = self.count_stock()
         self.variant_stock = get_stock
         self.save()
         return get_stock
@@ -184,7 +184,7 @@ class Variant(BaseModel):
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.id:
-            get_stock = self.get_stock()
+            get_stock = self.count_stock()
             self.variant_stock = get_stock
         super().save(force_insert=False, force_update=False, using=None,
                      update_fields=None)
@@ -222,7 +222,7 @@ class Product(BaseModel):
     soft_delete = models.BooleanField(default=False, verbose_name='软删除', blank=True, null=True)
 
     # variants = models.ManyToManyField(Variant)
-    # variant_options = models.ManyToManyField(Option)
+    variant_options = models.ManyToManyField(Option, verbose_name='选项', through='OptionValue')
     active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
     valid = models.BooleanField(default=False, verbose_name='是否有效', blank=True, null=True)
 

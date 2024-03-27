@@ -54,15 +54,16 @@ class VariantSerializer(serializers.ModelSerializer):
                   'variant_price',
                   'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
 
-    def get_variant_stock(self, obj):
-        variant_stock = obj.update_stock()
-        return variant_stock
+    # def get_variant_stock(self, obj):
+    #     variant_stock = obj.update_stock()
+    #     return variant_stock
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
         if not ret["variant_desc"]:
             ret["variant_desc"] = ''
-        ret["variant_stock"] = self.get_variant_stock(instance)
+        # todo 优化
+        # ret["variant_stock"] = self.get_variant_stock(instance)
         return ret
 
 
@@ -196,8 +197,8 @@ class ProductSerializer(serializers.ModelSerializer):
         cache = caches['default']
         cache_key = f"product_{instance.id}"
         redis_client = cache.client.get_client()
-        if redis_client.hget("products", cache_key):
-            return json.loads(redis_client.hget("products", cache_key))
+        # if redis_client.hget("products", cache_key):
+        #     return json.loads(redis_client.hget("products", cache_key))
         ret = super().to_representation(instance)
 
         # 获取 variants 和 variant_options
