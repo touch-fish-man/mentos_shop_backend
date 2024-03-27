@@ -230,6 +230,7 @@ def create_proxy_by_order_obj(order_obj):
                         for stock_info in stock_infos:
                             stocks.append(stock_info[0])
                             stock_ids.append(stock_info[0].id)
+                        stock_ids_str = ",".join([str(stock_id) for stock_id in stock_ids])
                         cidr_id = stocks[0].cidr.id
                         server_ip = ServerCidrThrough.objects.filter(cidr_id=cidr_id).first().server.ip
                         kaxy_client = KaxyClient(server_ip)
@@ -246,7 +247,7 @@ def create_proxy_by_order_obj(order_obj):
                             p = Proxy.objects.create(ip=ip, port=port, username=user, password=password,
                                                      server_ip=server_ip,
                                                      order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
-                                                     ip_stock_ids=",".join(stock_ids), subnet=cidr_str,
+                                                     ip_stock_ids=stock_ids_str, subnet=cidr_str,
                                                      acl_ids=",".join(acl_ids)).save()
                             proxy_id_list.append(p.id)
                         proxy_list.extend(proxy_info["proxy"])
