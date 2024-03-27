@@ -98,7 +98,7 @@ class ShopifyClient:
                 product_dict = self.format_product_info(product.to_dict())
             else:
                 product_dict = product.to_dict()
-            time.sleep(0.25)
+            time.sleep(0.5)
             for m in product.metafields():
                 product_dict[m.key] = m.value
             drop=False
@@ -109,6 +109,7 @@ class ShopifyClient:
                         break
             if drop:
                 continue
+            time.sleep(0.25)
             product_dict["product_collections"] = self.format_collection_info(product.collections())
             product_list.append(product_dict)
         return product_list

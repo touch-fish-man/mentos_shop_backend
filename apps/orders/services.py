@@ -361,7 +361,7 @@ def webhook_handle(order_info):
                     #     t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
                     #     return
                     filter_dict = {"order_id": order_id, "pay_status": 1}
-                    order_process_ret, msg = create_proxy(filter_dict)
+                    order_process_ret, msg, proxy_id_list = create_proxy(filter_dict)
                 Orders.objects.filter(order_id=order_id).update(shopify_order_number=shopify_order_number)
                 if order_process_ret:
                     order_info = {"id": shpify_order_id, "tags": "delivered"}
