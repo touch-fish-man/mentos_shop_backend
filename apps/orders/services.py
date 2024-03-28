@@ -217,9 +217,6 @@ def create_proxy_by_order_obj(order_obj):
                     return False, msg, proxy_id_list
                 if available_cidrs:
                     for cidr_str, stock_infos in available_cidrs.items():
-                        """
-                        stock_info={(9, 2), (5, 1)}
-                        """
                         error_cnt = 0
                         stocks = []
                         stock_ids = []

@@ -186,7 +186,7 @@ class ProxyServerApi(ComModelViewSet):
         ip = proxy_server.ip
         kaxy_client = KaxyClient(ip)
         try:
-            acl_list = kaxy_client.list_acl()
+            acl_list = kaxy_client.paser_api_acl()
         except Exception as e:
             return ErrorResponse(data={"message": "代理服务器连接失败"})
         return SuccessResponse(data=acl_list)
