@@ -15,7 +15,8 @@ from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
 from django.db.models.signals import post_delete, post_save
 from django.dispatch.dispatcher import receiver
-import requests
+from django.core.cache import cache
+
 
 
 # Create your models here.
@@ -431,8 +432,7 @@ def _mymodel_delete(sender, instance, **kwargs):
     # 归还子网,归还库存
     if stock:
         if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
-            from apps.core.cache_lock import memcache_lock
-            with memcache_lock(redis_key, redis_key) as acquired:
+            with cache.lock(redis_key):
                 logging.info('归还子网{},归还库存{}'.format(instance.subnet, instance.ip_stock_id))
                 stock.return_subnet(instance.subnet)
                 stock.return_stock()

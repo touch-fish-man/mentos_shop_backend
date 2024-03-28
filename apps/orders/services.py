@@ -17,8 +17,8 @@ from apps.users.services import send_email_api
 from django.utils import timezone
 from django.db.models import Q
 from ipaddress import ip_network
-from apps.core.cache_lock import memcache_lock
 from apps.products.services import get_available_cidrs
+from django.core.cache import cache
 
 lock_id = "create_order"
 
@@ -190,8 +190,8 @@ def create_proxy_by_order_obj(order_obj):
             logging.info('订单过期')
             msg = 'order expired'
             return False, msg, proxy_id_list
-        oid = 'create_proxy_by_id_{}'.format(id)
-        with memcache_lock(lock_id, oid) as acquired:
+        lock_id = 'create_proxy_by_id_{}'.format(id)
+        with cache.lock(lock_id):
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
             user_email = order_user_obj.email

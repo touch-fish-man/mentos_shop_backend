@@ -18,7 +18,6 @@ from django.views.decorators.cache import cache_page
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import os
 
-from apps.core.cache_lock import memcache_lock
 from apps.orders.services import create_proxy
 from apps.proxy_server.models import Proxy
 from apps.proxy_server.models import Server
@@ -84,8 +83,8 @@ def check_server_status(faild_count=5):
 
 @shared_task(name='reset_proxy')
 def reset_proxy_fn(order_id, username):
-    lock_id = "reset_proxy"
-    with memcache_lock(lock_id, order_id) as acquired:
+    lock_id = "reset_proxy_" + str(order_id)
+    with cache.lock(lock_id):
         ret_json = {}
         logging.info("==========create_proxy_by_id {}==========".format(order_id))
         delete_proxy_list = []

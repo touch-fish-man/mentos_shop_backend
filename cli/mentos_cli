@@ -16,7 +16,6 @@ from init_env import *
 from rich.console import Console
 from rich.progress import track
 import ipaddress
-from apps.core.cache_lock import memcache_lock
 from rich.table import Table
 
 console = Console()

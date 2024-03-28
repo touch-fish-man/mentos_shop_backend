@@ -4,7 +4,6 @@ import time
 
 import pytz
 from django.conf import settings
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from apps.core.permissions import IsSuperUser
@@ -25,8 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.models import Product, Variant
 from django.core.exceptions import ObjectDoesNotExist
-
-from ..core.cache_lock import memcache_lock
+from django.core.cache import cache
 
 
 class OrdersApi(ComModelViewSet):
@@ -158,7 +156,7 @@ class OrdersApi(ComModelViewSet):
             order = order.first()
             # 删除代理
             lock_id = "reset_proxy"
-            if memcache_lock(lock_id, order_pk).is_locked():
+            if cache.get(lock_id):
                 return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
             from apps.proxy_server.tasks import reset_proxy_fn
             reset_proxy_fn.delay(order_pk, order.username)
