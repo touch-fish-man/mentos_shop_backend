@@ -253,6 +253,7 @@ def create_proxy_by_order_obj(order_obj):
                         proxy_list.extend(proxy_info["proxy"])
                         for stock in stocks:
                             stock.remove_available_subnet(cidr_str)
+                            logging.info("stock_id:{} remove subnet:{}".format(stock.id, cidr_str))
                             stock.cart_stock -= 1
                             stock.ip_stock -= len(proxy_info["proxy"])
                             stock.save()
