@@ -160,6 +160,7 @@ class Cidr(BaseModel):
     cidr = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR')
     ip_count = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
     available_acl = models.ManyToManyField('Acls', verbose_name='可用ACL', through='CidrAclThrough')
+    soft_delete = models.BooleanField(default=False, verbose_name='软删除')  # 避免外键关联删除
 
     class Meta:
         db_table = 'cidr'
@@ -168,6 +169,11 @@ class Cidr(BaseModel):
 
     def __str__(self):
         return self.cidr
+
+    def do_oft_delete(self):
+        self.soft_delete = True
+        ProxyStock.objects.filter(cidr_id=self.id).update(soft_delete=True)
+        self.save()
 
 
 def fix_network_by_ip(cidr_str):
@@ -214,6 +220,10 @@ class ServerCidrThrough(BaseModel):
         db_table = 'server_cidr_through'
         verbose_name = '服务器与CIDR关系'
         verbose_name_plural = '服务器与CIDR关系'
+# 删除关系的同时删除cidr
+@receiver(post_delete, sender=ServerCidrThrough)
+def _mymodel_delete(sender, instance, **kwargs):
+    instance.cidr.delete()
 
 
 # 库存表
@@ -230,6 +240,7 @@ class ProxyStock(BaseModel):
     cart_stock = models.IntegerField(blank=True, null=True, verbose_name='购物车库存')
     subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
     available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网')
+    soft_delete = models.BooleanField(default=False, verbose_name='软删除')  # 避免外键关联删除
 
     class Meta:
         db_table = 'ip_stock'
@@ -241,6 +252,9 @@ class ProxyStock(BaseModel):
         constraints = [
             models.UniqueConstraint(fields=['cidr', 'acl_group'], name='ip_stock_pk')
         ]
+    def do_soft_delete(self):
+        self.soft_delete = True
+        self.save()
 
     def gen_subnets(self):
         """

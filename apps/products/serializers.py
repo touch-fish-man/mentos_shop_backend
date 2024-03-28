@@ -268,6 +268,8 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                     stock_obj.subnets = ",".join(subnets)
                     stock_obj.available_subnets = stock_obj.subnets
                     stock_obj.save()
+                stock_obj.soft_delete = False
+                stock_obj.save()
                 ip_stock_objs.append(stock_obj)
             product_stock = ProductStock.objects.create(product=product, acl_id=acl_i.id,
                                                         option1=variant_data.get('variant_option1'),

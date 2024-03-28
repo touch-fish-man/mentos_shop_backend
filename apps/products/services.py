@@ -51,7 +51,7 @@ def get_available_cidrs(acl_ids, cidr_ids, cart_step):
     for cidr_id in cidr_ids:
         # 使用字典记录每个CIDR对应的ProxyStock ID列表
         subnet_proxy_stock_map = {}
-        proxy_stocks = ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_id__in=acl_ids).all()
+        proxy_stocks = ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_id__in=acl_ids,soft_delete=False).all()
         for proxy_stock in proxy_stocks:
             # 解析可用子网字符串
             available_subnets = proxy_stock.available_subnets.split(',')
