@@ -156,13 +156,12 @@ class OrdersApi(ComModelViewSet):
 
         if order.exists():
             order = order.first()
-            order_id = order.order_id
             # 删除代理
             lock_id = "reset_proxy"
-            if memcache_lock(lock_id, order_id).is_locked():
+            if memcache_lock(lock_id, order_pk).is_locked():
                 return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
             from apps.proxy_server.tasks import reset_proxy_fn
-            reset_proxy_fn.delay(order_id, order.username)
+            reset_proxy_fn.delay(order_pk, order.username)
 
         else:
             return ErrorResponse(data={}, msg="订单不存在")
