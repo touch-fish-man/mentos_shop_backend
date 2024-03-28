@@ -8,10 +8,12 @@ import threading
 import time
 from random import randint
 
+from django.db.models import Sum
+
 from apps.core.models import BaseModel
 from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
-from django.db.models.signals import post_delete
+from django.db.models.signals import post_delete, post_save
 from django.dispatch.dispatcher import receiver
 import requests
 
@@ -267,17 +269,6 @@ class ProxyStock(BaseModel):
             available_subnets.remove(subnet)
             self.available_subnets = ','.join(available_subnets)
             self.save()
-
-    def save(
-            self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        if self.available_subnets:
-            available_subnets = self.available_subnets.split(',')
-            # 去除空字符串
-            available_subnets = [x for x in available_subnets if x]
-            self.available_subnets = ','.join(available_subnets)
-        super().save(force_insert, force_update, using, update_fields)
-
     def return_subnet(self, subnet):
         """
         归还子网
@@ -315,6 +306,25 @@ class ProxyStock(BaseModel):
         return subnets
 
 
+@receiver(post_save, sender=ProxyStock)
+def proxy_stock_updated(sender, instance, **kwargs):
+    """
+    更新可用子网
+    :param sender:
+    :param instance:
+    :param kwargs:
+    :return:
+    """
+    if instance.available_subnets:
+        available_subnets = instance.available_subnets.split(',')
+        # 去除空字符串
+        available_subnets = [x for x in available_subnets if x]
+        instance.available_subnets = ','.join(available_subnets)
+    for product_stock in instance.product_stocks:
+        product_stock.update_stock()
+
+
+
 class ProductStock(BaseModel):
     """
     产品库存表
@@ -330,12 +340,20 @@ class ProductStock(BaseModel):
     server_group = models.ForeignKey('ServerGroup', on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name='服务器组')
     old_variant_id = models.IntegerField(blank=True, null=True, verbose_name='旧变体ID')
-    ip_stocks = models.ManyToManyField('ProxyStock', verbose_name='IP库存')
+    ip_stocks = models.ManyToManyField('ProxyStock', verbose_name='IP库存', related_name='product_stocks')
 
     class Meta:
         db_table = 'product_stock'
         verbose_name = '产品库存'
         verbose_name_plural = '产品库存'
+
+    def update_stock(self):
+        total = self.ip_stocks.aggregate(total_stock=Sum('ip_stock'))['total_stock']
+        # 如果没有ip_stocks，aggregate方法可能返回None
+        if total is None:
+            total = 0
+        self.stock = total
+        self.save()
 
 
 class Proxy(BaseModel):
