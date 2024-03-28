@@ -186,10 +186,6 @@ def create_proxy_by_order_obj(order_obj):
             logging.info('订单未支付')
             msg = '订单未支付'
             return False, msg, proxy_id_list
-        if order_obj.order_status == 4:
-            logging.info('订单已经发货')
-            msg = '订单已经发货'
-            return False, msg, proxy_id_list
         if order_obj.expired_at < datetime.datetime.now(timezone.utc):
             logging.info('订单过期')
             msg = 'order expired'
