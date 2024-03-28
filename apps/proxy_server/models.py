@@ -320,7 +320,7 @@ def proxy_stock_updated(sender, instance, **kwargs):
         # 去除空字符串
         available_subnets = [x for x in available_subnets if x]
         instance.available_subnets = ','.join(available_subnets)
-    for product_stock in instance.product_stocks:
+    for product_stock in instance.product_stocks.all():
         product_stock.update_stock()
 
 
