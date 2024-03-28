@@ -49,10 +49,10 @@ async def fetch_using_proxy(url, proxy):
                 if response.ok and response.status == 200:
                     return url, proxy, latency, True
                 else:
-                    return url, proxy, 9999999, False
+                    return url, proxy, 99999, False
     except Exception as e:
         print(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}')
-        latency = 9999999
+        latency = 99999
         return url, proxy, latency, False
 
 

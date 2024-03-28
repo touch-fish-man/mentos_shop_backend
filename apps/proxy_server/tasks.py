@@ -227,9 +227,9 @@ async def fetch_using_proxy(url, proxy):
         connector = ProxyConnector.from_url(proxy)
     except:
         logging.error(f"Error parsing proxy URL: {proxy}")
-        return url, proxy, 9999999, False
+        return url, proxy, 99999, False
     if ".255:" in proxy:
-        return url, proxy, 9999999, False
+        return url, proxy, 99999, False
     try:
         start_time = time.perf_counter()
         async with ClientSession(connector=connector, timeout=ClientTimeout(total=10)) as session:
@@ -240,14 +240,14 @@ async def fetch_using_proxy(url, proxy):
                 if response.ok and response.status == 200:
                     return url, proxy, latency, True
                 else:
-                    return url, proxy, 9999999, False
+                    return url, proxy, 99999, False
     except asyncio.TimeoutError as e:
         logging.info(f'Error. URL: {url}, Proxy: {proxy}; request timeout')
-        latency = 9999999
+        latency = 99999
         return url, proxy, latency, False
     except Exception as e:
         logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}', exc_info=True)
-        latency = 9999999
+        latency = 99999
         return url, proxy, latency, False
     finally:
         # 确保在结束时关闭连接器
@@ -318,7 +318,7 @@ async def check_proxies_from_db(order_id):
                 success_updates[id].update({model_name: latency})
                 if len(success_updates[id]) == len(URLS):
                     proxy = Proxy.objects.filter(id=id).first()
-                    if sum(success_updates[id].values()) == 9999999 * len(URLS):
+                    if sum(success_updates[id].values()) == 99999 * len(URLS):
                         fail_list.add(id)
                     if proxy:
                         for field, value in success_updates[id].items():
