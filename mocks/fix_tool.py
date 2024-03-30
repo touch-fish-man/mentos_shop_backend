@@ -15,7 +15,7 @@ import ipaddress
 
 console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
-    ServerGroupThrough, Cidr
+    ServerGroupThrough, Cidr, Acls, CidrAclThrough
 from apps.orders.models import Orders
 from apps.products.services import add_product_other
 from apps.products.models import Variant, ProductTag, ProductTagRelation
@@ -268,7 +268,17 @@ def clean_cidr():
             cidr.delete()
 
 
+def add_cidr():
+    # 清理无效CIDR
+    use_lsit = []
+    for acl in Acls.objects.all():
+        use_lsit.append(acl)
+    for cidr in Cidr.objects.all():
+        for acl in use_lsit:
+
+            CidrAclThrough.objects.create(cidr=cidr, acl=acl)
+
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    clean_cidr()
+    add_cidr()
