@@ -119,13 +119,9 @@ class ProductViewSet(ComModelViewSet):
         return SuccessResponse(data=variant_info)
 
     def list(self, request, *args, **kwargs):
-        # if not request.user.is_superuser:
-        #     # 过滤掉不可见的商品
-        #     queryset = self.filter_queryset(self.get_queryset())
-        #     queryset = queryset.filter(old_flag=True)
-        # else:
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
+        if not request.user.is_superuser:
+            self.queryset = self.queryset.filter(old_flag=False)
+        page = self.paginate_queryset(self.queryset)
         serializer = self.get_serializer(page, many=True)
         get_data = serializer.data
 
