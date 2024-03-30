@@ -413,3 +413,5 @@ def delete_proxy_by_order_pk(order_id):
     for p in Proxy.objects.filter(order_id=order_id).all():
         p.delete()
     return True
+def update_orders():
+    orders=Orders.objects.filter(order_status=1).all()
