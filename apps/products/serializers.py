@@ -185,7 +185,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ("id",
                   'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
                   'variants',
-                  'variant_options', "created_at", "lower_price", "active")
+                  'variant_options', "created_at", "lower_price", "active","old_flag")
 
     def get_lower_price(self, obj):
         if obj.variants.exists():
