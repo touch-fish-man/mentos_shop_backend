@@ -148,7 +148,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         cart_step = attrs.get('cart_step')
         for idx, cidr_id in enumerate(cidr_ids):
             # 如果库存表不存在，就创建
-            if not ProxyStock.objects.filter( cidr_id=cidr_id, cart_step=cart_step).exists():
+            if not ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step).exists():
                 cart_stock = ip_count[idx] // attrs.get('cart_step')
                 porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id,
                                                         ip_stock=ip_count[idx], cart_step=attrs.get('cart_step'),
@@ -185,7 +185,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ("id",
                   'product_name', 'product_desc', 'shopify_product_id', 'product_tags', 'product_collections',
                   'variants',
-                  'variant_options', "created_at", "lower_price", "active","old_flag")
+                  'variant_options', "created_at", "lower_price", "active", "old_flag")
 
     def get_lower_price(self, obj):
         if obj.variants.exists():
@@ -239,6 +239,9 @@ class CreateProductOtherThread(threading.Thread):
     def run(self):
         create_product_other(self.product_id, self.product_collections_data, self.product_tags_data, self.variants_data,
                              self.options_data)
+
+
+
 
 
 def create_product_other(product_id, product_collections_data, product_tags_data, variants_data, options_data):

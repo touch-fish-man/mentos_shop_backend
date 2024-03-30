@@ -17,6 +17,7 @@ console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
 from apps.orders.models import Orders
+from apps.products.services import add_product_other
 from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
 
@@ -258,4 +259,4 @@ def change_proxy():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    proxy_compare_order()
+    add_product_other()
