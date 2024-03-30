@@ -98,7 +98,10 @@ class Acls(BaseModel):
 @receiver(post_save, sender=Acls)
 def _mymodel_save(sender, instance, **kwargs):
     acl_dict = model_to_dict(instance)
-    cache.set('db_acl_{}'.format(instance.id), json.dumps(acl_dict))
+    cache.set('acl_cache:{}'.format(instance.id), json.dumps(acl_dict))
+@receiver(post_delete, sender=Acls)
+def _mymodel_delete(sender, instance, **kwargs):
+    cache.delete('acl_cache:{}'.format(instance.id))
 
 
 class AclGroupThrough(BaseModel):
