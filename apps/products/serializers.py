@@ -215,14 +215,18 @@ class ProductSerializer(serializers.ModelSerializer):
             if v.get('variant_option3'):
                 options[2].add(v.get('variant_option3'))
         variant_options_ret = []
+        print(options)
+        print(variant_options)
 
         # 使用列表推导式过滤 variant_options
         for idx, option in enumerate(variant_options):
             option_values = option.get('option_values', [])
+            print(option_values)
             filtered_values = [val for val in option_values if val.get('option_value') in options[idx]]
             option['option_values'] = filtered_values
             variant_options_ret.append(option)
         ret['variant_options'] = variant_options_ret
+        print(ret['variant_options'])
         redis_client.hset("products", cache_key, json.dumps(ret))
         return ret
 

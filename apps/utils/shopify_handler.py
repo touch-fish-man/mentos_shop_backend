@@ -109,7 +109,6 @@ class ShopifyClient:
                         break
             if drop:
                 continue
-            time.sleep(0.25)
             product_dict["product_collections"] = self.format_collection_info(product.collections())
             product_list.append(product_dict)
         return product_list
@@ -120,9 +119,9 @@ class ShopifyClient:
         variant_info["variant_name"] = 'Default' if variant['title'] == 'Default Title' else variant['title']
         variant_info["variant_price"] = variant['price']
         variant_info["variant_stock"] = variant['inventory_quantity']
-        variant_info["variant_option1"] = variant['option1'] if variant['option1'] else ""
-        variant_info["variant_option2"] = variant['option2'] if variant['option2'] else ""
-        variant_info["variant_option3"] = variant['option3'] if variant['option3'] else ""
+        variant_info["variant_option1"] = variant['option1'].replace("Default Title", "Default") if variant['option1'] else ""
+        variant_info["variant_option2"] = variant['option2'].replace("Default Title", "Default") if variant['option2'] else ""
+        variant_info["variant_option3"] = variant['option3'].replace("Default Title", "Default") if variant['option3'] else ""
         variant_info["variant_stock"] = 0
         variant_info["variant_desc"] = None
         variant_info["acl_group"] = {"id": None, "name": None}
@@ -565,4 +564,4 @@ if __name__ == '__main__':
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     client = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
     exclude={"is_acl":["",False]}
-    pprint(client.get_products(exclude=exclude))
+    pprint(client.get_products())
