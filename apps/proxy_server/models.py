@@ -15,8 +15,8 @@ from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
 from django.db.models.signals import post_delete, post_save
 from django.dispatch.dispatcher import receiver
-from django.core.cache import cache
-
+from django.core.cache import caches, cache
+from django.forms.models import model_to_dict
 
 
 # Create your models here.
@@ -65,6 +65,40 @@ class Acls(BaseModel):
         db_table = 'acls'
         verbose_name = '访问控制列表'
         verbose_name_plural = '访问控制列表'
+
+    @classmethod
+    def update_acl_cache(cls, acls=None):
+        for acl in acls:
+            acl_dict = model_to_dict(acl)
+            cache.set('acl_cache:{}'.format(acl.id), json.dumps(acl_dict), timeout=60 * 60 * 24)
+
+    @classmethod
+    def get_acl_cache(cls, acl_id):
+        acl_dict = cache.get('acl_cache:{}'.format(acl_id))
+        if acl_dict:
+            return json.loads(acl_dict)
+        else:
+            acl = cls.objects.filter(id=acl_id).first()
+            if acl:
+                acl_dict = model_to_dict(acl)
+                cache.set('acl_cache:{}'.format(acl_id), json.dumps(acl_dict), timeout=60 * 60 * 24)
+                return acl_dict
+
+    @classmethod
+    def get_acls_cache(cls):
+        acls_keys = cache.keys('acl_cache:*')
+        acls = {}
+        for key in acls_keys:
+            acl_dict = cache.get(key)
+            acl_id = key.split(':')[-1]
+            acls[acl_id] = json.loads(acl_dict)
+        return acls
+
+
+@receiver(post_save, sender=Acls)
+def _mymodel_save(sender, instance, **kwargs):
+    acl_dict = model_to_dict(instance)
+    cache.set('db_acl_{}'.format(instance.id), json.dumps(acl_dict))
 
 
 class AclGroupThrough(BaseModel):
@@ -220,6 +254,8 @@ class ServerCidrThrough(BaseModel):
         db_table = 'server_cidr_through'
         verbose_name = '服务器与CIDR关系'
         verbose_name_plural = '服务器与CIDR关系'
+
+
 # 删除关系的同时删除cidr
 @receiver(post_delete, sender=ServerCidrThrough)
 def _mymodel_delete(sender, instance, **kwargs):
@@ -252,6 +288,7 @@ class ProxyStock(BaseModel):
         constraints = [
             models.UniqueConstraint(fields=['cidr', 'acl_group'], name='ip_stock_pk')
         ]
+
     def do_soft_delete(self):
         self.soft_delete = True
         self.save()
@@ -284,6 +321,7 @@ class ProxyStock(BaseModel):
             available_subnets.remove(subnet)
             self.available_subnets = ','.join(available_subnets)
             self.save()
+
     def return_subnet(self, subnet):
         """
         归还子网
@@ -339,7 +377,6 @@ def proxy_stock_updated(sender, instance, **kwargs):
         product_stock.update_stock()
 
 
-
 class ProductStock(BaseModel):
     """
     产品库存表
@@ -369,6 +406,18 @@ class ProductStock(BaseModel):
             total = 0
         self.stock = total
         self.save()
+
+
+@receiver(post_save, sender=ProductStock)
+def update_product_stock_cache(sender, instance, **kwargs):
+    """
+    更新产品库存缓存
+    :param sender:
+    :param instance:
+    :param kwargs:
+    :return:
+    """
+    cache.set('product_stock_{}'.format(instance.id), instance.stock)
 
 
 class Proxy(BaseModel):

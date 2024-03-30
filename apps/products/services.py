@@ -1,9 +1,12 @@
+import time
 from ipaddress import ip_network
 from pprint import pprint
 from collections import OrderedDict
+
+from django.core.cache import cache
+
 from apps.products.models import Variant
 from apps.proxy_server.models import ProductStock, Acls, ProxyStock
-
 
 
 def get_stock(product_id, variant_option1, variant_option2, variant_option3):
@@ -18,10 +21,11 @@ def get_stock(product_id, variant_option1, variant_option2, variant_option3):
     stocks = []
     for stock in product_stock:
         try:
-            acl_i=Acls.objects.get(id=stock.acl_id)
-            acl_name = acl_i.name
-            acl_price = acl_i.price
-        except:
+            acl_i_dict = Acls.get_acl_cache(stock.acl_id)
+            acl_name = acl_i_dict.get('name', '')
+            acl_price = acl_i_dict.get('price', 0)
+        except Exception as e:
+            print(e)
             acl_name = ''
             acl_price = 0
         tmp_dict = {}
@@ -51,7 +55,8 @@ def get_available_cidrs(acl_ids, cidr_ids, cart_step):
     for cidr_id in cidr_ids:
         # 使用字典记录每个CIDR对应的ProxyStock ID列表
         subnet_proxy_stock_map = {}
-        proxy_stocks = ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_id__in=acl_ids,soft_delete=False).all()
+        proxy_stocks = ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_id__in=acl_ids,
+                                                 soft_delete=False).all()
         for proxy_stock in proxy_stocks:
             # 解析可用子网字符串
             available_subnets = proxy_stock.available_subnets.split(',')
