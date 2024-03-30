@@ -207,6 +207,7 @@ class Product(BaseModel):
     variant_options = models.ManyToManyField(Option, verbose_name='选项', through='OptionValue')
     active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
     valid = models.BooleanField(default=False, verbose_name='是否有效', blank=True, null=True)
+    old_flag = models.BooleanField(default=False, verbose_name='是否旧商品', blank=True, null=True)
 
     def delete(self, using=None, keep_parents=False):
         self.soft_delete = True
