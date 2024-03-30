@@ -256,7 +256,19 @@ def change_proxy():
             print(ip, user, password)
 
 
+def clean_cidr():
+    # 清理无效CIDR
+    use_lsit = set()
+    for cidr in ServerCidrThrough.objects.all():
+        use_lsit.add(str(cidr.cidr_id))
+    print(use_lsit)
+    for cidr in Cidr.objects.all():
+        if str(cidr.id) not in use_lsit:
+            print(cidr.id)
+            cidr.delete()
+
+
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    add_product_other()
+    clean_cidr()
