@@ -301,4 +301,4 @@ def delete_old_order():
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    delete_old_order()
+    add_product_other()
