@@ -355,4 +355,5 @@ class ProductUpdateSerializer(WritableNestedModelSerializer):
                     is_active = True
                     break
         attrs['active'] = is_active
+        attrs['old_flag'] = False
         return attrs
