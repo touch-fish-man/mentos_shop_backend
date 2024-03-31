@@ -222,9 +222,13 @@ def delete_old_order():
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
     orders = Orders.objects.filter(expired_at__lt=utc_now - datetime.timedelta(days=30)).all()
     for order_obj_item in orders:
+        oerder_id = order_obj_item.id
+        if Proxy.objects.filter(order_id=oerder_id).exists():
+            continue
         delete_list.append(order_obj_item.id)
         order_obj_item.delete()
     data = {
         'orders': delete_list,
         'status': 1
     }
+    return json.dumps(data)
