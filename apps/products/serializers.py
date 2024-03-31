@@ -295,6 +295,7 @@ def create_product_other(product_id, product_collections_data, product_tags_data
         product_tag = ProductTagSerializer().create(product_tag_data)
         product.product_tags.add(product_tag)
     product.valid = True
+    product.old_flag = False
     product.save()
 
 
