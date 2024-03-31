@@ -1,6 +1,8 @@
+import copy
 import datetime
 import random
 import string
+from pprint import pprint
 
 import pytz
 from faker import Faker
@@ -16,7 +18,7 @@ import ipaddress
 
 console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
-    ServerGroupThrough, Cidr, Acls, CidrAclThrough
+    ServerGroupThrough, Cidr, Acls, CidrAclThrough, AclGroupThrough
 from apps.orders.models import Orders
 from apps.products.services import add_product_other
 from apps.products.models import Variant, ProductTag, ProductTagRelation
@@ -298,7 +300,46 @@ def delete_old_order():
     }
 
 
+def fix_ip_stock():
+    acl_group_acl_reverse = {}
+    acls = list(Acls.objects.all().values_list("id", flat=True))
+    for acl in AclGroup.objects.all():
+        acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
+
+    for acl in AclGroupThrough.objects.all():
+        if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
+            acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
+    fix_dict = {}
+    for ip_stock_i in ProxyStock.objects.filter(acl_group__isnull=False).all():
+        cidr_id = ip_stock_i.cidr_id
+        cart_step = ip_stock_i.cart_step
+        new_ip_stocks = ProxyStock.objects.filter(cidr_id=cidr_id, acl_group_id=None, cart_step=cart_step).all()
+        for new_ip_stock in new_ip_stocks:
+            if new_ip_stock.acl_id in acl_group_acl_reverse[ip_stock_i.acl_group_id]:
+                if new_ip_stock.id not in fix_dict:
+                    fix_dict[new_ip_stock.id] = []
+                fix_dict[new_ip_stock.id].append(ip_stock_i.available_subnets)
+    for k, v in fix_dict.items():
+        if "" in v:
+            v = [""]
+        else:
+            if len(v) > 1:
+                cidr_list = []
+                for x in v:
+                    cidr_list.append(set(x.split(",")))
+                intersection = cidr_list[0]
+                for s in cidr_list[1:]:
+                    intersection = intersection & s
+                intersection = list(intersection)
+                intersection.sort(key=lambda x: int(ipaddress.ip_network(x).network_address))
+                v = [",".join(intersection)]
+        stock_ =ProxyStock.objects.filter(id=k).first()
+        stock_.available_subnets = v[0]
+        stock_.ip_stock = len(v[0].split(",")) * stock_.cart_step if v[0] else 0
+        stock_.save()
+        print(k, v[0], stock_.ip_stock)
+
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    add_product_other()
+    fix_ip_stock()
