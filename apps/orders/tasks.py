@@ -211,3 +211,20 @@ def update_shopify_product():
     cache.set('shopify_product_info', data, 60 * 60 * 24)
     collection_data = shopify_client.sync_product_collections()
     tag_data = shopify_client.sync_product_tags()
+
+
+@shared_task(name='delete_old_order')
+def delete_old_order():
+    """
+    删除expired_at 1个月前的订单
+    """
+    delete_list = []
+    utc_now = datetime.datetime.now().astimezone(pytz.utc)
+    orders = Orders.objects.filter(expired_at__lt=utc_now - datetime.timedelta(days=30)).all()
+    for order_obj_item in orders:
+        delete_list.append(order_obj_item.id)
+        order_obj_item.delete()
+    data = {
+        'orders': delete_list,
+        'status': 1
+    }

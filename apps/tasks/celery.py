@@ -70,6 +70,10 @@ app.conf.beat_schedule = {
         'task': 'delete_expired_order',
         'schedule': crontab(hour=1, minute=30, day_of_week=1), # 每周1凌晨1点执行
     },
+    '删除旧订单': {
+        'task': 'delete_old_order',
+        'schedule': crontab(hour=4, minute=50), # 每天凌晨1点执行
+    },
     '库存回收': {
         'task': 'update_product_stock',
         'schedule': 6000.0, # 每小时执行一次
