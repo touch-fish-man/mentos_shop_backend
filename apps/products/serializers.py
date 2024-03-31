@@ -274,7 +274,7 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                 stock_obj.soft_delete = False
                 stock_obj.save()
                 ip_stock_objs.append(stock_obj)
-            product_stock = ProductStock.objects.create(product=product, acl_id=acl_i.id,
+            product_stock = ProductStock.objects.create(product=product, acl=acl_i,
                                                         option1=variant_data.get('variant_option1'),
                                                         option2=variant_data.get('variant_option2'),
                                                         option3=variant_data.get('variant_option3'),

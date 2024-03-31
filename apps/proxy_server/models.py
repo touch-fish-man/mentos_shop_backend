@@ -386,7 +386,7 @@ class ProductStock(BaseModel):
     """
     product = models.ForeignKey('products.Product', on_delete=models.CASCADE, blank=True, null=True,
                                 verbose_name='产品')
-    acl_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='ACL ID')
+    acl = models.ForeignKey('Acls', on_delete=models.CASCADE, blank=True, null=True, verbose_name='ACL')
     option1 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项1')
     option2 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项2')
     option3 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项3')

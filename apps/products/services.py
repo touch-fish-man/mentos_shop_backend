@@ -1,3 +1,4 @@
+import logging
 import time
 from ipaddress import ip_network
 from pprint import pprint
@@ -25,9 +26,8 @@ def get_stock(product_id, variant_option1, variant_option2, variant_option3):
             acl_name = acl_i_dict.get('name', '')
             acl_price = acl_i_dict.get('price', 0)
         except Exception as e:
-            print(e)
-            acl_name = ''
-            acl_price = 0
+            logging.info(e)
+            continue
         tmp_dict = {}
         tmp_dict['acl_id'] = stock.acl_id
         tmp_dict['acl_name'] = acl_name
