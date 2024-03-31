@@ -6,6 +6,7 @@ import pytz
 from celery.schedules import crontab
 from apps.orders.models import Orders
 from apps.orders.services import create_proxy
+from apps.products.models import Variant
 from apps.proxy_server.models import Proxy
 from apps.users.models import User
 from apps.users.services import send_via_sendgrid, send_email_via_mailgun
@@ -211,6 +212,11 @@ def update_shopify_product():
     cache.set('shopify_product_info', data, 60 * 60 * 24)
     collection_data = shopify_client.sync_product_collections()
     tag_data = shopify_client.sync_product_tags()
+    for product in product_dict:
+        for variant in product['variants']:
+            variant_id = variant['shopify_variant_id']
+            price = variant['variant_price']
+            Variant.objects.filter(shopify_variant_id=variant_id).update(variant_price=price)
 
 
 @shared_task(name='delete_old_order')

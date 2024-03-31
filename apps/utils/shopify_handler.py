@@ -564,4 +564,4 @@ if __name__ == '__main__':
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     client = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
     exclude={"is_acl":["",False]}
-    pprint(client.get_products())
+    pprint(client.get_products(format=True))
