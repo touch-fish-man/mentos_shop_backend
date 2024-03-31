@@ -114,7 +114,7 @@ def get_cidr(server_group):
 
 def add_product_other():
     acls = Acls.objects.all()
-    products = Product.objects.filter(old_flag=True, active=True).all()
+    products = Product.objects.all()
     for product in products:
         Variants = Variant.objects.filter(product=product).all()
         # 创建variant
