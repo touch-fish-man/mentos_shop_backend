@@ -271,11 +271,11 @@ class ServerUpdateSerializer(CommonSerializer):
 
 
 class CidrSerializer(CommonSerializer):
-    available_acl = AclsCidrSerializer(many=True)
+    exclude_acl = AclsCidrSerializer(many=True)
 
     class Meta:
         model = Cidr
-        fields = ('id', 'cidr', 'ip_count', 'available_acl')
+        fields = ('id', 'cidr', 'ip_count', 'exclude_acl')
         extra_kwargs = {
             'ip_count': {'read_only': True},
             "cidr": {'read_only': True},
@@ -283,11 +283,11 @@ class CidrSerializer(CommonSerializer):
         }
 
 class CidrUpdateSerializer(CommonSerializer):
-    available_acl = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
+    exclude_acl = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)
 
     class Meta:
         model = Cidr
-        fields = ('id', 'available_acl')
+        fields = ('id', 'exclude_acl')
         extra_kwargs = {
             'id': {'read_only': True}
         }

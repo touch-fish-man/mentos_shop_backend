@@ -196,7 +196,7 @@ class CidrAclThrough(BaseModel):
 class Cidr(BaseModel):
     cidr = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR')
     ip_count = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
-    available_acl = models.ManyToManyField('Acls', verbose_name='可用ACL', through='CidrAclThrough')
+    exclude_acl = models.ManyToManyField('Acls', verbose_name='可用ACL', through='CidrAclThrough')
     soft_delete = models.BooleanField(default=False, verbose_name='软删除')  # 避免外键关联删除
 
     class Meta:
