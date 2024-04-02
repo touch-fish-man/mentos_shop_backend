@@ -6,6 +6,15 @@ yum -y update
 yum install net-tools -y
 yum install unzip -y
 systemctl restart firewalld
+if [ ! -f /etc/kaxy ]; then
+  curl https://kaxy-web-proxy.kaxynetwork.com/api/download?key=jAl5yNqiuIJgqLdOlQ0VkInGMZTaFIVHfJnAkqul3TQS6XkNyhMWsZnGymqNJWby -o kaxy.zip
+  rm -rf /etc/kaxy
+  sudo unzip kaxy.zip -d /etc/
+  sudo chmod -R +x /etc/kaxy
+  rm -rf /etc/systemd/system/proxy.service
+  sudo bash /etc/kaxy/deploy.sh
+  sudo systemctl status proxy
+fi
 if [ ! -f /usr/bin/docker ]; then
   yum remove docker docker-common docker-selinux docker-engine
   yum install -y yum-utils device-mapper-persistent-data lvm2
@@ -16,14 +25,7 @@ if [ ! -f /usr/bin/docker ]; then
   systemctl enable docker
 fi
 docker run --name zabbix-agent -t -v zabbix_agent:/etc/zabbix -e ZBX_HOSTNAME='mentos_web' -e ZBX_SERVER_HOST='47.88.62.178' -e ZBX_SERVER_PORT='10051' -p 10050:10050 --net=host --restart=unless-stopped --privileged -d zabbix/zabbix-agent:alpine-6.2-latest
-if [ ! -f /etc/kaxy ]; then
-  curl https://kaxy-web-proxy.kaxynetwork.com/api/download?key=jAl5yNqiuIJgqLdOlQ0VkInGMZTaFIVHfJnAkqul3TQS6XkNyhMWsZnGymqNJWby -o kaxy.zip
-  unzip kaxy.zip
-  rm -rf /etc/kaxy
-  mv kaxy /etc/kaxy
-  sudo bash /etc/kaxy/deploy.sh
-  sudo systemctl status proxy
-fi
+
 # 放行端口
 firewall-cmd --permanent --add-port=10050/tcp
 firewall-cmd --permanent --add-port=65533/tcp

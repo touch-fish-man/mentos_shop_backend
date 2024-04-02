@@ -67,14 +67,14 @@ def ssh_command(server, command):
 
 def scp_file(server, local_file, remote_file):
     user, password, host, port = parse_server(server)
-    # os.system(
-    #     "sshpass -p {}  scp -o StrictHostKeyChecking=no -P {} {} {}@{}:{}".format(password, port, local_file, user,
-    #                                                                               host, remote_file))
-    sftp = paramiko.Transport((host, int(port)))
-    sftp.connect(username=user, password=password)
-    sftp = paramiko.SFTPClient.from_transport(sftp)
-    sftp.put(local_file, remote_file)
-    sftp.close()
+    os.system(
+        "sshpass -p {}  scp -o StrictHostKeyChecking=no -P {} {} {}@{}:{}".format(password, port, local_file, user,
+                                                                                  host, remote_file))
+    # sftp = paramiko.Transport((host, int(port)))
+    # sftp.connect(username=user, password=password)
+    # sftp = paramiko.SFTPClient.from_transport(sftp)
+    # sftp.put(local_file, remote_file)
+    # sftp.close()
 
 
 def main():
