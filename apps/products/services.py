@@ -1,239 +1,154 @@
 import logging
-import traceback
+import time
+from ipaddress import ip_network
+from pprint import pprint
+from collections import OrderedDict
 
 from django.core.cache import cache
 
-from apps.core.models import BaseModel
-from django.db import models
-from django.db import IntegrityError
-
-from apps.core.validators import CustomValidationError
-from apps.proxy_server.models import ProxyStock, ServerGroupThrough, ServerCidrThrough, Cidr
+from apps.products.models import Variant, Product
+from apps.proxy_server.models import ProductStock, Acls, ProxyStock, ServerGroupThrough, ServerCidrThrough
 
 
-class ProductTag(BaseModel):
-    tag_name = models.CharField(max_length=255, verbose_name='标签名')
-    tag_desc = models.TextField(verbose_name='标签描述', blank=True, null=True)
-    soft_delete = models.BooleanField(default=False, verbose_name='软删除')
-
-    def delete(self, using=None, keep_parents=False):
-        if ProductTagRelation.objects.filter(product_tag=self.id).exists():
-            self.soft_delete = True
-            self.save()
-        else:
-            return super().delete(using=None, keep_parents=False)
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        cache_key = 'product_tags'
-        if cache.get(cache_key):
-            cache.delete(cache_key)
-        return super().save(force_insert, force_update, using, update_fields)
-
-
-class ProductCollection(BaseModel):
-    """
-    商品系列
-    """
-    collection_name = models.CharField(max_length=255, verbose_name='系列名称')
-    collection_desc = models.TextField(verbose_name='描述')
-    shopify_collection_id = models.CharField(max_length=255, verbose_name='shopify商品系列id')
-    soft_delete = models.BooleanField(default=False, verbose_name='软删除')
-
-    def delete(self, using=None, keep_parents=False):
-        if ProductCollectionRelation.objects.filter(product_collection=self.id).exists():
-            self.soft_delete = True
-            self.save()
-        else:
-            return super().delete(using=None, keep_parents=False)
-
-    def save(
-            self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        cache_key = 'product_collections'
-        if cache.get(cache_key):
-            cache.delete(cache_key)
-        return super().save(force_insert, force_update, using, update_fields)
-
-
-class OptionValue(BaseModel):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='option_values')
-    option = models.ForeignKey('Option', on_delete=models.CASCADE, related_name='option_values')
-    option_value = models.CharField(max_length=255, verbose_name='选项值')
-
-
-class Option(BaseModel):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='options', verbose_name='商品')
-    option_name = models.CharField(max_length=255, verbose_name='选项名')
-    option_type = models.CharField(max_length=255, verbose_name='选项类型', blank=True, null=True)  # 时间 1 其他0
-    shopify_option_id = models.CharField(max_length=255, verbose_name='shopify选项id')
-
-
-class VariantCidrThrough(BaseModel):
-    variant = models.ForeignKey('Variant', on_delete=models.CASCADE, blank=True, null=True,
-                                verbose_name='变体')
-    cidr = models.ForeignKey('proxy_server.Cidr', on_delete=models.CASCADE, blank=True, null=True,
-
-                             verbose_name='CIDR')
-
-    class Meta:
-        db_table = 'variant_cidr_through'
-        verbose_name = '变体与CIDR关系'
-        verbose_name_plural = '变体与CIDR关系'
-
-
-class Variant(BaseModel):
-    """
-    商品变体
-    """
-    CART_STEP = (
-        (1, 1),
-        (8, 8),
-        (16, 16),
-        (32, 32),
-        (64, 64),
-        (128, 128),
-        (256, 256),
-        (512, 512),
-        (1024, 1024)
-    )
-    stock_ids = []
-
-    shopify_variant_id = models.CharField(max_length=255, verbose_name='shopify变体id')
-    variant_name = models.CharField(max_length=255, verbose_name='变体名')
-    product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='variants')
-    # 可以为空
-    variant_desc = models.TextField(verbose_name='描述', blank=True, null=True)
-    server_group = models.ForeignKey('proxy_server.ServerGroup', verbose_name='服务器组', blank=True, null=True,
-                                     on_delete=models.CASCADE)
-    acl_group = models.ForeignKey('proxy_server.AclGroup', verbose_name='acl组', blank=True, null=True,
-                                  on_delete=models.CASCADE)
-    cart_step = models.IntegerField(default=8, verbose_name='购物车步长', choices=CART_STEP)
-    is_active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
-    variant_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='价格')
-    variant_stock = models.IntegerField(verbose_name='库存', default=0)  # ip数量
-    variant_option1 = models.CharField(max_length=255, verbose_name='选项1', blank=True, null=True)
-    variant_option2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
-    variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
-    proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
-    cidrs = models.ManyToManyField('proxy_server.Cidr', through='VariantCidrThrough', related_name='cidrs')
-
-    def count_stock(self):
-        variant_stock = 0
-        cart_step = self.cart_step
-        acl_group = self.acl_group
-        server_group = self.server_group
-        cidr_ids, ip_count = self.get_cidr(server_group)
-        stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, cart_step=cart_step, acl_group=acl_group)
-        stocks_dict = {stock.cidr_id: stock for stock in stocks}
+def get_stock(product_id, variant_option1, variant_option2, variant_option3):
+    product_stock = ProductStock.objects.filter(product_id=product_id)
+    if variant_option1:
+        product_stock = product_stock.filter(option1=variant_option1)
+    if variant_option2:
+        product_stock = product_stock.filter(option2=variant_option2)
+    if variant_option3:
+        product_stock = product_stock.filter(option3=variant_option3)
+    product_stock = product_stock.all()
+    stocks = []
+    for stock in product_stock:
         try:
-
-            for idx, cidr_id in enumerate(cidr_ids):
-                stock_obj = stocks_dict.get(cidr_id)
-                if stock_obj:
-                    self.stock_ids.append(stock_obj.id)
-                    variant_stock += stock_obj.ip_stock
-                else:
-                    # 不存在则创建
-                    logging.info(self.id)
-                    logging.info(cidr_ids)
-                    logging.info(ip_count)
-                    logging.info(idx)
-                    logging.info(cart_step)
-                    logging.info(acl_group)
-                    cart_stock = ip_count[idx] // cart_step
-                    porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group,
-                                                            ip_stock=ip_count[idx], cart_stock=cart_stock)
-                    subnets = porxy_stock.gen_subnets()
-                    porxy_stock.subnets = ",".join(subnets)
-                    porxy_stock.available_subnets = porxy_stock.subnets
-                    porxy_stock.save()
-                    variant_stock += ip_count[idx]
-                    self.stock_ids.append(porxy_stock.id)
-        except IntegrityError as e:
-            logging.info(e)
-            traceback.print_exc()
-            raise CustomValidationError("创建库存表失败:{}".format(e))
+            acl_i_dict = Acls.get_acl_cache(stock.acl_id)
+            acl_name = acl_i_dict.get('name', '')
+            acl_price = acl_i_dict.get('price', 0)
         except Exception as e:
             logging.info(e)
-            traceback.print_exc()
-            raise CustomValidationError("创建库存表失败")
-        return variant_stock
-
-    def get_cidr(self, server_group):
-        cidr_ids = []
-        if server_group:
-
-            server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
-                                                                                                        flat=True)
-            cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
-            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('id', 'ip_count')
-            ip_count_dict = dict(ip_count)
-            ip_count = [ip_count_dict.get(cidr_id) for cidr_id in cidr_ids]
-
-            return cidr_ids, ip_count
-        else:
-            return cidr_ids, []
-
-    def update_stock(self):
-        get_stock = self.count_stock()
-        self.variant_stock = get_stock
-        self.save()
-        return get_stock
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        if self.id:
-            get_stock = self.count_stock()
-            self.variant_stock = get_stock
-        super().save(force_insert=False, force_update=False, using=None,
-                     update_fields=None)
+            continue
+        tmp_dict = {}
+        tmp_dict['acl_id'] = stock.acl_id
+        tmp_dict['acl_name'] = acl_name
+        tmp_dict['option2'] = stock.option2
+        tmp_dict['option3'] = stock.option3
+        tmp_dict['stock'] = stock.stock
+        tmp_dict['price'] = acl_price
+        stocks.append(tmp_dict)
+    return stocks
 
 
+def sort_cidr(cidr_list):
+    sorted_ip_networks = sorted(cidr_list, key=lambda net: int(ip_network(net).network_address))
+    sorted_ip_networks_cidr = [str(net) for net in sorted_ip_networks]
+    return sorted_ip_networks_cidr
 
-class Product(BaseModel):
+
+def get_available_cidrs(acl_ids, cidr_ids, cart_step):
     """
-    商品
+    获取可发货的cidr，寻找在指定的acl_ids和cidr_ids中的可用子网交集，并记录它们的proxy_stock_id。
     """
-    product_name = models.CharField(max_length=255, verbose_name='产品名')
-    product_desc = models.TextField(verbose_name='描述', blank=True, null=True)
-    shopify_product_id = models.CharField(max_length=255, verbose_name='shopify产品id')
-    product_tags = models.ManyToManyField(ProductTag, verbose_name='标签', through='ProductTagRelation')
-    product_collections = models.ManyToManyField(ProductCollection, verbose_name='系列',
-                                                 through='ProductCollectionRelation')
-    soft_delete = models.BooleanField(default=False, verbose_name='软删除', blank=True, null=True)
+    available_cidrs = {}  # 结果列表
 
-    # variants = models.ManyToManyField(Variant)
-    variant_options = models.ManyToManyField(Option, verbose_name='选项', through='OptionValue')
-    active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
-    valid = models.BooleanField(default=False, verbose_name='是否有效', blank=True, null=True)
-    old_flag = models.BooleanField(default=False, verbose_name='是否旧商品', blank=True, null=True)
-
-    def delete(self, using=None, keep_parents=False):
-        self.soft_delete = True
-        self.save()
-
-    def variants(self):
-        return Variant.objects.filter(product_id=self.id)
-
-    @property
-    def is_active(self):
-        return Variant.objects.filter(product_id=self.id, is_active=True).exists()
-
-    def variant_options(self):
-        return Option.objects.filter(product_id=self.id)
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        super().save(force_insert=False, force_update=False, using=None,
-                     update_fields=None)
+    # 对于每个CIDR ID
+    for cidr_id in cidr_ids:
+        # 使用字典记录每个CIDR对应的ProxyStock ID列表
+        subnet_proxy_stock_map = {}
+        proxy_stocks = ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step, acl_id__in=acl_ids,
+                                                 soft_delete=False).all()
+        for proxy_stock in proxy_stocks:
+            # 解析可用子网字符串
+            available_subnets = proxy_stock.available_subnets.split(',')
+            acl_id = proxy_stock.acl_id
+            for subnet in available_subnets:
+                if subnet not in subnet_proxy_stock_map:
+                    subnet_proxy_stock_map[subnet] = [set(), set()]
+                subnet_proxy_stock_map[subnet][0].add(acl_id)
+                subnet_proxy_stock_map[subnet][1].add((proxy_stock, acl_id))
+                if len(subnet_proxy_stock_map[subnet][0]) == len(acl_ids):
+                    available_cidrs[subnet] = subnet_proxy_stock_map[subnet][1]
+    available_cidrs = OrderedDict(sorted(available_cidrs.items(), key=lambda x: int(ip_network(x[0]).network_address)))
+    return available_cidrs
 
 
-class ProductTagRelation(BaseModel):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    product_tag = models.ForeignKey(ProductTag, on_delete=models.CASCADE)
+def get_variant_info(product_id, option1, option2, option3, acl_selected):
+    data = {"price": 0, "stock": 0, "local_variant_id": 0, "shopify_variant_id": "0", "base_price": 0, "acl_price": 0}
+    acl_selected= acl_selected.split(",")
+    variant = Variant.objects.filter(product_id=product_id)
+    if option1:
+        variant = variant.filter(variant_option1=option1)
+    if option2:
+        variant = variant.filter(variant_option2=option2)
+    if option3:
+        variant = variant.filter(variant_option3=option3)
+    variant = variant.first()
+    cidr_list = []
+    if variant:
+        data['base_price'] = variant.variant_price
+        acls = Acls.objects.filter(id__in=acl_selected).all().values_list("price", flat=True)
+        if acls:
+            data["acl_price"] = sum(acls)  # acl的价格
+        data['price'] += float(data['base_price']) + float(data['acl_price'])
+        cart_step = variant.cart_step
+        for cidr in variant.cidrs.all():
+            cidr_list.append(cidr.id)
+        available_cidrs_dict = get_available_cidrs(acl_selected, cidr_list, cart_step)
+        stock = len(available_cidrs_dict) * cart_step
+        data["stock"] = stock
+        data["local_variant_id"] = variant.id
+        data["shopify_variant_id"] = variant.shopify_variant_id
+    return data
 
 
-class ProductCollectionRelation(BaseModel):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    product_collection = models.ForeignKey(ProductCollection, on_delete=models.CASCADE)
+def get_cidr(server_group):
+    cidrs = []
+    if server_group:
+        server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
+                                                                                                    flat=True)
+        for x in ServerCidrThrough.objects.filter(server_id__in=server_ids).all():
+            cidrs.append(x.cidr)
+        return cidrs
+    else:
+        return cidrs
+
+
+def add_product_other():
+    acls = Acls.objects.all()
+    products = Product.objects.all()
+    for product in products:
+        Variants = Variant.objects.filter(product=product).all()
+        # 创建variant
+        for idx, v in enumerate(Variants):
+            cart_step = v.cart_step
+            server_group = v.server_group
+            cidrs = get_cidr(server_group)
+            for acl_i in acls:
+                ip_stock_objs = []
+                for cidr_i in cidrs:
+                    v.cidrs.add(cidr_i)
+                    cart_stock = cidr_i.ip_count // cart_step
+                    stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl=acl_i, cart_step=cart_step)
+                    if is_create:
+                        stock_obj.ip_stock = cidr_i.ip_count
+                        stock_obj.cart_stock = cart_stock
+                        subnets = stock_obj.gen_subnets()
+                        stock_obj.subnets = ",".join(subnets)
+                        stock_obj.available_subnets = stock_obj.subnets
+                        stock_obj.save()
+                    stock_obj.soft_delete = False
+                    stock_obj.save()
+                    ip_stock_objs.append(stock_obj)
+                product_stock, is_create= ProductStock.objects.get_or_create(product=product, acl_id=acl_i.id,
+                                                            option1=v.variant_option1,
+                                                            option2=v.variant_option2,
+                                                            option3=v.variant_option3,
+                                                            cart_step=cart_step, old_variant_id=v.id,
+                                                            server_group=server_group)
+                stock = 0
+                for ip_stock_obj in ip_stock_objs:
+                    product_stock.ip_stocks.add(ip_stock_obj)
+                    stock += ip_stock_obj.ip_stock
+                product_stock.stock = stock
+                product_stock.save()
+        print("更新商品", product.id)
