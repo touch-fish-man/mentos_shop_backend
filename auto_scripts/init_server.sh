@@ -22,7 +22,7 @@ if [ ! -f /root/init_success.txt ]; then
   yum install net-tools -y
   yum install unzip -y
   systemctl restart firewalld
-  if [ ! -f /etc/kaxy ]; then
+  if [ ! -d /etc/kaxy ]; then
     curl https://kaxy-web-proxy.kaxynetwork.com/api/download?key=jAl5yNqiuIJgqLdOlQ0VkInGMZTaFIVHfJnAkqul3TQS6XkNyhMWsZnGymqNJWby -o kaxy.zip
     rm -rf /etc/kaxy
     sudo unzip kaxy.zip -d /etc/
