@@ -1,7 +1,4 @@
 #!/bin/bash
-#yum -y install epel-release
-#yum -y install python-pip
-#pip install paramiko
 cat "sshd: ALL" >> /etc/hosts.allow
 yum -y install epel-release
 yum -y install fan2ban
