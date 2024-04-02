@@ -16,10 +16,12 @@ class AclsSerializer(CommonSerializer):
         model = Acls
         fields = '__all__'
         extra_kwargs = {
-        "id": {'read_only': True},
-        "created_at": {'read_only': True},
-        "updated_at": {'read_only': True}
-    }
+            "id": {'read_only': True},
+            "created_at": {'read_only': True},
+            "updated_at": {'read_only': True}
+        }
+
+
 class AclsCidrSerializer(CommonSerializer):
     class Meta:
         model = Acls
@@ -93,6 +95,12 @@ class AclsCreateSerializer(CommonSerializer):
         model = Acls
         fields = ('name', 'description', 'acl_value')
 
+    def create(self, validated_data):
+        new_acl = super().create(validated_data)
+        from apps.products.tasks import update_product_acl
+        result = update_product_acl.delay([new_acl.id])
+        return new_acl
+
 
 class AclsUpdateSerializer(CommonSerializer):
     name = serializers.CharField(required=True,
@@ -100,8 +108,6 @@ class AclsUpdateSerializer(CommonSerializer):
     acl_value = serializers.CharField(required=True)
     shopify_variant_id = serializers.CharField(required=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
-
-
 
     class Meta:
         model = Acls
@@ -281,6 +287,7 @@ class CidrSerializer(CommonSerializer):
             "cidr": {'read_only': True},
             'id': {'read_only': True}
         }
+
 
 class CidrUpdateSerializer(CommonSerializer):
     exclude_acl = serializers.PrimaryKeyRelatedField(many=True, queryset=Acls.objects.all(), required=False)

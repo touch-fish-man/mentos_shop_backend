@@ -100,9 +100,6 @@ class Acls(BaseModel):
 def _mymodel_save(sender, instance, **kwargs):
     acl_dict = model_to_dict(instance)
     cache.set('acl_cache:{}'.format(instance.id), json.dumps(acl_dict, cls=DjangoJSONEncoder), timeout=60 * 60 * 24)
-@receiver(post_delete, sender=Acls)
-def _mymodel_delete(sender, instance, **kwargs):
-    cache.delete('acl_cache:{}'.format(instance.id))
 
 
 class AclGroupThrough(BaseModel):
