@@ -17,6 +17,7 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch.dispatcher import receiver
 from django.core.cache import caches, cache
 from django.forms.models import model_to_dict
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 # Create your models here.
@@ -98,7 +99,7 @@ class Acls(BaseModel):
 @receiver(post_save, sender=Acls)
 def _mymodel_save(sender, instance, **kwargs):
     acl_dict = model_to_dict(instance)
-    cache.set('acl_cache:{}'.format(instance.id), json.dumps(acl_dict))
+    cache.set('acl_cache:{}'.format(instance.id), json.dumps(acl_dict, cls=DjangoJSONEncoder), timeout=60 * 60 * 24)
 @receiver(post_delete, sender=Acls)
 def _mymodel_delete(sender, instance, **kwargs):
     cache.delete('acl_cache:{}'.format(instance.id))
@@ -487,11 +488,8 @@ class Proxy(BaseModel):
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     from django.core.cache import cache
-    # 当最后一个代理被删除时,删除用户
-    # delete_user_from_server.delay(instance.server_ip, instance.username,instance.subnet,instance.ip_stock_id)
-    if Proxy.objects.filter(username=instance.username, server_ip=instance.server_ip).count() == 0:
-        from .tasks import delete_user_from_server
-        task_i = delete_user_from_server.apply(args=(instance.server_ip, instance.username))
+    delete_cache_key = 'delete_proxy_task:{}_{}'.format(instance.server_ip, instance.username)
+    cache.set(delete_cache_key, 1, timeout=60 * 60 * 5)
     order_id = instance.order_id
     stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
     redis_key = 'stock_opt_{}'.format(instance.ip_stock_id)
