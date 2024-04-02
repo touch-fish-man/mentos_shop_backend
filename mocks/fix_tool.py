@@ -341,21 +341,24 @@ def fix_ip_stock():
 
 
 def find_proxy_stock_ids():
-    acl_group_acl_reverse = {}
-    acls = list(Acls.objects.all().values_list("id", flat=True))
-    for acl in AclGroup.objects.all():
-        acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
+    try:
+       acl_group_acl_reverse = {}
+        acls = list(Acls.objects.all().values_list("id", flat=True))
+        for acl in AclGroup.objects.all():
+            acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
 
-    for acl in AclGroupThrough.objects.all():
-        if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
-            acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
+        for acl in AclGroupThrough.objects.all():
+            if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
+                acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
 
-    for p in Proxy.objects.all():
-        acl_ids = acl_group_acl_reverse.get(p.acl_group_id, [])
-        ip_stock_ids = ",".join(
-            ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all().values_list("id",
-                                                                                                        flat=True))
-        print(p.id, ip_stock_ids)
+        for p in Proxy.objects.all():
+            acl_ids = acl_group_acl_reverse.get(p.acl_group_id, [])
+            ip_stock_ids = ",".join(
+                ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all().values_list("id",
+                                                                                                            flat=True))
+            print(p.id, ip_stock_ids)
+    except:
+        pass
 
 
 if __name__ == '__main__':
