@@ -31,13 +31,11 @@ def back_cmd(server, command):
             print("server {} connect failed".format(server))
             return
         ssh_shell = client.invoke_shell()
-        command = command + "\n" + "echo run done\n"
+        command = command + "\n" + "exit\n"
         ssh_shell.send(command)
         while True:
             if ssh_shell.recv_ready():
                 print(ssh_shell.recv(1024).decode())
-                if "run done" in ssh_shell.recv(1024).decode():
-                    break
             if ssh_shell.exit_status_ready():
                 break
         return ssh_shell

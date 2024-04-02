@@ -330,10 +330,14 @@ class ProxyStock(BaseModel):
         :return:
         """
         available_subnets = self.available_subnets.split(',')
+        if "" in available_subnets:
+            available_subnets.remove("")
         if subnet not in available_subnets and subnet in self.subnets:
             available_subnets.append(subnet)
-            available_subnets = sorted(list(set(available_subnets)))
+            available_subnets = list(set(available_subnets))
+            available_subnets.sort(key=lambda x: int(ipaddress.ip_network(x).network_address))
             self.available_subnets = ','.join(available_subnets)
+            self.ip_stock = sum([ipaddress.ip_network(x).num_addresses for x in available_subnets if x])
             self.save()
 
     def return_stock(self, ip_count=1):
@@ -471,7 +475,7 @@ class Proxy(BaseModel):
             self.status = True
         super().save(force_insert, force_update, using, update_fields)
 
-    def judge_expired(self):
+    def is_expired(self):
         """
         判断是否过期
         :return:
@@ -486,25 +490,25 @@ class Proxy(BaseModel):
 def _mymodel_delete(sender, instance, **kwargs):
     from django.core.cache import cache
     delete_cache_key = 'delete_proxy_task:{}_{}'.format(instance.server_ip, instance.username)
-    cache.set(delete_cache_key, 1, timeout=60 * 60 * 5)
-    order_id = instance.order_id
-    stock = ProxyStock.objects.filter(id=instance.ip_stock_id).first()
-    redis_key = 'stock_opt_{}'.format(instance.ip_stock_id)
-    # 归还子网,归还库存
-    if stock:
-        if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
-            with cache.lock(redis_key):
-                logging.info('归还子网{},归还库存{}'.format(instance.subnet, instance.ip_stock_id))
-                stock.return_subnet(instance.subnet)
-                stock.return_stock()
-                # 订单表中获取本地变体id
-                from apps.orders.models import Orders
-                from apps.products.models import Variant
-                # 更新库存
-                order = Orders.objects.filter(id=order_id).first()
-                variant = Variant.objects.filter(id=order.local_variant_id).first()
-                if variant:
-                    variant.save()
+    if not cache.get(delete_cache_key):
+        cache.set(delete_cache_key, 1, timeout=60 * 60 * 3)
+        # 通知删除代理
+        from apps.proxy_server.tasks import delete_proxy_task
+        delete_proxy_task.delay(instance.server_ip, instance.username)
+    redis_key = 'stock_return_task:{}_{}'.format(instance.ip_stock_ids, instance.subnet)
+    if not cache.get(redis_key):
+        redis_key = 'stock_return_task:{}_{}'.format(instance.ip_stock_ids, instance.subnet)
+        cache.set(redis_key, 1, timeout=60 * 60 * 5)
+        # 通知回收库存
+        from apps.proxy_server.tasks import stock_return_task
+        stock_return_task.delay(instance.ip_stock_ids, instance.subnet)
+    # # 归还子网,归还库存
+    # if stock:
+    #     if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
+    #         with cache.lock(redis_key):
+    #             logging.info('归还子网{},归还库存{}'.format(instance.subnet, instance.ip_stock_id))
+    #             stock.return_subnet(instance.subnet)
+    #             stock.return_stock()
 
 
 class AclTasks(BaseModel):

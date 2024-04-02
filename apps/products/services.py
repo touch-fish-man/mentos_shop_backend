@@ -1,7 +1,6 @@
 import logging
 import time
 from ipaddress import ip_network
-from pprint import pprint
 from collections import OrderedDict
 
 from django.core.cache import cache

@@ -5,6 +5,8 @@ import base64
 import logging
 import re
 import threading
+import time
+
 from apps.utils.shopify_handler import ShopifyClient
 from django.conf import settings
 from apps.rewards.models import LevelCode, CouponCode, PointRecord
@@ -198,7 +200,7 @@ def create_proxy_by_order_obj(order_obj):
             order_id = order_obj.order_id
             order_pk = order_obj.id
             product_name = order_obj.product_name
-            proxy_username = order_user + order_id[:6]  # 生成代理用户名
+            proxy_username = str(str(int(time.time())[2:])+order_user + order_id)[:15]
             acl_ids = order_obj.acl_selected.split(",")
             white_acl_list = get_white_acl(acl_ids)
             acl_value = "\n".join(white_acl_list.get("acl_value"))

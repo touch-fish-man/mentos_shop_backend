@@ -5,6 +5,7 @@
 yum -y update
 yum install net-tools -y
 yum install unzip -y
+systemctl restart firewalld
 if [ ! -f /usr/bin/docker ]; then
   yum remove docker docker-common docker-selinux docker-engine
   yum install -y yum-utils device-mapper-persistent-data lvm2
@@ -23,9 +24,9 @@ if [ ! -f /etc/kaxy ]; then
   sudo bash /etc/kaxy/deploy.sh
   sudo systemctl status proxy
 fi
+# 放行端口
 firewall-cmd --permanent --add-port=10050/tcp
 firewall-cmd --permanent --add-port=65533/tcp
-firewall-cmd --permanent --add-port=52262/tcp
 firewall-cmd --permanent --add-port=11089/tcp
 firewall-cmd --permanent --add-port=52262/tcp
  #设置每周清理log

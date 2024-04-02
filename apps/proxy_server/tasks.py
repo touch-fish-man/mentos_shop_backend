@@ -14,7 +14,6 @@ from aiohttp_proxy import ProxyConnector
 from celery import shared_task
 from django.core import management
 from django.utils import timezone
-from django.views.decorators.cache import cache_page
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import os
 
@@ -95,7 +94,7 @@ def reset_proxy_fn(order_id, username):
                 continue
             kaxy_client = KaxyClient(server_ip)
             kaxy_client.del_user(username)
-        filter_dict = {"id": order_id,"pay_status":1}
+        filter_dict = {"id": order_id, "pay_status": 1}
         re_create_ret, ret_proxy_list, msg = create_proxy(filter_dict)
         if re_create_ret:
             new_proxy = Proxy.objects.filter(username=username).all()
@@ -120,28 +119,7 @@ def reset_proxy_fn(order_id, username):
             return ret_json
 
 
-@shared_task(name='delete_proxy_by_id')
-def delete_proxy_by_id(id):
-    pass
-
-
 lock = threading.Lock()
-
-
-@cache_page(60 * 60 * 2)
-def is_port_open(proxy_port):
-    """
-    获取端口状态
-    """
-    ip, port = proxy_port.split(':')
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.settimeout(1)  # 设置超时，例如1秒
-    try:
-        s.connect((ip, port))
-        s.close()
-        return True
-    except socket.error:
-        return False
 
 
 def create_proxy_task(order_id, username, server_ip):
@@ -366,6 +344,8 @@ def clear_access_log():
 
 @shared_task(name='delete_user_from_server')
 def delete_user_from_server(server_ip=None, username=None):
+    # redis队列
+    cache.scan_iter("del_user_list")
     if server_ip and username:
         if Server.objects.filter(ip=server_ip, server_status=1).exists():  # 服务器在线
             try:
@@ -420,10 +400,34 @@ def remove_blacklist(server_groups, domains):
         domains_s = domains.split(',')
         kaxy_client.del_domain_blacklist(domains_s)
     return {"status": 1}
-@shared_task(name='create_product_oters')
-def create_product_oters():
+
+
+@shared_task(name='stock_return_task')
+def stock_return_task(ip_stock_ids, subnet):
     """
-    创建产品订单
+    代理库存归还
     """
-    from apps.products.models import Product
-    from apps.orders.models import Orders
+    ids = ip_stock_ids.split(',')
+    from apps.proxy_server.models import ProxyStock
+    proxy_stocks = ProxyStock.objects.filter(id__in=ids).all()
+    has_proxy = Proxy.objects.filter(subnet=subnet).all()
+    for proxy_stock in proxy_stocks:
+        release_stock=set(proxy_stock.id)
+        for proxy in has_proxy:
+            hold_stock = set(proxy.ip_stock_ids.split(','))
+            if hold_stock & release_stock:
+                logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id}")
+                continue
+        proxy_stock.return_subnet(subnet)
+    return {"status": 1}
+
+
+@shared_task(name='delete_proxy_task')
+def delete_proxy_task(server_ip, username):
+    """
+    删除代理
+    """
+    kaxy_client = KaxyClient(server_ip)
+    kaxy_client.del_user(username)
+    kaxy_client.del_acl(username)
+    return {"status": 1, "data": {"server_ip": server_ip, "username": username}}
