@@ -341,6 +341,7 @@ def fix_ip_stock():
 
 
 def find_proxy_stock_ids():
+
     try:
        acl_group_acl_reverse = {}
         acls = list(Acls.objects.all().values_list("id", flat=True))
