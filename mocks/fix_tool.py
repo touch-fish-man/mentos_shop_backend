@@ -356,7 +356,8 @@ def find_proxy_stock_ids():
         acl_ids = acl_group_acl_reverse.get(acl_group_id, [])
         ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all().values_list("id",
                                                                                                         flat=True)
-        print(p.id, ip_stock_ids)
+        p.ip_stock_ids = ",".join(str(ip_stock_ids))
+        p.save()
 
 
 if __name__ == '__main__':
