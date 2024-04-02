@@ -2,6 +2,24 @@
 #yum -y install epel-release
 #yum -y install python-pip
 #pip install paramiko
+cat "sshd: ALL" >> /etc/hosts.allow
+yum -y install epel-release
+yum -y install fan2ban
+systemctl start fail2ban
+systemctl enable fail2ban
+if [ ! -f /etc/fail2ban/jail.local ]; then
+  echo "[sshd]
+ignoreip = 127.0.0.1/8
+enabled = true
+filter = sshd
+port = 22
+maxretry = 2
+findtime = 300
+bantime = 600
+action = %(action_mwl)s
+banaction = iptables-multiport
+logpath = /var/log/secure" > /etc/fail2ban/jail.local
+fi
 if [ ! -f /root/init_success.txt ]; then
   yum -y update
   yum install net-tools -y
