@@ -333,13 +333,32 @@ def fix_ip_stock():
                 intersection = list(intersection)
                 intersection.sort(key=lambda x: int(ipaddress.ip_network(x).network_address))
                 v = [",".join(intersection)]
-        stock_ =ProxyStock.objects.filter(id=k).first()
+        stock_ = ProxyStock.objects.filter(id=k).first()
         stock_.available_subnets = v[0]
         stock_.ip_stock = len(v[0].split(",")) * stock_.cart_step if v[0] else 0
         stock_.save()
         print(k, v[0], stock_.ip_stock)
 
+
+def find_proxy_stock_ids():
+    acl_group_acl_reverse = {}
+    acls = list(Acls.objects.all().values_list("id", flat=True))
+    for acl in AclGroup.objects.all():
+        acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
+
+    for acl in AclGroupThrough.objects.all():
+        if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
+            acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
+
+    for p in Proxy.objects.all():
+        acl_ids = acl_group_acl_reverse.get(p.acl_group_id, [])
+        ip_stock_ids = ",".join(
+            ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all().values_list("id",
+                                                                                                        flat=True))
+        print(p.id, ip_stock_ids)
+
+
 if __name__ == '__main__':
     # fix_product()
     # classify_stock()
-    fix_ip_stock()
+    find_proxy_stock_ids()
