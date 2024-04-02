@@ -341,9 +341,8 @@ def fix_ip_stock():
 
 
 def find_proxy_stock_ids():
-
     try:
-       acl_group_acl_reverse = {}
+        acl_group_acl_reverse = {}
         acls = list(Acls.objects.all().values_list("id", flat=True))
         for acl in AclGroup.objects.all():
             acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
