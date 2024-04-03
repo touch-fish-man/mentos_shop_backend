@@ -9,12 +9,12 @@ if [ ! -f /etc/fail2ban/jail.local ]; then
 ignoreip = 127.0.0.1/8
 enabled = true
 filter = sshd
-port = 22
+port = 52262
 maxretry = 2
 findtime = 300
 bantime = 600
 action = %(action_mwl)s
-banaction = iptables-multiport
+banaction = firewallcmd-ipset
 logpath = /var/log/secure" > /etc/fail2ban/jail.local
 fi
 if [ ! -f /root/init_success.txt ]; then
