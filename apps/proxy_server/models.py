@@ -422,7 +422,8 @@ def update_product_stock_cache(sender, instance, **kwargs):
     :param kwargs:
     :return:
     """
-    cache.set('product_stock_{}'.format(instance.id), instance.stock)
+    redis_client = cache.client.get_client()
+    redis_client.hset('product_stocks', instance.id, instance.stock)
 
 
 class Proxy(BaseModel):
