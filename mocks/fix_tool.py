@@ -341,26 +341,26 @@ def fix_ip_stock():
 
 
 def find_proxy_stock_ids():
-    try:
-        acl_group_acl_reverse = {}
-        acls = list(Acls.objects.all().values_list("id", flat=True))
-        for acl in AclGroup.objects.all():
-            acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
+    acl_group_acl_reverse = {}
+    acls = list(Acls.objects.all().values_list("id", flat=True))
+    for acl in AclGroup.objects.all():
+        acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
 
-        for acl in AclGroupThrough.objects.all():
-            if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
-                acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
+    for acl in AclGroupThrough.objects.all():
+        if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
+            acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
 
-        for p in Proxy.objects.all():
-            ip_sockid=p.ip_stock_id
-            acl_group_id=ProxyStock.objects.filter(id=ip_sockid).first().acl_group.id
-            acl_ids = acl_group_acl_reverse.get(str(acl_group_id), [])
-            ip_stock_ids = ",".join(
-                ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all().values_list("id",
-                                                                                                            flat=True))
-            print(p.id, ip_stock_ids)
-    except Exception as e:
-        print(e)
+    for p in Proxy.objects.all():
+        try:
+            ip_stock_id= p.ip_stock_id
+            acl_group_id = ProxyStock.objects.filter(id=ip_stock_id).first().acl_group_id
+            acl_ids = acl_group_acl_reverse.get(acl_group_id, [])
+            ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
+            p.ip_stock_ids = ",".join([str(x.id) for x in ip_stock_ids])
+            print(p.id, p.ip_stock_ids)
+            p.save()
+        except Exception as e:
+            print(e)
 
 
 if __name__ == '__main__':
