@@ -364,6 +364,4 @@ def find_proxy_stock_ids():
 
 
 if __name__ == '__main__':
-    # fix_product()
-    # classify_stock()
-    find_proxy_stock_ids()
+    add_product_other()
