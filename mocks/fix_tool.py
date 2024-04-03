@@ -348,8 +348,6 @@ def find_proxy_stock_ids():
     for acl in AclGroupThrough.objects.all():
         if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
             acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
-    print(acl_group_acl_reverse)
-
     for p in Proxy.objects.all():
         try:
             ip_stock_id= p.ip_stock_id
@@ -376,4 +374,4 @@ def fix_ip_stock_item():
 
 
 if __name__ == '__main__':
-    fix_ip_stock_item()
+    find_proxy_stock_ids()
