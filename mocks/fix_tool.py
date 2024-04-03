@@ -357,8 +357,8 @@ def find_proxy_stock_ids():
                 ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all().values_list("id",
                                                                                                             flat=True))
             print(p.id, ip_stock_ids)
-    except:
-        pass
+    except Exception as e:
+        print(e)
 
 
 if __name__ == '__main__':
