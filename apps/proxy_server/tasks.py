@@ -412,7 +412,7 @@ def stock_return_task(ip_stock_ids, subnet):
     proxy_stocks = ProxyStock.objects.filter(id__in=ids).all()
     has_proxy = Proxy.objects.filter(subnet=subnet).all()
     for proxy_stock in proxy_stocks:
-        release_stock=set(proxy_stock.id)
+        release_stock = set(proxy_stock.id)
         for proxy in has_proxy:
             hold_stock = set(proxy.ip_stock_ids.split(','))
             if hold_stock & release_stock:
@@ -427,7 +427,19 @@ def delete_proxy_task(server_ip, username):
     """
     删除代理
     """
+    delete_proxy = False
+    delete_acl = False
     kaxy_client = KaxyClient(server_ip)
-    kaxy_client.del_user(username)
-    kaxy_client.del_acl(username)
-    return {"status": 1, "data": {"server_ip": server_ip, "username": username}}
+    try:
+        kaxy_client.del_user(username)
+        delete_proxy = True
+    except Exception as e:
+        pass
+
+    try:
+        kaxy_client.del_acl(username)
+        delete_acl = True
+    except Exception as e:
+        pass
+    return {"status": 1, "data": {"server_ip": server_ip, "username": username}, "delete_proxy": delete_proxy,
+            "delete_acl": delete_acl}
