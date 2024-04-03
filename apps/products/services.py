@@ -114,40 +114,39 @@ def get_cidr(server_group):
 
 def add_product_other():
     acls = Acls.objects.all()
-    products = Product.objects.all()
-    for product in products:
-        Variants = Variant.objects.filter(product=product).all()
-        # 创建variant
-        for idx, v in enumerate(Variants):
-            cart_step = v.cart_step
-            server_group = v.server_group
-            cidrs = get_cidr(server_group)
-            for acl_i in acls:
-                ip_stock_objs = []
-                for cidr_i in cidrs:
-                    v.cidrs.add(cidr_i)
-                    cart_stock = cidr_i.ip_count // cart_step
-                    stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl=acl_i, cart_step=cart_step)
-                    if is_create:
-                        stock_obj.ip_stock = cidr_i.ip_count
-                        stock_obj.cart_stock = cart_stock
-                        subnets = stock_obj.gen_subnets()
-                        stock_obj.subnets = ",".join(subnets)
-                        stock_obj.available_subnets = stock_obj.subnets
-                        stock_obj.save()
-                    stock_obj.soft_delete = False
+    Variants = Variant.objects.all()
+    # 创建variant
+    for idx, v in enumerate(Variants):
+        product =v.product
+        cart_step = v.cart_step
+        server_group = v.server_group
+        cidrs = get_cidr(server_group)
+        for acl_i in acls:
+            ip_stock_objs = []
+            for cidr_i in cidrs:
+                v.cidrs.add(cidr_i)
+                cart_stock = cidr_i.ip_count // cart_step
+                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl=acl_i, cart_step=cart_step)
+                if is_create:
+                    stock_obj.ip_stock = cidr_i.ip_count
+                    stock_obj.cart_stock = cart_stock
+                    subnets = stock_obj.gen_subnets()
+                    stock_obj.subnets = ",".join(subnets)
+                    stock_obj.available_subnets = stock_obj.subnets
                     stock_obj.save()
-                    ip_stock_objs.append(stock_obj)
-                product_stock, is_create= ProductStock.objects.get_or_create(product=product, acl_id=acl_i.id,
-                                                            option1=v.variant_option1,
-                                                            option2=v.variant_option2,
-                                                            option3=v.variant_option3,
-                                                            cart_step=cart_step, old_variant_id=v.id,
-                                                            server_group=server_group)
-                stock = 0
-                for ip_stock_obj in ip_stock_objs:
-                    product_stock.ip_stocks.add(ip_stock_obj)
-                    stock += ip_stock_obj.ip_stock
-                product_stock.stock = stock
-                product_stock.save()
-        print("更新商品", product.id)
+                stock_obj.soft_delete = False
+                stock_obj.save()
+                ip_stock_objs.append(stock_obj)
+            product_stock, is_create= ProductStock.objects.get_or_create(product=product, acl_id=acl_i.id,
+                                                        option1=v.variant_option1,
+                                                        option2=v.variant_option2,
+                                                        option3=v.variant_option3,
+                                                        cart_step=cart_step, old_variant_id=v.id,
+                                                        server_group=server_group)
+            stock = 0
+            for ip_stock_obj in ip_stock_objs:
+                product_stock.ip_stocks.add(ip_stock_obj)
+                stock += ip_stock_obj.ip_stock
+            product_stock.stock = stock
+            product_stock.save()
+        print("更新商品", v.id)
