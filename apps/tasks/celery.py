@@ -74,10 +74,10 @@ app.conf.beat_schedule = {
         'task': 'delete_old_order',
         'schedule': crontab(hour=4, minute=50), # 每天凌晨1点执行
     },
-    '库存回收': {
-        'task': 'update_product_stock',
-        'schedule': 6000.0, # 每小时执行一次
-    },
+    # '库存回收': {
+    #     'task': 'update_product_stock',
+    #     'schedule': 6000.0, # 每小时执行一次
+    # },
     '清理过期验证码': {
         'task': 'clean_captcha',
         'schedule': crontab(hour=3, minute=40), # 每天凌晨3点执行

@@ -264,15 +264,15 @@ class ServerUpdateSerializer(CommonSerializer):
             cidr_obj, if_create = Cidr.objects.get_or_create(**cidr)
             instance.cidrs.add(cidr_obj.id)
         instance = super().update(instance, validated_data)
-        from apps.products.tasks import update_product_stock
-        result = update_product_stock.delay()
-        if result.ready():
-            if result.failed():
-                result = result.result
-                error_msg = result.result.get("exc_message", [])[-1]
-                logging.error("Task failed with exception:{}".format(result.result))
-                logging.error("Traceback:{}".format(result.traceback))
-                raise CustomValidationError("更新商品库存失败,请修改后重试:{}".format(error_msg))
+        # from apps.products.tasks import update_product_stock
+        # result = update_product_stock.delay()
+        # if result.ready():
+        #     if result.failed():
+        #         result = result.result
+        #         error_msg = result.result.get("exc_message", [])[-1]
+        #         logging.error("Task failed with exception:{}".format(result.result))
+        #         logging.error("Traceback:{}".format(result.traceback))
+        #         raise CustomValidationError("更新商品库存失败,请修改后重试:{}".format(error_msg))
         return instance
 
 
