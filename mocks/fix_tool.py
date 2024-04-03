@@ -339,7 +339,6 @@ def fix_ip_stock():
         stock_.save()
         print(k, v[0], stock_.ip_stock)
 
-
 def find_proxy_stock_ids():
     acl_group_acl_reverse = {}
     acls = list(Acls.objects.all().values_list("id", flat=True))
@@ -361,7 +360,20 @@ def find_proxy_stock_ids():
             p.save()
         except Exception as e:
             print(e)
+def fix_ip_stock_item():
+    acls = list(Acls.objects.all().values_list("id", flat=True))
+    for ip_s in ProxyStock.objects.filter(acl_group__isnull=False).all():
+        # 扩展库存
+        for acl_i in acls:
+            obj,is_create = ProxyStock.objects.get_or_create(cidr_id=ip_s.cidr_id, acl_id=acl_i, cart_step=ip_s.cart_step)
+            if is_create:
+                obj.subnets = ip_s.subnets
+                obj.available_subnets = ip_s.subnets
+                obj.ip_stock = ip_s.ip_stock
+                obj.save()
+                print(obj.id)
+
 
 
 if __name__ == '__main__':
-    add_product_other()
+    fix_ip_stock_item()

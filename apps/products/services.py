@@ -126,8 +126,7 @@ def add_product_other():
             for cidr_i in cidrs:
                 v.cidrs.add(cidr_i)
                 cart_stock = cidr_i.ip_count // cart_step
-                if cidr_i==699:
-                    print(v.id)
+、、
                 stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl=acl_i, cart_step=cart_step)
                 if is_create:
                     stock_obj.ip_stock = cidr_i.ip_count
