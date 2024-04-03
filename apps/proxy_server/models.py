@@ -69,37 +69,47 @@ class Acls(BaseModel):
 
     @classmethod
     def update_acl_cache(cls, acls=None):
+        redis_client = cache.client.get_client()
         for acl in acls:
             acl_dict = model_to_dict(acl)
-            cache.set('acl_cache:{}'.format(acl.id), json.dumps(acl_dict), timeout=60 * 60 * 24)
+            redis_client.hset('acl_cache', acl.id, json.dumps(acl_dict, cls=DjangoJSONEncoder))
+            redis_client.expire('acl_cache', 60 * 60 * 8)
 
     @classmethod
     def get_acl_cache(cls, acl_id):
-        acl_dict = cache.get('acl_cache:{}'.format(acl_id))
+        redis_client = cache.client.get_client()
+        acl_dict = redis_client.hget('acl_cache', acl_id)
         if acl_dict:
             return json.loads(acl_dict)
         else:
             acl = cls.objects.filter(id=acl_id).first()
             if acl:
                 acl_dict = model_to_dict(acl)
-                cache.set('acl_cache:{}'.format(acl_id), json.dumps(acl_dict), timeout=60 * 60 * 24)
+                redis_client.hset('acl_cache', acl_id, json.dumps(acl_dict, cls=DjangoJSONEncoder))
+                redis_client.expire('acl_cache', 60 * 60 * 8)
                 return acl_dict
 
     @classmethod
     def get_acls_cache(cls):
-        acls_keys = cache.keys('acl_cache:*')
+        redis_client = cache.client.get_client()
+        acls_info = redis_client.hgetall('acl_cache')
         acls = {}
-        for key in acls_keys:
-            acl_dict = cache.get(key)
-            acl_id = key.split(':')[-1]
-            acls[acl_id] = json.loads(acl_dict)
+        for acl_id, acl_info in acls_info.items():
+            acls[acl_id] = json.loads(acl_info)
         return acls
 
 
 @receiver(post_save, sender=Acls)
 def _mymodel_save(sender, instance, **kwargs):
     acl_dict = model_to_dict(instance)
-    cache.set('acl_cache:{}'.format(instance.id), json.dumps(acl_dict, cls=DjangoJSONEncoder), timeout=60 * 60 * 24)
+    redis_client = cache.client.get_client()
+    redis_client.hset('acl_cache', instance.id, json.dumps(acl_dict, cls=DjangoJSONEncoder))
+
+
+@receiver(post_delete, sender=Acls)
+def _mymodel_delete(sender, instance, **kwargs):
+    redis_client = cache.client.get_client()
+    redis_client.hdel('acl_cache', instance.id)
 
 
 class AclGroupThrough(BaseModel):
