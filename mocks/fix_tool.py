@@ -352,7 +352,9 @@ def find_proxy_stock_ids():
                 acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
 
         for p in Proxy.objects.all():
-            acl_ids = acl_group_acl_reverse.get(p.acl_group_id, [])
+            ip_sockid=p.ip_stock_id
+            acl_group_id=ProxyStock.objects.filter(id=ip_sockid).first().acl_group.id
+            acl_ids = acl_group_acl_reverse.get(acl_group_id, [])
             ip_stock_ids = ",".join(
                 ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all().values_list("id",
                                                                                                             flat=True))
