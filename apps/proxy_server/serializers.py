@@ -167,6 +167,10 @@ class CidrCreateSerializer(CommonSerializer):
 
 class ServerCreateSerializer(CommonSerializer):
     cidrs = CidrCreateSerializer(many=True)
+    run_init = serializers.CharField(required=False)
+    password = serializers.CharField(required=False)
+    port = serializers.CharField(required=False)
+    update_cidr = serializers.CharField(required=False)
 
     class Meta:
         model = Server
@@ -176,6 +180,15 @@ class ServerCreateSerializer(CommonSerializer):
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
 
     def validate(self, attrs):
+        if "run_init" in attrs:
+            run_init=attrs.pop("run_init")
+        if "password" in attrs:
+            password=attrs.pop("password")
+        if "port" in attrs:
+            port=attrs.pop("port")
+        if "update_cidr" in attrs:
+            update_cidr=attrs.pop("update_cidr")
+
         try:
             validate_ipv46_address(attrs['ip'])
         except Exception:
@@ -219,6 +232,10 @@ class ServerCreateSerializer(CommonSerializer):
 
 class ServerUpdateSerializer(CommonSerializer):
     cidrs = CidrCreateSerializer(many=True)
+    run_init = serializers.CharField(required=False)
+    password = serializers.CharField(required=False)
+    port = serializers.CharField(required=False)
+    update_cidr = serializers.CharField(required=False)
 
     class Meta:
         model = Server
@@ -232,25 +249,37 @@ class ServerUpdateSerializer(CommonSerializer):
         'updated_at': {'read_only': True}}
 
     def validate(self, attrs):
-        # 检查cidr是否在代理服务器的cidr范围内
-        cidrs = attrs['cidrs']
-        try:
-            c_client = KaxyClient(attrs['ip'], clean_fail_cnt=True)
-            if not c_client.status:
-                raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
-            server_cidrs = c_client.get_cidr()
-        except Exception as e:
-            raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
-        check_cidr_cnt = 0
-        for cidr in cidrs:
-            for s_cidr in server_cidrs:
-                update_i = ipaddress.ip_network(cidr['cidr'])
-                server_i = ipaddress.ip_network(s_cidr)
-                if update_i.subnet_of(server_i):
-                    check_cidr_cnt += 1
-                    break
-        if check_cidr_cnt != len(cidrs):
-            raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
+        run_init, update_cidr = False , False
+        if "run_init" in attrs:
+            run_init=attrs.pop("run_init")=="1"
+        if "password" in attrs:
+            password=attrs.pop("password")=="1"
+        if "port" in attrs:
+            port=attrs.pop("port")
+        if "update_cidr" in attrs:
+            update_cidr=attrs.pop("update_cidr")
+        if run_init or update_cidr:
+            from apps.proxy_server.tasks import init_server
+            init_server.delay(attrs['ip'], port, "root", password, attrs['cidrs'], run_init, update_cidr)
+        # # 检查cidr是否在代理服务器的cidr范围内
+        # cidrs = attrs['cidrs']
+        # try:
+        #     c_client = KaxyClient(attrs['ip'], clean_fail_cnt=True)
+        #     if not c_client.status:
+        #         raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
+        #     server_cidrs = c_client.get_cidr()
+        # except Exception as e:
+        #     raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
+        # check_cidr_cnt = 0
+        # for cidr in cidrs:
+        #     for s_cidr in server_cidrs:
+        #         update_i = ipaddress.ip_network(cidr['cidr'])
+        #         server_i = ipaddress.ip_network(s_cidr)
+        #         if update_i.subnet_of(server_i):
+        #             check_cidr_cnt += 1
+        #             break
+        # if check_cidr_cnt != len(cidrs):
+        #     raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
         return attrs
 
     def update(self, instance, validated_data):
