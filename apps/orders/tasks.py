@@ -207,7 +207,7 @@ def update_shopify_product(product_id=None,action=None):
     api_key = settings.SHOPIFY_API_KEY
     api_scert = settings.SHOPIFY_API_SECRET
     private_app_password = settings.SHOPIFY_APP_KEY
-    cache_client = cache.get_client()
+    cache_client = cache.client.get_client()
     shopify_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
     cache_key = 'shopify_product'
     if action == 'delete':
