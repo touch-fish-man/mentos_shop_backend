@@ -221,7 +221,7 @@ class Cidr(BaseModel):
         self.save()
 
 
-@receiver(m2m_changed, sender=Cidr)
+@receiver(m2m_changed, sender=Cidr.exclude_acl.through)
 def _mymodel_m2m_changed(sender, instance, action, reverse, model, pk_set, **kwargs):
     logging.info('m2m_changed')
     logging.info(action)
