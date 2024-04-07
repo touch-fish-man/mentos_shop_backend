@@ -48,7 +48,7 @@ class ProductViewSet(ComModelViewSet):
     def get_product_from_shopify(self, request):
         cache_client = cache.client.get_client()
         cache_key = 'shopify_product'
-        cache_data = cache_client.hggetall(cache_key)
+        cache_data = cache_client.hgetall(cache_key)
         if cache_data:
             data=[]
             for key in cache_data:
