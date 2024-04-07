@@ -226,7 +226,7 @@ def update_shopify_product(product_id=None,action=None):
                 print(e)
                 time.sleep(1)
         for product in product_dict:
-            cache_client.hset('shopify_product', product['id'], json.dumps(product))
+            cache_client.hset('shopify_product', product['shopify_product_id'], json.dumps(product))
             for variant in product['variants']:
                 variant_id = variant['shopify_variant_id']
                 price = variant['variant_price']
