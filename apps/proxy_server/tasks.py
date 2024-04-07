@@ -412,7 +412,7 @@ def stock_return_task(ip_stock_ids, subnet):
     proxy_stocks = ProxyStock.objects.filter(id__in=ids).all()
     has_proxy = Proxy.objects.filter(subnet=subnet).all()
     for proxy_stock in proxy_stocks:
-        release_stock = set(proxy_stock.id)
+        release_stock =set()
         release_stock.add(str(proxy_stock.id))
         for proxy in has_proxy:
             hold_stock = set(proxy.ip_stock_ids.split(','))
