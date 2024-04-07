@@ -276,7 +276,7 @@ class CidrApi(ComModelViewSet):
     destroy: 删除CIDR
     """
     permission_classes = [IsSuperUser]
-    queryset = Cidr.objects.all()
+    queryset = Cidr.objects.order_by('-updated_at').all()
     serializer_class = CidrSerializer
     ordering_fields = ('id', 'cidr', 'created_at')
     search_fields = ('cidr',)  # 搜索字段

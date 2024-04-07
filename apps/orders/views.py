@@ -217,19 +217,13 @@ class OrdersApi(ComModelViewSet):
             return ErrorResponse(data={}, msg="订单id格式错误")
         for order_id in order_ids:
             order = Orders.objects.filter(id=order_id).first()
+            lock_id = 'create_proxy_by_id_{}'.format(id)
             if order:
-                # 删除代理
-                for t in threading.enumerate():
-                    if t.name == "onkey_reset_{}".format(order_id):
-                        return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
                 Proxy.objects.filter(order_id=order_id).all().delete()
-                filter_dict = {
-                    'id': order_id,
-                    'pay_status': 1,
-                }
-                # 重新创建代理
-                t1 = threading.Thread(target=create_proxy, args=(filter_dict,),
-                                      name="onkey_reset_{}".format(order_id)).start()
+                from apps.orders.tasks import delivery_order
+                if cache.get(lock_id):
+                    return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
+                delivery_order.delay(order_id=order_id)
 
             else:
                 return ErrorResponse(data={}, msg="订单不存在")
