@@ -13,4 +13,5 @@ def update_product_acl(acl_ids=None):
                     obj.available_subnets = ip_s.subnets
                     obj.ip_stock = ip_s.ip_stock
                     obj.save()
+                    print("创建", obj.id)
     return True
