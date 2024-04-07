@@ -82,6 +82,8 @@ def get_variant_info(product_id, option1, option2, option3, acl_selected):
         variant = variant.filter(variant_option3=option3)
     variant = variant.first()
     cidr_list = []
+    if isinstance(acl_selected, str):
+        acl_selected = [acl_selected]
     if variant:
         data['base_price'] = variant.variant_price
         acls = Acls.objects.filter(id__in=acl_selected).all().values_list("price", flat=True)
