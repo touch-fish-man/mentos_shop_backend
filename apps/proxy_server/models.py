@@ -13,7 +13,7 @@ from django.db.models import Sum
 from apps.core.models import BaseModel
 from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
-from django.db.models.signals import post_delete, post_save
+from django.db.models.signals import post_delete, post_save, m2m_changed
 from django.dispatch.dispatcher import receiver
 from django.core.cache import caches, cache
 from django.forms.models import model_to_dict
@@ -231,7 +231,7 @@ class Cidr(BaseModel):
         self.save()
 
 
-@receiver(post_save, sender=Cidr)
+@receiver(m2m_changed, sender=Cidr)
 def _mymodel_save(sender, instance, **kwargs):
     ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id).all()
     for ip_stock in ip_stocks:
