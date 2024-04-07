@@ -73,7 +73,6 @@ def get_available_cidrs(acl_ids, cidr_ids, cart_step):
 
 def get_variant_info(product_id, option1, option2, option3, acl_selected):
     data = {"price": 0, "stock": 0, "local_variant_id": 0, "shopify_variant_id": "0", "base_price": 0, "acl_price": 0}
-    acl_selected= acl_selected.split(",")
     variant = Variant.objects.filter(product_id=product_id)
     if option1:
         variant = variant.filter(variant_option1=option1)
