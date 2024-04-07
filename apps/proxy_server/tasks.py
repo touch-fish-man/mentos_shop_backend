@@ -18,7 +18,8 @@ from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import os
 
 from apps.orders.services import create_proxy
-from apps.proxy_server.models import Proxy, Acls, ProxyStock
+from apps.products.models import Product, Variant
+from apps.proxy_server.models import Proxy, Acls, ProxyStock, ProductStock, ServerGroupThrough, ServerCidrThrough
 from apps.proxy_server.models import Server
 from apps.utils.kaxy_handler import KaxyClient
 import certifi
@@ -455,18 +456,52 @@ def init_server(host, port, user, password, cidrs, init_run, update_ip):
     main(host, port, user, password, cidrs, init_run, update_ip)
 
 
+def get_cidr(server_group):
+    cidrs = []
+    if server_group:
+        server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
+                                                                                                    flat=True)
+        for x in ServerCidrThrough.objects.filter(server_id__in=server_ids).all():
+            cidrs.append(x.cidr)
+        return cidrs
+    else:
+        return cidrs
+
+
 @shared_task(name='update_product_acl')
 def update_product_acl(acl_ids=None):
     # 创建产品变体
     if acl_ids is None:
         acl_ids = list(Acls.objects.filter(soft_delete=False).values_list('id', flat=True))
-    for ip_s in ProxyStock.objects.filter(acl_group__isnull=False).all():
+    variants = Variant.objects.filter(soft_delete=False).all()
+    for variant in variants:
+        cart_step = variant.cart_step
+        cidrs = get_cidr(variant.server_group)
         for acl_id in acl_ids:
-            obj, is_create = ProxyStock.objects.get_or_create(cidr_id=ip_s.cidr_id, acl_id=acl_id,
-                                                              cart_step=ip_s.cart_step)
-            if is_create:
-                obj.subnets = ip_s.subnets
-                obj.available_subnets = ip_s.subnets
-                obj.ip_stock = ip_s.ip_stock
-                obj.save()
+            ip_stock_objs = []
+            for cidr_i in cidrs:
+                cart_stock = cidr_i.ip_count // cart_step
+                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id, cart_step=cart_step)
+                if is_create:
+                    stock_obj.ip_stock = cidr_i.ip_count
+                    stock_obj.cart_stock = cart_stock
+                    subnets = stock_obj.gen_subnets()
+                    stock_obj.subnets = ",".join(subnets)
+                    stock_obj.available_subnets = stock_obj.subnets
+                    stock_obj.save()
+                stock_obj.soft_delete = False
+                stock_obj.save()
+                ip_stock_objs.append(stock_obj)
+            product_stock = ProductStock.objects.create(product=variant.product, acl_id=acl_id,
+                                                        option1=variant.variant_option1,
+                                                        option2=variant.variant_option2,
+                                                        option3=variant.variant_option3,
+                                                        cart_step=cart_step, old_variant_id=variant.id,
+                                                        server_group=variant.server_group)
+            stock = 0
+            for ip_stock_obj in ip_stock_objs:
+                product_stock.ip_stocks.add(ip_stock_obj)
+                stock += ip_stock_obj.ip_stock
+            product_stock.stock = stock
+            product_stock.save()
     return True

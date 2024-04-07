@@ -6,7 +6,6 @@ from rest_framework import serializers
 from apps.core.serializers import CommonSerializer
 from apps.proxy_server.models import Acls, Server, Proxy, ServerGroup, AclGroup, Cidr, cidr_ip_count, fix_network_by_ip
 from apps.core.validators import CustomUniqueValidator, CustomValidationError
-from apps.proxy_server.services import update_product_acl
 from apps.utils.kaxy_handler import KaxyClient
 from django.core.validators import validate_ipv46_address
 import logging
