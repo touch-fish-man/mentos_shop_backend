@@ -473,7 +473,7 @@ def update_product_acl(acl_ids=None):
     # 创建产品变体
     if acl_ids is None:
         acl_ids = list(Acls.objects.filter(soft_delete=False).values_list('id', flat=True))
-    variants = Variant.objects.filter(soft_delete=False).all()
+    variants = Variant.objects.all()
     for variant in variants:
         cart_step = variant.cart_step
         cidrs = get_cidr(variant.server_group)
