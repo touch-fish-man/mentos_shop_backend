@@ -91,10 +91,12 @@ class AclsCreateSerializer(CommonSerializer):
     name = serializers.CharField(required=True,
                                  validators=[CustomUniqueValidator(Acls.objects.all(), message="acl名称已存在")])
     acl_value = serializers.CharField(required=True)
+    shopify_variant_id = serializers.CharField(required=True)
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
 
     class Meta:
         model = Acls
-        fields = ('name', 'description', 'acl_value')
+        fields = ('name', 'description', 'acl_value', 'shopify_variant_id', 'price')
 
     def create(self, validated_data):
         new_acl = super().create(validated_data)
