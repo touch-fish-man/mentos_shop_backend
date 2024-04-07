@@ -208,7 +208,6 @@ def _mymodel_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=CidrAclThrough)
 def _mymodel_save(sender, instance, **kwargs):
-    logging.info('cidr_acl_through')
     ProxyStock.objects.filter(cidr_id=instance.cidr_id, acl_id=instance.acl_id).update(exclude_label=True)
 
 
@@ -230,6 +229,17 @@ class Cidr(BaseModel):
         self.soft_delete = True
         ProxyStock.objects.filter(cidr_id=self.id).update(soft_delete=True)
         self.save()
+
+
+@receiver(post_save, sender=Cidr)
+def _mymodel_save(sender, instance, **kwargs):
+    ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id).all()
+    for ip_stock in ip_stocks:
+        if ip_stock.acl_id in [x.id for x in instance.exclude_acl.all()]:
+            ip_stock.exclude_label = True
+        else:
+            ip_stock.exclude_label = False
+        ip_stock.save()
 
 
 def fix_network_by_ip(cidr_str):
