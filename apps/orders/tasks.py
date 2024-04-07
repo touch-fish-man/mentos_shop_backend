@@ -210,6 +210,9 @@ def update_shopify_product(product_id=None,action=None):
     cache_client = cache.client.get_client()
     shopify_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
     cache_key = 'shopify_product'
+    if cache_client.hgetall(cache_key):
+        action = 'update'
+        product_id = None
     if action == 'delete':
         cache_client.hdel(cache_key, product_id)
     else:  # update or create
