@@ -223,15 +223,14 @@ class Cidr(BaseModel):
 
 @receiver(m2m_changed, sender=Cidr.exclude_acl.through)
 def _mymodel_m2m_changed(sender, instance, action, reverse, model, pk_set, **kwargs):
-    logging.info('m2m_changed')
-    logging.info(action)
-    logging.info(pk_set)
     if action == 'post_add':
         for acl_id in pk_set:
-            ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=True)
+            ip_stock=ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=True)
+            ip_stock.product_stocks.all().update_stock()        
     elif action == 'post_remove':
         for acl_id in pk_set:
-            ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=False)
+            ip_stock=ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=False)
+            ip_stock.product_stocks.all().update_stock()
 
 
 
