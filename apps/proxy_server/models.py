@@ -403,7 +403,7 @@ class ProductStock(BaseModel):
     option2 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项2')
     option3 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项3')
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
-    stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
+    stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量',default=0)
     server_group = models.ForeignKey('ServerGroup', on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name='服务器组')
     old_variant_id = models.IntegerField(blank=True, null=True, verbose_name='旧变体ID')
