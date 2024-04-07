@@ -9,8 +9,8 @@ def update_product_acl(acl_ids=None):
     for acl_id in acl_ids:
         variant = Variant.objects.all()
         for v in variant:
-            new_variant,is_create = Variant.objects.get_or_create(product_id=v.product_id, option1=v.option1, option2=v.option2,
-                                                        option3=v.option3, acl_id=acl_id)
+            new_variant,is_create = Variant.objects.get_or_create(product_id=v.product_id, variant_option1=v.variant_option1, variant_option2=v.variant_option2,
+                                                        variant_option3=v.variant_option3, acl_id=acl_id)
             if is_create:
                 for field in v._meta.fields:
                     if field.name != 'id' and field.name != 'acl_id':
