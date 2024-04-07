@@ -28,7 +28,7 @@ class ProductViewSet(ComModelViewSet):
     destroy:删除
     get_recommend_product:获取推荐商品
     """
-    queryset = Product.objects.filter(soft_delete=False).filter(valid=True).all().prefetch_related(
+    queryset = Product.objects.filter(soft_delete=False).all().prefetch_related(
         'product_collections', 'product_tags',Prefetch('variants', queryset=Variant.objects.all()))
     serializer_class = ProductSerializer
     create_serializer_class = ProductCreateSerializer
@@ -126,7 +126,7 @@ class ProductViewSet(ComModelViewSet):
 
     def list(self, request, *args, **kwargs):
         if not request.user.is_superuser:
-            self.queryset = self.queryset.filter(old_flag=False)
+            self.queryset = self.queryset.filter(old_flag=False).filter(valid=True)
         page = self.paginate_queryset(self.queryset)
         serializer = self.get_serializer(page, many=True)
         get_data = serializer.data

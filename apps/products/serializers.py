@@ -318,8 +318,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         product_collections_data = validated_data.pop('product_collections')
         product_tags_data = validated_data.pop('product_tags')
         options_data = validated_data.pop('variant_options')
-        validated_data["valid"] = True
-        validated_data["active"] = False
         product = Product.objects.create(**validated_data)  # 创建其他数据
         CreateProductOtherThread(product.id, product_collections_data, product_tags_data, variants_data,
                                  options_data).start()
