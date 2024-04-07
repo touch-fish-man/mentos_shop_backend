@@ -25,7 +25,7 @@ def back_cmd(server, command):
     try:
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(host, port, user, password, banner_timeout=600)
+        client.connect(host, port, user, password, banner_timeout=600, timeout=600)
         # 检查是否连接成功
         if not client.get_transport().is_active():
             print("server {} connect failed".format(server))

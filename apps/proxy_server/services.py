@@ -1,6 +1,5 @@
 from apps.proxy_server.models import Acls, ProxyStock
 
-
 def update_product_acl(acl_ids=None):
     # 创建产品变体
     if acl_ids is None:
