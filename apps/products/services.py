@@ -61,6 +61,8 @@ def get_available_cidrs(acl_ids, cidr_ids, cart_step):
             available_subnets = proxy_stock.available_subnets.split(',')
             acl_id = proxy_stock.acl_id
             for subnet in available_subnets:
+                if subnet=="":
+                    continue
                 if subnet not in subnet_proxy_stock_map:
                     subnet_proxy_stock_map[subnet] = [set(), set()]
                 subnet_proxy_stock_map[subnet][0].add(acl_id)
