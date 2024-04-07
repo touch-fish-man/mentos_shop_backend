@@ -208,6 +208,7 @@ def _mymodel_delete(sender, instance, **kwargs):
 
 @receiver(post_save, sender=CidrAclThrough)
 def _mymodel_save(sender, instance, **kwargs):
+    logging.info('cidr_acl_through')
     ProxyStock.objects.filter(cidr_id=instance.cidr_id, acl_id=instance.acl_id).update(exclude_label=True)
 
 
