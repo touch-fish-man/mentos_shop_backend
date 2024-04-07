@@ -225,14 +225,17 @@ class Cidr(BaseModel):
 def _mymodel_m2m_changed(sender, instance, action, reverse, model, pk_set, **kwargs):
     if action == 'post_add':
         for acl_id in pk_set:
-            ip_stock=ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=True)
-            ip_stock.product_stocks.all().update_stock()        
+            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
+            for stock in ip_stocks:
+                stock.exclude_label = True
+                stock.save()
+
     elif action == 'post_remove':
         for acl_id in pk_set:
-            ip_stock=ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=False)
-            ip_stock.product_stocks.all().update_stock()
-
-
+            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
+            for stock in ip_stocks:
+                stock.exclude_label = False
+                stock.save()
 
 
 def fix_network_by_ip(cidr_str):
