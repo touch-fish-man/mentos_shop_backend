@@ -374,4 +374,4 @@ def fix_ip_stock_item():
 
 
 if __name__ == '__main__':
-    fix_ip_stock()
+    fix_ip_stock_item()
