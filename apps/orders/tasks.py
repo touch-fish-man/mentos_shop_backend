@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import datetime
 import json
 import time
-
+import logging
 import pytz
 from celery.schedules import crontab
 from apps.orders.models import Orders
@@ -220,6 +220,7 @@ def update_shopify_product(product_id=None,action=None):
         for _ in range(3):
             try:
                 product_dict = shopify_client.get_products(format=True,product_id=product_id)
+                logging.info(product_dict)
                 break
             except Exception as e:
                 print(e)
