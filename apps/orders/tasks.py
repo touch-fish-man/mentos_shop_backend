@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import datetime
 import json
+import time
 
 import pytz
 from celery.schedules import crontab
@@ -198,7 +199,7 @@ def delivery_order(order_pk=None, order_id=None):
 
 
 @shared_task(name='update_shopify_product')
-def update_shopify_product():
+def update_shopify_product(product_id=None,action=None):
     """
     更新shopify产品
     """
@@ -206,17 +207,29 @@ def update_shopify_product():
     api_key = settings.SHOPIFY_API_KEY
     api_scert = settings.SHOPIFY_API_SECRET
     private_app_password = settings.SHOPIFY_APP_KEY
+    cache_client = cache.get_client()
     shopify_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
-    product_dict = shopify_client.get_products(format=True)
-    data = json.dumps(product_dict)
-    cache.set('shopify_product_info', data, 60 * 60 * 24)
+    cache_key = 'shopify_product'
+    if action == 'delete':
+        cache_client.hdel(cache_key, product_id)
+    else:  # update or create
+        product_dict=[]
+        for _ in range(3):
+            try:
+                product_dict = shopify_client.get_products(format=True,product_id=product_id)
+                break
+            except Exception as e:
+                print(e)
+                time.sleep(1)
+        for product in product_dict:
+            cache_client.hset('shopify_product', product['id'], json.dumps(product))
+            for variant in product['variants']:
+                variant_id = variant['shopify_variant_id']
+                price = variant['variant_price']
+                Variant.objects.filter(shopify_variant_id=variant_id).update(variant_price=price)
     collection_data = shopify_client.sync_product_collections()
+    time.sleep(1)
     tag_data = shopify_client.sync_product_tags()
-    for product in product_dict:
-        for variant in product['variants']:
-            variant_id = variant['shopify_variant_id']
-            price = variant['variant_price']
-            Variant.objects.filter(shopify_variant_id=variant_id).update(variant_price=price)
 
 
 @shared_task(name='delete_old_order')

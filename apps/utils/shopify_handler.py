@@ -91,9 +91,12 @@ class ShopifyClient:
             self.__get_session()
         yield self.session
 
-    def get_products(self, format=False,exclude={"is_acl":[True]}):
+    def get_products(self, format=False, exclude={"is_acl": [True]}, product_id=None):
         product_list = []
-        for product in shopify.Product.find():
+        products = shopify.Product.find(product_id)
+        if isinstance(products, shopify.Product):
+            products = [products]
+        for product in products:
             if format:
                 product_dict = self.format_product_info(product.to_dict())
             else:
@@ -101,11 +104,11 @@ class ShopifyClient:
             time.sleep(0.5)
             for m in product.metafields():
                 product_dict[m.key] = m.value
-            drop=False
+            drop = False
             if exclude:
-                for e_k,e_v in exclude.items():
-                    if product_dict.get(e_k,"") in e_v:
-                        drop=True
+                for e_k, e_v in exclude.items():
+                    if product_dict.get(e_k, "") in e_v:
+                        drop = True
                         break
             if drop:
                 continue
@@ -119,9 +122,12 @@ class ShopifyClient:
         variant_info["variant_name"] = 'Default' if variant['title'] == 'Default Title' else variant['title']
         variant_info["variant_price"] = variant['price']
         variant_info["variant_stock"] = variant['inventory_quantity']
-        variant_info["variant_option1"] = variant['option1'].replace("Default Title", "Default") if variant['option1'] else ""
-        variant_info["variant_option2"] = variant['option2'].replace("Default Title", "Default") if variant['option2'] else ""
-        variant_info["variant_option3"] = variant['option3'].replace("Default Title", "Default") if variant['option3'] else ""
+        variant_info["variant_option1"] = variant['option1'].replace("Default Title", "Default") if variant[
+            'option1'] else ""
+        variant_info["variant_option2"] = variant['option2'].replace("Default Title", "Default") if variant[
+            'option2'] else ""
+        variant_info["variant_option3"] = variant['option3'].replace("Default Title", "Default") if variant[
+            'option3'] else ""
         variant_info["variant_stock"] = 0
         variant_info["variant_desc"] = None
         variant_info["acl_group"] = {"id": None, "name": None}
@@ -254,7 +260,7 @@ class ShopifyClient:
         products = shopify.Product.find()
         product_list = []
         for product in products:
-            product_dict=product.to_dict()
+            product_dict = product.to_dict()
             product_list.append(product_dict)
         return product_list
 
@@ -366,7 +372,6 @@ class ShopifyClient:
         product.published_scope = product_info['published_scope']
         return product.save()
 
-
     def update_product(self, product_info):
         product = shopify.Product.find(product_info['id'])
         product.title = product_info['title']
@@ -389,8 +394,9 @@ class ShopifyClient:
             i.shipping_address = i.billing_address
             i.save()
         if order_info.get('note'):
-            order[0].note=order_info['note']
+            order[0].note = order_info['note']
             order[0].save()
+
     def create_variant(self, variant_info):
         variant = shopify.Variant()
         variant.product_id = variant_info['product_id']
@@ -422,7 +428,6 @@ class ShopifyClient:
                 option.option_values = option_info['values']
         pprint(product.to_dict())
         pprint(product.save())
-
 
 
 class SyncClient(ShopifyClient):
@@ -563,5 +568,5 @@ if __name__ == '__main__':
     SHOPIFY_API_SECRET = 'c22837d6d8e9332ee74e2106037bcb37'
     SHOPIFY_WEBHOOK_KEY = 'de1bdf66588813b408d1e9e335ba67522b3fe8e776f0e5f22fbf4ad1863d789e'
     client = ShopifyClient(SHOPIFY_SHOP_URL, SHOPIFY_API_KEY, SHOPIFY_API_SECRET, SHOPIFY_APP_KEY)
-    exclude={"is_acl":["",False]}
+    exclude = {"is_acl": ["", False]}
     pprint(client.get_products(format=True))

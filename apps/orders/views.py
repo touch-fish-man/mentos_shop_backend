@@ -295,10 +295,12 @@ class ShopifyProductWebhookApi(APIView):
         if not verify_webhook(request):
             return ErrorResponse(data={}, msg="签名验证失败")
         query = request.query_params.dict()
-        logging.info("shopify产品回调query:{}".format(json.dumps(query)))
-        logging.info("shopify产品回调信息:{}".format(json.dumps(request.data)))
+        req_action = query.get('action', "update")
+        # logging.info("shopify产品回调query:{}".format(json.dumps(query)))
+        # logging.info("shopify产品回调信息:{}".format(json.dumps(request.data)))
         from apps.orders.tasks import update_shopify_product
-        update_shopify_product.delay()
+        product_id = request.data.get('id', None)
+        update_shopify_product.delay(product_id, req_action)
 
         return SuccessResponse()
 
