@@ -10,7 +10,7 @@ from rest_framework import serializers
 from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue
 from apps.proxy_server.models import Acls, Cidr, ProxyStock
 from apps.proxy_server.serializers import ServersGroupSerializer, AclsGroupSerializer, AclGroup, ServerGroup
-from apps.proxy_server.models import ServerGroupThrough, ServerCidrThrough, ProductStock
+from apps.proxy_server.models import ServerGroupThrough, ServerCidrThrough, ProductStock,CidrAclThrough
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 from django.core.cache import caches
 
@@ -252,13 +252,15 @@ def create_product_other(product_id, product_collections_data, product_tags_data
         variant_data['product'] = product
         v = VariantCreateSerializer().create(variant_data)
         cart_step = variant_data.get('cart_step', 8)
-        # ExtendedVariantCreateSerializer().create(variants_data_ext)
         cidrs = get_cidr(variant_data.get('server_group'))
         for acl_i in acls:
             ip_stock_objs = []
             for cidr_i in cidrs:
+                exclude_label=False
                 v.cidrs.add(cidr_i)
                 cart_stock = cidr_i.ip_count // cart_step
+                if CidrAclThrough.objects.filter(cidr_id=cidr_i.id, acl_id=acl_i.id).exists():
+                    exclude_label=True
                 stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl=acl_i, cart_step=cart_step)
                 if is_create:
                     stock_obj.ip_stock = cidr_i.ip_count
@@ -268,6 +270,7 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                     stock_obj.available_subnets = stock_obj.subnets
                     stock_obj.save()
                 stock_obj.soft_delete = False
+                stock_obj.exclude_label = exclude_label
                 stock_obj.save()
                 ip_stock_objs.append(stock_obj)
             product_stock = ProductStock.objects.create(product=product, acl=acl_i,

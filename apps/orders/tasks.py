@@ -198,7 +198,7 @@ def delivery_order(order_pk=None, order_id=None):
         create_proxy(filter_dict)
 
 
-@shared_task(name='update_shopify_product')
+@shared_task(name='update_shopify_product',autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 5})
 def update_shopify_product(product_id=None,action=None):
     """
     更新shopify产品

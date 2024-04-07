@@ -180,6 +180,16 @@ class ServerCreateSerializer(CommonSerializer):
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
 
     def validate(self, attrs):
+        try:
+            validate_ipv46_address(attrs['ip'])
+        except Exception:
+            return CustomValidationError("ip地址格式错误")
+        cidrs = attrs['cidrs']
+        for cidr in cidrs:
+            try:
+                update_i = ipaddress.ip_network(cidr['cidr'])
+            except Exception:
+                raise CustomValidationError("cidr格式错误")
         if "run_init" in attrs:
             run_init=attrs.pop("run_init")
         if "password" in attrs:
@@ -188,33 +198,9 @@ class ServerCreateSerializer(CommonSerializer):
             port=attrs.pop("port")
         if "update_cidr" in attrs:
             update_cidr=attrs.pop("update_cidr")
+            from apps.proxy_server.tasks import init_server
+            init_server.delay(attrs['ip'], port, "root", password, attrs['cidrs'], run_init, update_cidr)
 
-        try:
-            validate_ipv46_address(attrs['ip'])
-        except Exception:
-            return CustomValidationError("ip地址格式错误")
-        try:
-            c_client = KaxyClient(attrs['ip'], clean_fail_cnt=True)
-            if not c_client.status:
-                raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
-            server_cidrs = c_client.get_cidr()
-        except Exception as e:
-            logging.exception(e)
-            raise CustomValidationError("代理服务器连接失败，请检查服务器是否正常")
-        cidrs = attrs['cidrs']
-        check_cidr_cnt = 0
-        for cidr in cidrs:
-            for s_cidr in server_cidrs:
-                try:
-                    update_i = ipaddress.ip_network(cidr['cidr'])
-                    server_i = ipaddress.ip_network(s_cidr)
-                except Exception:
-                    raise CustomValidationError("cidr格式错误")
-                if update_i.subnet_of(server_i):
-                    check_cidr_cnt += 1
-                    break
-        if check_cidr_cnt != len(cidrs):
-            raise CustomValidationError("配置的cidr不在代理服务器的cidr范围内，请重新配置")
         return attrs
 
     def create(self, validated_data):

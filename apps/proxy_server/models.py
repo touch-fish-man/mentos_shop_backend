@@ -288,6 +288,7 @@ class ProxyStock(BaseModel):
     subnets = models.TextField(blank=True, null=True, verbose_name='子网')  # 用于存储所有子网
     available_subnets = models.TextField(blank=True, null=True, verbose_name='可用子网')
     soft_delete = models.BooleanField(default=False, verbose_name='软删除')  # 避免外键关联删除
+    exclude_label = models.BooleanField(default=False, verbose_name='排除标签')  # 用于排除标签
 
     class Meta:
         db_table = 'ip_stock'
@@ -415,7 +416,8 @@ class ProductStock(BaseModel):
         verbose_name_plural = '产品库存'
 
     def update_stock(self):
-        total = self.ip_stocks.aggregate(total_stock=Sum('ip_stock'))['total_stock']
+        filtered_stocks = self.ip_stocks.filter(exclude_label=False)
+        total = filtered_stocks.aggregate(total_stock=Sum('ip_stock'))['total_stock']
         # 如果没有ip_stocks，aggregate方法可能返回None
         if total is None:
             total = 0
