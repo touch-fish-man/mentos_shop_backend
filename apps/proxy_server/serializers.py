@@ -98,11 +98,6 @@ class AclsCreateSerializer(CommonSerializer):
         model = Acls
         fields = ('name', 'description', 'acl_value', 'shopify_variant_id', 'price')
 
-    def create(self, validated_data):
-        new_acl = super().create(validated_data)
-        result = update_product_acl([new_acl.id])
-        return new_acl
-
 
 class AclsUpdateSerializer(CommonSerializer):
     name = serializers.CharField(required=True,

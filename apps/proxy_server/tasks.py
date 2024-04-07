@@ -402,7 +402,7 @@ def remove_blacklist(server_groups, domains):
     return {"status": 1}
 
 
-@shared_task(name='stock_return_task',autoretry_for=(Exception,), retry_kwargs={'max_retries': 7, 'countdown': 5})
+@shared_task(name='stock_return_task', autoretry_for=(Exception,), retry_kwargs={'max_retries': 7, 'countdown': 5})
 def stock_return_task(ip_stock_ids, subnet):
     """
     代理库存归还
@@ -412,7 +412,7 @@ def stock_return_task(ip_stock_ids, subnet):
     proxy_stocks = ProxyStock.objects.filter(id__in=ids).all()
     has_proxy = Proxy.objects.filter(subnet=subnet).all()
     for proxy_stock in proxy_stocks:
-        release_stock =set()
+        release_stock = set()
         release_stock.add(str(proxy_stock.id))
         for proxy in has_proxy:
             hold_stock = set(proxy.ip_stock_ids.split(','))
@@ -454,18 +454,19 @@ def init_server(host, port, user, password, cidrs, init_run, update_ip):
     from apps.utils.run_init import main
     main(host, port, user, password, cidrs, init_run, update_ip)
 
+
 @shared_task(name='update_product_acl')
 def update_product_acl(acl_ids=None):
     # 创建产品变体
     if acl_ids is None:
-        acl_ids= Acls.objects.filter(soft_delete=False).values_list('id', flat=True)
-    for acl_id in acl_ids:
-        for ip_s in ProxyStock.objects.filter(acl_group__isnull=False).all():
-                obj, is_create = ProxyStock.objects.get_or_create(cidr_id=ip_s.cidr_id, acl_id=acl_id,
-                                                                  cart_step=ip_s.cart_step)
-                if is_create:
-                    obj.subnets = ip_s.subnets
-                    obj.available_subnets = ip_s.subnets
-                    obj.ip_stock = ip_s.ip_stock
-                    obj.save()
+        acl_ids = list(Acls.objects.filter(soft_delete=False).values_list('id', flat=True))
+    for ip_s in ProxyStock.objects.filter(acl_group__isnull=False).all():
+        for acl_id in acl_ids:
+            obj, is_create = ProxyStock.objects.get_or_create(cidr_id=ip_s.cidr_id, acl_id=acl_id,
+                                                              cart_step=ip_s.cart_step)
+            if is_create:
+                obj.subnets = ip_s.subnets
+                obj.available_subnets = ip_s.subnets
+                obj.ip_stock = ip_s.ip_stock
+                obj.save()
     return True

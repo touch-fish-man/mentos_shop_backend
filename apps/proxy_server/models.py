@@ -103,8 +103,9 @@ class Acls(BaseModel):
 def _mymodel_save(sender, instance, **kwargs):
     acl_dict = model_to_dict(instance)
     redis_client = cache.client.get_client()
+    from apps.proxy_server.tasks import update_product_acl
+    update_product_acl.delay([instance.id])
     redis_client.hset('acl_cache', instance.id, json.dumps(acl_dict, cls=DjangoJSONEncoder))
-
 
 @receiver(post_delete, sender=Acls)
 def _mymodel_delete(sender, instance, **kwargs):
