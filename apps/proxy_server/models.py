@@ -201,16 +201,6 @@ class CidrAclThrough(BaseModel):
         verbose_name_plural = 'CIDR与ACL关系'
 
 
-@receiver(post_delete, sender=CidrAclThrough)
-def _mymodel_delete(sender, instance, **kwargs):
-    ProxyStock.objects.filter(cidr_id=instance.cidr_id, acl_id=instance.acl_id).update(exclude_label=False)
-
-
-@receiver(post_save, sender=CidrAclThrough)
-def _mymodel_save(sender, instance, **kwargs):
-    ProxyStock.objects.filter(cidr_id=instance.cidr_id, acl_id=instance.acl_id).update(exclude_label=True)
-
-
 class Cidr(BaseModel):
     cidr = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR')
     ip_count = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
@@ -233,13 +223,16 @@ class Cidr(BaseModel):
 
 @receiver(m2m_changed, sender=Cidr)
 def _mymodel_m2m_changed(sender, instance, action, reverse, model, pk_set, **kwargs):
+    logging.info('m2m_changed')
+    logging.info(action)
+    logging.info(pk_set)
     if action == 'post_add':
         for acl_id in pk_set:
             ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=True)
     elif action == 'post_remove':
         for acl_id in pk_set:
             ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).update(exclude_label=False)
-    
+
 
 
 
