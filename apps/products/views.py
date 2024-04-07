@@ -46,16 +46,22 @@ class ProductViewSet(ComModelViewSet):
 
     @action(methods=['get'], detail=False, url_path='get_product_from_shopify', url_name='get_product_from_shopify')
     def get_product_from_shopify(self, request):
-        cache_data = cache.get('shopify_product_info')
+        cache_client = cache.client.get_client()
+        cache_key = 'shopify_product'
+        cache_data = cache_client.hggetall(cache_key)
         if cache_data:
-            return SuccessResponse(data=json.loads(cache_data))
+            data=[]
+            for key in cache_data:
+                data.append(json.loads(cache_data[key]))
+            return SuccessResponse(data=data)
         shop_url = settings.SHOPIFY_SHOP_URL
         api_key = settings.SHOPIFY_API_KEY
         api_scert = settings.SHOPIFY_API_SECRET
         private_app_password = settings.SHOPIFY_APP_KEY
         shopify_client = ShopifyClient(shop_url, api_key, api_scert, private_app_password)
         product_dict = shopify_client.get_products(format=True)
-        cache.set('shopify_product_info', json.dumps(product_dict), timeout=60 * 60 * 24)
+        for product in product_dict:
+            cache_client.hset(cache_key, product['shopify_product_id'], json.dumps(product))
         return SuccessResponse(data=product_dict)
 
     @action(methods=['get'], detail=False, url_path='get_recommend_product', url_name='get_recommend_product')
