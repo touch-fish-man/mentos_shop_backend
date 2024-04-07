@@ -201,6 +201,16 @@ class CidrAclThrough(BaseModel):
         verbose_name_plural = 'CIDR与ACL关系'
 
 
+@receiver(post_delete, sender=CidrAclThrough)
+def _mymodel_delete(sender, instance, **kwargs):
+    ProxyStock.objects.filter(cidr_id=instance.cidr_id, acl_id=instance.acl_id).update(exclude_label=False)
+
+
+@receiver(post_save, sender=CidrAclThrough)
+def _mymodel_save(sender, instance, **kwargs):
+    ProxyStock.objects.filter(cidr_id=instance.cidr_id, acl_id=instance.acl_id).update(exclude_label=True)
+
+
 class Cidr(BaseModel):
     cidr = models.CharField(max_length=255, blank=True, null=True, verbose_name='CIDR')
     ip_count = models.IntegerField(blank=True, null=True, verbose_name='IP数量')
@@ -404,7 +414,7 @@ class ProductStock(BaseModel):
     option2 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项2')
     option3 = models.CharField(max_length=255, blank=True, null=True, verbose_name='选项3')
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
-    stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量',default=0)
+    stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量', default=0)
     server_group = models.ForeignKey('ServerGroup', on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name='服务器组')
     old_variant_id = models.IntegerField(blank=True, null=True, verbose_name='旧变体ID')
@@ -511,7 +521,7 @@ def _mymodel_delete(sender, instance, **kwargs):
     redis_key = 'stock_return_task:{}_{}'.format(instance.ip_stock_ids, instance.subnet)
     if not cache.get(redis_key):
         redis_key = 'stock_return_task:{}_{}'.format(instance.ip_stock_ids, instance.subnet)
-        cache.set(redis_key, 1, timeout=60 *5)
+        cache.set(redis_key, 1, timeout=60 * 5)
         # 通知回收库存
         from apps.proxy_server.tasks import stock_return_task
         stock_return_task.delay(instance.ip_stock_ids, instance.subnet)

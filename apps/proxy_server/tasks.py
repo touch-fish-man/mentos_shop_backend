@@ -402,7 +402,7 @@ def remove_blacklist(server_groups, domains):
     return {"status": 1}
 
 
-@shared_task(name='stock_return_task')
+@shared_task(name='stock_return_task',autoretry_for=(Exception,), retry_kwargs={'max_retries': 7, 'countdown': 5})
 def stock_return_task(ip_stock_ids, subnet):
     """
     代理库存归还
