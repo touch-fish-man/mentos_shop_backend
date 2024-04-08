@@ -165,10 +165,10 @@ class ServerCreateSerializer(CommonSerializer):
     name = serializers.CharField(required=True, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
     cidrs = CidrCreateSerializer(many=True)
-    run_init = serializers.CharField(required=False)
-    password = serializers.CharField(required=False)
-    port = serializers.CharField(required=False)
-    update_cidr = serializers.CharField(required=False)
+    run_init = serializers.CharField(required=False,allow_blank=True)
+    password = serializers.CharField(required=False,allow_blank=True)
+    port = serializers.CharField(required=False,allow_blank=True)
+    update_cidr = serializers.CharField(required=False,allow_blank=True)
 
     class Meta:
         model = Server
@@ -214,10 +214,10 @@ class ServerCreateSerializer(CommonSerializer):
 
 class ServerUpdateSerializer(CommonSerializer):
     cidrs = CidrCreateSerializer(many=True)
-    run_init = serializers.CharField(required=False)
-    password = serializers.CharField(required=False)
-    port = serializers.CharField(required=False)
-    update_cidr = serializers.CharField(required=False)
+    run_init = serializers.CharField(required=False,allow_blank=True)
+    password = serializers.CharField(required=False,allow_blank=True)
+    port = serializers.CharField(required=False,allow_blank=True)
+    update_cidr = serializers.CharField(required=False,allow_blank=True)
 
     class Meta:
         model = Server
