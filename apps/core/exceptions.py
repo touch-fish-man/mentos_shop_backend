@@ -42,6 +42,7 @@ def CustomExceptionHandler(ex, context):
         set_rollback()
         msg = ex.message
     elif isinstance(ex, DRFValidationError):
+        logger.exception(ex)
         set_rollback()
         if isinstance(ex.detail, dict):
             msg = ex.detail[list(ex.detail.keys())[0]][0]
