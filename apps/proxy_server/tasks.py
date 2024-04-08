@@ -492,7 +492,7 @@ def update_product_acl(acl_ids=None):
                 stock_obj.soft_delete = False
                 stock_obj.save()
                 ip_stock_objs.append(stock_obj)
-            product_stock = ProductStock.objects.create(product=variant.product, acl_id=acl_id,
+            product_stock,is_create = ProductStock.objects.get_or_create(product=variant.product, acl_id=acl_id,
                                                         option1=variant.variant_option1,
                                                         option2=variant.variant_option2,
                                                         option3=variant.variant_option3,
@@ -502,6 +502,6 @@ def update_product_acl(acl_ids=None):
             for ip_stock_obj in ip_stock_objs:
                 product_stock.ip_stocks.add(ip_stock_obj)
                 stock += ip_stock_obj.ip_stock
-            product_stock.stock = stock
+            product_stock.stock += stock
             product_stock.save()
     return True
