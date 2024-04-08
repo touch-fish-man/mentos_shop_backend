@@ -382,4 +382,4 @@ def delete_product():
             p_set.add(key)
 
 if __name__ == '__main__':
-    find_proxy_stock_ids()
+    delete_product()
