@@ -187,13 +187,13 @@ class ServerCreateSerializer(CommonSerializer):
             except Exception:
                 raise CustomValidationError("cidr格式错误")
         if "run_init" in attrs:
-            run_init=attrs.pop("run_init")
+            run_init=attrs.pop("run_init")=="1"
         if "password" in attrs:
             password=attrs.pop("password")
         if "port" in attrs:
             port=attrs.pop("port")
         if "update_cidr" in attrs:
-            update_cidr=attrs.pop("update_cidr")
+            update_cidr=attrs.pop("update_cidr")=="1"
             from apps.proxy_server.tasks import init_server
             cidr_list= [cidr['cidr'] for cidr in attrs['cidrs']]
             init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
@@ -236,11 +236,11 @@ class ServerUpdateSerializer(CommonSerializer):
         if "run_init" in attrs:
             run_init=attrs.pop("run_init")=="1"
         if "password" in attrs:
-            password=attrs.pop("password")=="1"
+            password=attrs.pop("password")
         if "port" in attrs:
             port=attrs.pop("port")
         if "update_cidr" in attrs:
-            update_cidr=attrs.pop("update_cidr")
+            update_cidr=attrs.pop("update_cidr")=="1"
         if run_init or update_cidr:
             from apps.proxy_server.tasks import init_server
             cidr_list = [cidr['cidr'] for cidr in attrs['cidrs']]
