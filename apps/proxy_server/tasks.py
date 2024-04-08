@@ -472,7 +472,7 @@ def get_cidr(server_group):
 def update_product_acl(acl_ids=None):
     # 创建产品变体
     if acl_ids is None:
-        acl_ids = list(Acls.objects.filter(soft_delete=False).values_list('id', flat=True))
+        acl_ids = list(Acls.objects.all().values_list('id', flat=True))
     variants = Variant.objects.all()
     for variant in variants:
         cart_step = variant.cart_step

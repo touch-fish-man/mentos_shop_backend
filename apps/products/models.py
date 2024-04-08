@@ -2,13 +2,15 @@ import logging
 import traceback
 
 from django.core.cache import cache
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from apps.core.models import BaseModel
 from django.db import models
 from django.db import IntegrityError
 
 from apps.core.validators import CustomValidationError
-from apps.proxy_server.models import ProxyStock, ServerGroupThrough, ServerCidrThrough, Cidr
+from apps.proxy_server.models import ProxyStock, ServerGroupThrough, ServerCidrThrough, Cidr, Acls, ProductStock
 
 
 class ProductTag(BaseModel):
@@ -189,6 +191,56 @@ class Variant(BaseModel):
         super().save(force_insert=False, force_update=False, using=None,
                      update_fields=None)
 
+
+def get_cidr(server_group):
+    cidrs = []
+    if server_group:
+        server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
+                                                                                                    flat=True)
+        for x in ServerCidrThrough.objects.filter(server_id__in=server_ids).all():
+            cidrs.append(x.cidr)
+        return cidrs
+    else:
+        return cidrs
+
+
+@receiver(post_save, sender=Variant)
+def update_variant_stock(sender, instance, created, **kwargs):
+    if not created:
+        acls = Acls.objects.all()
+        cart_step = instance.cart_step
+        cidrs = get_cidr(instance.server_group)
+        for acl_id in acls:
+            ip_stock_objs = []
+            for cidr_i in cidrs:
+                cart_stock = cidr_i.ip_count // cart_step
+                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
+                                                                        cart_step=cart_step)
+                if is_create:
+                    stock_obj.ip_stock = cidr_i.ip_count
+                    stock_obj.cart_stock = cart_stock
+                    subnets = stock_obj.gen_subnets()
+                    stock_obj.subnets = ",".join(subnets)
+                    stock_obj.available_subnets = stock_obj.subnets
+                    stock_obj.save()
+                stock_obj.soft_delete = False
+                stock_obj.save()
+                ip_stock_objs.append(stock_obj)
+            product_stock, is_create = ProductStock.objects.get_or_create(product=instance.product,
+                                                                          acl_id=acl_id,
+                                                                          option1=instance.variant_option1,
+                                                                          option2=instance.variant_option2,
+                                                                          option3=instance.variant_option3,
+                                                                          cart_step=cart_step,
+                                                                          old_variant_id=instance.id,
+                                                                          server_group=instance.server_group)
+            stock = 0
+            for ip_stock_obj in ip_stock_objs:
+                product_stock.ip_stocks.add(ip_stock_obj)
+                stock += ip_stock_obj.ip_stock
+            product_stock.stock += stock
+            product_stock.save()
+        return True
 
 
 class Product(BaseModel):

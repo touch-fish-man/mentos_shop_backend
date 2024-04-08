@@ -162,6 +162,8 @@ class CidrCreateSerializer(CommonSerializer):
 
 
 class ServerCreateSerializer(CommonSerializer):
+    name = serializers.CharField(required=True, validators=[
+        CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
     cidrs = CidrCreateSerializer(many=True)
     run_init = serializers.CharField(required=False)
     password = serializers.CharField(required=False)
@@ -170,10 +172,7 @@ class ServerCreateSerializer(CommonSerializer):
 
     class Meta:
         model = Server
-        fields = '__all__'
-
-    name = serializers.CharField(required=True, validators=[
-        CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
+        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'run_init', 'password', 'port', 'update_cidr')
 
     def validate(self, attrs):
         try:
