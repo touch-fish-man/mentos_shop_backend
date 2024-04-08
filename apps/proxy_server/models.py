@@ -443,7 +443,7 @@ class ProductStock(BaseModel):
             total = 0
         self.stock = total
         logging.info('更新产品:{}库存:{}'.format(self.product.id, total))
-        # logging.info('更新variant:{}库存:{}'.format(self.id, total))
+        logging.info('更新variant:{}库存:{}'.format(self.id, total))
         self.save()
 
 
