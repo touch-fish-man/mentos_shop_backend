@@ -162,18 +162,17 @@ class CidrCreateSerializer(CommonSerializer):
 
 
 class ServerCreateSerializer(CommonSerializer):
+    name = serializers.CharField(required=True, validators=[
+        CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
     cidrs = CidrCreateSerializer(many=True)
-    run_init = serializers.CharField(required=False)
-    password = serializers.CharField(required=False)
-    port = serializers.CharField(required=False)
-    update_cidr = serializers.CharField(required=False)
+    run_init = serializers.CharField(required=False,allow_blank=True)
+    password = serializers.CharField(required=False,allow_blank=True)
+    port = serializers.CharField(required=False,allow_blank=True)
+    update_cidr = serializers.CharField(required=False,allow_blank=True)
 
     class Meta:
         model = Server
-        fields = '__all__'
-
-    name = serializers.CharField(required=True, validators=[
-        CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
+        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'run_init', 'password', 'port', 'update_cidr')
 
     def validate(self, attrs):
         try:
@@ -187,15 +186,16 @@ class ServerCreateSerializer(CommonSerializer):
             except Exception:
                 raise CustomValidationError("cidr格式错误")
         if "run_init" in attrs:
-            run_init=attrs.pop("run_init")
+            run_init=attrs.pop("run_init")=="1"
         if "password" in attrs:
             password=attrs.pop("password")
         if "port" in attrs:
             port=attrs.pop("port")
         if "update_cidr" in attrs:
-            update_cidr=attrs.pop("update_cidr")
+            update_cidr=attrs.pop("update_cidr")=="1"
             from apps.proxy_server.tasks import init_server
-            init_server.delay(attrs['ip'], port, "root", password, attrs['cidrs'], run_init, update_cidr)
+            cidr_list= [cidr['cidr'] for cidr in attrs['cidrs']]
+            init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
 
         return attrs
 
@@ -214,14 +214,14 @@ class ServerCreateSerializer(CommonSerializer):
 
 class ServerUpdateSerializer(CommonSerializer):
     cidrs = CidrCreateSerializer(many=True)
-    run_init = serializers.CharField(required=False)
-    password = serializers.CharField(required=False)
-    port = serializers.CharField(required=False)
-    update_cidr = serializers.CharField(required=False)
+    run_init = serializers.CharField(required=False,allow_blank=True)
+    password = serializers.CharField(required=False,allow_blank=True)
+    port = serializers.CharField(required=False,allow_blank=True)
+    update_cidr = serializers.CharField(required=False,allow_blank=True)
 
     class Meta:
         model = Server
-        fields = ('id', 'name', 'ip', 'description', 'cidrs')
+        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'run_init', 'password', 'port', 'update_cidr')
 
     name = serializers.CharField(required=False, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
@@ -235,14 +235,15 @@ class ServerUpdateSerializer(CommonSerializer):
         if "run_init" in attrs:
             run_init=attrs.pop("run_init")=="1"
         if "password" in attrs:
-            password=attrs.pop("password")=="1"
+            password=attrs.pop("password")
         if "port" in attrs:
             port=attrs.pop("port")
         if "update_cidr" in attrs:
-            update_cidr=attrs.pop("update_cidr")
+            update_cidr=attrs.pop("update_cidr")=="1"
         if run_init or update_cidr:
             from apps.proxy_server.tasks import init_server
-            init_server.delay(attrs['ip'], port, "root", password, attrs['cidrs'], run_init, update_cidr)
+            cidr_list = [cidr['cidr'] for cidr in attrs['cidrs']]
+            init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
         # # 检查cidr是否在代理服务器的cidr范围内
         # cidrs = attrs['cidrs']
         # try:

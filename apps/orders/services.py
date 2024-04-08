@@ -2,6 +2,7 @@ import datetime
 import hmac
 import hashlib
 import base64
+import ipaddress
 import logging
 import re
 import threading
@@ -129,7 +130,7 @@ def get_checkout_link(request):
         order_info_dict["option1"] = variant_option1
         order_info_dict["option2"] = variant_option2
         order_info_dict["option3"] = variant_option3
-        order_info_dict["acl_selected"] = ",".join(acl_selected)
+        order_info_dict["acl_selected"] = ",".join(map(str, acl_selected))
         new_order = Orders.objects.create(**order_info_dict)
         order_id = new_order.order_id
         if level_code_obj:
@@ -201,7 +202,7 @@ def create_proxy_by_order_obj(order_obj):
             order_pk = order_obj.id
             product_name = order_obj.product_name
             now = str(int(time.time()))[-4:]
-            proxy_username="{}{}{}".format(now,order_user,order_id)[:15]
+            proxy_username = "{}{}{}".format(now, order_user, order_id)[:15]
             acl_ids = order_obj.acl_selected.split(",")
             white_acl_list = get_white_acl(acl_ids)
             acl_value = "\n".join(white_acl_list.get("acl_value"))
@@ -416,5 +417,7 @@ def delete_proxy_by_order_pk(order_id):
     for p in Proxy.objects.filter(order_id=order_id).all():
         p.delete()
     return True
+
+
 def update_orders():
-    orders=Orders.objects.filter(order_status=1).all()
+    orders = Orders.objects.filter(order_status=1).all()

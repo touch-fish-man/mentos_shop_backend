@@ -224,6 +224,7 @@ class Cidr(BaseModel):
 
 @receiver(m2m_changed, sender=Cidr.exclude_acl.through)
 def _mymodel_m2m_changed(sender, instance, action, reverse, model, pk_set, **kwargs):
+    logging.info('m2m_changed')
     if action == 'post_add':
         for acl_id in pk_set:
             ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
@@ -408,6 +409,7 @@ def proxy_stock_updated(sender, instance, **kwargs):
         available_subnets = [x for x in available_subnets if x]
         instance.available_subnets = ','.join(available_subnets)
     for product_stock in instance.product_stocks.all():
+        logging.info('更新产品库存:{}'.format(product_stock.id))
         product_stock.update_stock()
 
 
@@ -440,8 +442,7 @@ class ProductStock(BaseModel):
         if total is None:
             total = 0
         self.stock = total
-        logging.info('更新产品:{}库存:{}'.format(self.product.id, total))
-        # logging.info('更新variant:{}库存:{}'.format(self.id, total))
+        logging.info('更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.name))
         self.save()
 
 

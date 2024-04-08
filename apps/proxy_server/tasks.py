@@ -472,7 +472,7 @@ def get_cidr(server_group):
 def update_product_acl(acl_ids=None):
     # 创建产品变体
     if acl_ids is None:
-        acl_ids = list(Acls.objects.filter(soft_delete=False).values_list('id', flat=True))
+        acl_ids = list(Acls.objects.all().values_list('id', flat=True))
     variants = Variant.objects.all()
     for variant in variants:
         cart_step = variant.cart_step
@@ -492,7 +492,7 @@ def update_product_acl(acl_ids=None):
                 stock_obj.soft_delete = False
                 stock_obj.save()
                 ip_stock_objs.append(stock_obj)
-            product_stock, is_create = ProductStock.objects.get_or_create(product=variant.product, acl_id=acl_id,
+            product_stock,is_create = ProductStock.objects.get_or_create(product=variant.product, acl_id=acl_id,
                                                         option1=variant.variant_option1,
                                                         option2=variant.variant_option2,
                                                         option3=variant.variant_option3,
@@ -502,6 +502,6 @@ def update_product_acl(acl_ids=None):
             for ip_stock_obj in ip_stock_objs:
                 product_stock.ip_stocks.add(ip_stock_obj)
                 stock += ip_stock_obj.ip_stock
-            product_stock.stock = stock
+            product_stock.stock += stock
             product_stock.save()
     return True

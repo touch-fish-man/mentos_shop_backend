@@ -18,7 +18,7 @@ import ipaddress
 
 console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
-    ServerGroupThrough, Cidr, Acls, CidrAclThrough, AclGroupThrough
+    ServerGroupThrough, Cidr, Acls, CidrAclThrough, AclGroupThrough, ProductStock
 from apps.orders.models import Orders
 from apps.products.services import add_product_other
 from apps.products.models import Variant, ProductTag, ProductTagRelation
@@ -371,7 +371,15 @@ def fix_ip_stock_item():
                 obj.save()
                 print(obj.id)
 
-
+def delete_product():
+    p_set = set()
+    for x in ProductStock.objects.all():
+        key="-".join((str(x.old_variant_id), str(x.acl_id)))
+        if key in p_set:
+            x.delete()
+            print(x.id)
+        else:
+            p_set.add(key)
 
 if __name__ == '__main__':
-    fix_ip_stock_item()
+    find_proxy_stock_ids()

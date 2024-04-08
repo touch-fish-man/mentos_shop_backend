@@ -444,12 +444,3 @@ def delete_proxy_task(server_ip, username):
         pass
     return {"status": 1, "data": {"server_ip": server_ip, "username": username}, "delete_proxy": delete_proxy,
             "delete_acl": delete_acl}
-
-
-@shared_task(name='init_server')
-def init_server(host, port, user, password, cidrs, init_run, update_ip):
-    """
-    初始化服务器
-    """
-    from apps.utils.run_init import main
-    main(host, port, user, password, cidrs, init_run, update_ip)
