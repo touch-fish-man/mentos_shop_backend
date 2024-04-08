@@ -442,7 +442,7 @@ class ProductStock(BaseModel):
         if total is None:
             total = 0
         self.stock = total
-        logging.info('更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.id))
+        logging.info('更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.name))
         self.save()
 
 
