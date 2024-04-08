@@ -195,7 +195,8 @@ class ServerCreateSerializer(CommonSerializer):
         if "update_cidr" in attrs:
             update_cidr=attrs.pop("update_cidr")
             from apps.proxy_server.tasks import init_server
-            init_server.delay(attrs['ip'], port, "root", password, attrs['cidrs'], run_init, update_cidr)
+            cidr_list= [cidr['cidr'] for cidr in attrs['cidrs']]
+            init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
 
         return attrs
 
@@ -221,7 +222,7 @@ class ServerUpdateSerializer(CommonSerializer):
 
     class Meta:
         model = Server
-        fields = ('id', 'name', 'ip', 'description', 'cidrs')
+        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'run_init', 'password', 'port', 'update_cidr')
 
     name = serializers.CharField(required=False, validators=[
         CustomUniqueValidator(Server.objects.all(), message="代理服务器名称已存在")])
@@ -242,7 +243,8 @@ class ServerUpdateSerializer(CommonSerializer):
             update_cidr=attrs.pop("update_cidr")
         if run_init or update_cidr:
             from apps.proxy_server.tasks import init_server
-            init_server.delay(attrs['ip'], port, "root", password, attrs['cidrs'], run_init, update_cidr)
+            cidr_list = [cidr['cidr'] for cidr in attrs['cidrs']]
+            init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
         # # 检查cidr是否在代理服务器的cidr范围内
         # cidrs = attrs['cidrs']
         # try:
