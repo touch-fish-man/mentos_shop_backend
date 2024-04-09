@@ -273,11 +273,11 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                 stock_obj.exclude_label = exclude_label
                 stock_obj.save()
                 ip_stock_objs.append(stock_obj)
-            product_stock = ProductStock.objects.create(product=product, acl=acl_i,
+            product_stock,is_create = ProductStock.objects.get_or_create(product=product, acl=acl_i,
                                                         option1=variant_data.get('variant_option1'),
                                                         option2=variant_data.get('variant_option2'),
                                                         option3=variant_data.get('variant_option3'),
-                                                        cart_step=cart_step, old_variant_id=v.id,
+                                                        cart_step=cart_step, old_variant_id=v,
                                                         server_group=variant_data.get('server_group'))
             product_stock.update_stock()
             product_stock.save()

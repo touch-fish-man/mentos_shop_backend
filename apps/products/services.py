@@ -144,7 +144,7 @@ def add_product_other():
                                                         option1=v.variant_option1,
                                                         option2=v.variant_option2,
                                                         option3=v.variant_option3,
-                                                        cart_step=cart_step, old_variant_id=v.id,
+                                                        cart_step=cart_step, old_variant_id=v,
                                                         server_group=server_group)
             product_stock.update_stock()
             product_stock.save()

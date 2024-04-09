@@ -496,7 +496,7 @@ def update_product_acl(acl_ids=None):
                                                         option1=variant.variant_option1,
                                                         option2=variant.variant_option2,
                                                         option3=variant.variant_option3,
-                                                        cart_step=cart_step, old_variant_id=variant.id,
+                                                        cart_step=cart_step, old_variant_id=variant,
                                                         server_group=variant.server_group)
             product_stock.update_stock()
             product_stock.save()

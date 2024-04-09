@@ -145,9 +145,6 @@ class ServerGroup(BaseModel):
         return cidrs
 
 
-
-
-
 class ServerGroupThrough(BaseModel):
     server_group = models.ForeignKey('ServerGroup', on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name='服务器组')
@@ -185,7 +182,6 @@ class Server(BaseModel):
                 "id": cidr.id,
             })
         return cidr_info
-
 
 
 def cidr_ip_count(cidr):
@@ -233,8 +229,6 @@ class Cidr(BaseModel):
         self.soft_delete = True
         ProxyStock.objects.filter(cidr_id=self.id).update(soft_delete=True)
         self.save()
-
-
 
 
 def fix_network_by_ip(cidr_str):
@@ -391,9 +385,6 @@ class ProxyStock(BaseModel):
         return subnets
 
 
-
-
-
 class ProductStock(BaseModel):
     """
     产品库存表
@@ -431,8 +422,6 @@ class ProductStock(BaseModel):
         logging.info(
             '更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.name))
         self.save()
-
-
 
 
 class Proxy(BaseModel):
@@ -496,8 +485,6 @@ class Proxy(BaseModel):
             return False
 
 
-
-
 class AclTasks(BaseModel):
     task_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务ID')
     task_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务名')
@@ -512,6 +499,8 @@ class AclTasks(BaseModel):
         verbose_name = 'ACL任务'
         verbose_name_plural = 'ACL任务'
         managed = True
+
+
 @receiver(m2m_changed, sender=Cidr.exclude_acl.through)
 def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, **kwargs):
     logging.info('m2m_changed')
@@ -528,6 +517,7 @@ def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, 
             for stock in ip_stocks:
                 stock.exclude_label = False
                 stock.save()
+
 
 @receiver(post_save, sender=ProxyStock)
 def proxy_stock_updated(sender, instance, **kwargs):
@@ -546,6 +536,8 @@ def proxy_stock_updated(sender, instance, **kwargs):
     for product_stock in instance.product_stocks.all():
         logging.info('更新产品库存:{}'.format(product_stock.id))
         product_stock.update_stock()
+
+
 @receiver(post_save, sender=ProductStock)
 def update_product_stock_cache(sender, instance, **kwargs):
     """
@@ -557,6 +549,7 @@ def update_product_stock_cache(sender, instance, **kwargs):
     """
     redis_client = cache.client.get_client()
     redis_client.hset('product_stocks', instance.id, instance.stock)
+
 
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
@@ -582,6 +575,7 @@ def _mymodel_delete(sender, instance, **kwargs):
     #             stock.return_subnet(instance.subnet)
     #             stock.return_stock()
 
+
 @receiver(m2m_changed, sender=ServerGroup.servers.through)
 def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, pk_set, **kwargs):
     """
@@ -591,6 +585,7 @@ def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, 
         for v in instance.variants.all():
             v.cidrs.clear()
             v.cidrs.add(*instance.get_cidrs())
+
 
 @receiver(m2m_changed, sender=Server.cidrs.through)
 def _mymodel_m2m_changed_server(sender, instance, action, reverse, model, pk_set, **kwargs):

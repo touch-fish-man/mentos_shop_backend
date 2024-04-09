@@ -160,7 +160,7 @@ def update_variant_stock(sender, instance, created, **kwargs):
                                                                           option2=instance.variant_option2,
                                                                           option3=instance.variant_option3,
                                                                           cart_step=cart_step,
-                                                                          old_variant_id=instance.id,
+                                                                          old_variant_id=instance,
                                                                           server_group=instance.server_group)
             product_stock.update_stock()
             product_stock.save()
