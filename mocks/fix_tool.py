@@ -23,7 +23,7 @@ from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, Acl
 from apps.orders.models import Orders
 from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
-
+from apps.products.services import add_product_other
 
 def is_ip_in_network(ip_str, network_str):
     ip = ipaddress.ip_address(ip_str)
