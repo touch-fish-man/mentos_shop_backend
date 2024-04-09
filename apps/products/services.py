@@ -140,10 +140,11 @@ def add_product_other():
                 stock_obj.soft_delete = False
                 stock_obj.save()
                 ip_stock_objs.append(stock_obj)
-            product_stock, is_create= ProductStock.objects.get_or_create(product=product, acl_id=acl_i.id,
+            product_stock, is_create = ProductStock.objects.get_or_create(product=product, acl_id=acl_i.id,
                                                         option1=v.variant_option1,
                                                         option2=v.variant_option2,
                                                         option3=v.variant_option3,
                                                         cart_step=cart_step, variant=v,
                                                         server_group=server_group)
+            product_stock.save()
         # print("更新商品", v.id)

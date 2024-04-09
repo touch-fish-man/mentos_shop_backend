@@ -12,6 +12,7 @@ import requests
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+from apps.products.services import add_product_other
 from init_env import *
 from rich.console import Console
 import ipaddress
@@ -408,5 +409,5 @@ def fix_product_stock_variant():
 
 
 if __name__ == '__main__':
-    fix_product_stock_variant()
+    add_product_other()
     # fix_stocks()
