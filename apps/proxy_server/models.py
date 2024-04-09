@@ -420,7 +420,7 @@ class ProductStock(BaseModel):
             total = 0
         self.stock = total
         logging.info(
-            '更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.name))
+            '更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.product_name, self.id, self.stock, self.acl.name))
         self.save()
 
 
@@ -534,7 +534,7 @@ def proxy_stock_updated(sender, instance, **kwargs):
         available_subnets = [x for x in available_subnets if x]
         instance.available_subnets = ','.join(available_subnets)
     for product_stock in instance.product_stocks.all():
-        logging.info('更新产品库存:{}'.format(product_stock.id))
+        # logging.info('更新产品库存:{}'.format(product_stock.id))
         product_stock.update_stock()
 
 
