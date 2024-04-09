@@ -394,11 +394,11 @@ def fix_stocks():
 
 def fix_cidrs():
     for x in Variant.objects.all():
-        print(x.id)
         cidrs = x.server_group.get_cidrs()
         x.cidrs.clear()
         for cidr in cidrs:
             x.cidrs.add(cidr)
+            print(cidr.id, x.id)
 
 
 if __name__ == '__main__':
