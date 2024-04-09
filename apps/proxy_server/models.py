@@ -401,12 +401,13 @@ class ProductStock(BaseModel):
                                      verbose_name='服务器组', related_name='product_stocks')
     variant = models.ForeignKey('products.Variant', on_delete=models.CASCADE, blank=True, null=True,
                                 verbose_name='变体ID', related_name='product_stocks')
+
     class Meta:
         db_table = 'product_stock'
         verbose_name = '产品库存'
         verbose_name_plural = '产品库存'
 
-    def update_stock(self):
+    def count_stock(self):
         cidr_ids = self.server_group.get_cidrs()
         acl_id = self.acl.id
         step = self.cart_step
@@ -518,28 +519,29 @@ def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, 
                 stock.save()
 
 
-@receiver(post_save, sender=ProxyStock)
+@receiver(pre_save, sender=ProxyStock)
 def proxy_stock_updated(sender, instance, **kwargs):
-    """
-    更新可用子网
-    :param sender:
-    :param instance:
-    :param kwargs:
-    :return:
-    """
     if instance.available_subnets:
         available_subnets = instance.available_subnets.split(',')
         # 去除空字符串
         available_subnets = [x for x in available_subnets if x]
         instance.available_subnets = ','.join(available_subnets)
-    for product_stock in instance.product_stocks.all():
-        # logging.info('更新产品库存:{}'.format(product_stock.id))
-        product_stock.save()
+
+
+@receiver(post_save, sender=ProxyStock)
+def proxy_stock_updated(sender, instance, **kwargs):
+    cidr_id = instance.cidr
+    acl_id = instance.acl_id
+    cart_step = instance.cart_step
+    for product_stock in ProductStock.objects.filter(acl_id=acl_id,cart_step=cart_step).all():
+        cidr_ids = [x.id for x in product_stock.server_group.get_cidrs()]
+        if cidr_id in cidr_ids:
+            product_stock.save()
 
 
 @receiver(pre_save, sender=ProductStock)
 def _mymodel_pre_save(sender, instance, **kwargs):
-    instance.update_stock()
+    instance.count_stock()
 
 
 @receiver(post_save, sender=ProductStock)
