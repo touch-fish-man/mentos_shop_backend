@@ -339,6 +339,7 @@ def fix_ip_stock():
         stock_.save()
         print(k, v[0], stock_.ip_stock)
 
+
 def find_proxy_stock_ids():
     acl_group_acl_reverse = {}
     acls = list(Acls.objects.all().values_list("id", flat=True))
@@ -350,7 +351,7 @@ def find_proxy_stock_ids():
             acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
     for p in Proxy.objects.all():
         try:
-            ip_stock_id= p.ip_stock_id
+            ip_stock_id = p.ip_stock_id
             acl_group_id = ProxyStock.objects.filter(id=ip_stock_id).first().acl_group_id
             acl_ids = acl_group_acl_reverse.get(acl_group_id, [])
             ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
@@ -358,12 +359,15 @@ def find_proxy_stock_ids():
             p.save()
         except Exception as e:
             print(e)
+
+
 def fix_ip_stock_item():
     acls = list(Acls.objects.all().values_list("id", flat=True))
     for ip_s in ProxyStock.objects.filter(acl_group__isnull=False).all():
         # 扩展库存
         for acl_i in acls:
-            obj,is_create = ProxyStock.objects.get_or_create(cidr_id=ip_s.cidr_id, acl_id=acl_i, cart_step=ip_s.cart_step)
+            obj, is_create = ProxyStock.objects.get_or_create(cidr_id=ip_s.cidr_id, acl_id=acl_i,
+                                                              cart_step=ip_s.cart_step)
             if is_create:
                 obj.subnets = ip_s.subnets
                 obj.available_subnets = ip_s.subnets
@@ -371,15 +375,31 @@ def fix_ip_stock_item():
                 obj.save()
                 print(obj.id)
 
+
 def delete_product():
     p_set = set()
     for x in ProductStock.objects.all():
-        key="-".join((str(x.old_variant_id), str(x.acl_id)))
+        key = "-".join((str(x.old_variant_id), str(x.acl_id)))
         if key in p_set:
             x.delete()
             print(x.id)
         else:
             p_set.add(key)
 
+
+def fix_stocks():
+    for x in ProductStock.objects.all():
+        x.update_stock()
+
+
+def fix_cidrs():
+    for x in Variant.objects.all():
+        print(x.id)
+        cidrs = x.server_group.get_cidrs()
+        x.cidrs.clear()
+        for cidr in cidrs:
+            x.cidrs.add(cidr)
+
+
 if __name__ == '__main__':
-    find_proxy_stock_ids()
+    fix_cidrs()
