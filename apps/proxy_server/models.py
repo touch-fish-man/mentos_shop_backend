@@ -235,22 +235,6 @@ class Cidr(BaseModel):
         self.save()
 
 
-@receiver(m2m_changed, sender=Cidr.exclude_acl.through)
-def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, **kwargs):
-    logging.info('m2m_changed')
-    if action == 'post_add':
-        for acl_id in pk_set:
-            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
-            for stock in ip_stocks:
-                stock.exclude_label = True
-                stock.save()
-
-    elif action == 'post_remove':
-        for acl_id in pk_set:
-            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
-            for stock in ip_stocks:
-                stock.exclude_label = False
-                stock.save()
 
 
 def fix_network_by_ip(cidr_str):
@@ -407,23 +391,7 @@ class ProxyStock(BaseModel):
         return subnets
 
 
-@receiver(post_save, sender=ProxyStock)
-def proxy_stock_updated(sender, instance, **kwargs):
-    """
-    更新可用子网
-    :param sender:
-    :param instance:
-    :param kwargs:
-    :return:
-    """
-    if instance.available_subnets:
-        available_subnets = instance.available_subnets.split(',')
-        # 去除空字符串
-        available_subnets = [x for x in available_subnets if x]
-        instance.available_subnets = ','.join(available_subnets)
-    for product_stock in instance.product_stocks.all():
-        logging.info('更新产品库存:{}'.format(product_stock.id))
-        product_stock.update_stock()
+
 
 
 class ProductStock(BaseModel):
@@ -465,17 +433,6 @@ class ProductStock(BaseModel):
         self.save()
 
 
-@receiver(post_save, sender=ProductStock)
-def update_product_stock_cache(sender, instance, **kwargs):
-    """
-    更新产品库存缓存
-    :param sender:
-    :param instance:
-    :param kwargs:
-    :return:
-    """
-    redis_client = cache.client.get_client()
-    redis_client.hset('product_stocks', instance.id, instance.stock)
 
 
 class Proxy(BaseModel):
@@ -539,6 +496,68 @@ class Proxy(BaseModel):
             return False
 
 
+
+
+class AclTasks(BaseModel):
+    task_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务ID')
+    task_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务名')
+    task_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务类型')
+    time = models.DateTimeField(blank=True, null=True, verbose_name='时间')
+    delay = models.IntegerField(blank=True, null=True, verbose_name='延迟')
+    server_group = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器组')
+    content = models.TextField(blank=True, null=True, verbose_name='内容')
+
+    class Meta:
+        db_table = 'acl_tasks'
+        verbose_name = 'ACL任务'
+        verbose_name_plural = 'ACL任务'
+        managed = True
+@receiver(m2m_changed, sender=Cidr.exclude_acl.through)
+def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, **kwargs):
+    logging.info('m2m_changed')
+    if action == 'post_add':
+        for acl_id in pk_set:
+            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
+            for stock in ip_stocks:
+                stock.exclude_label = True
+                stock.save()
+
+    elif action == 'post_remove':
+        for acl_id in pk_set:
+            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
+            for stock in ip_stocks:
+                stock.exclude_label = False
+                stock.save()
+
+@receiver(post_save, sender=ProxyStock)
+def proxy_stock_updated(sender, instance, **kwargs):
+    """
+    更新可用子网
+    :param sender:
+    :param instance:
+    :param kwargs:
+    :return:
+    """
+    if instance.available_subnets:
+        available_subnets = instance.available_subnets.split(',')
+        # 去除空字符串
+        available_subnets = [x for x in available_subnets if x]
+        instance.available_subnets = ','.join(available_subnets)
+    for product_stock in instance.product_stocks.all():
+        logging.info('更新产品库存:{}'.format(product_stock.id))
+        product_stock.update_stock()
+@receiver(post_save, sender=ProductStock)
+def update_product_stock_cache(sender, instance, **kwargs):
+    """
+    更新产品库存缓存
+    :param sender:
+    :param instance:
+    :param kwargs:
+    :return:
+    """
+    redis_client = cache.client.get_client()
+    redis_client.hset('product_stocks', instance.id, instance.stock)
+
 @receiver(post_delete, sender=Proxy)
 def _mymodel_delete(sender, instance, **kwargs):
     from django.core.cache import cache
@@ -563,21 +582,6 @@ def _mymodel_delete(sender, instance, **kwargs):
     #             stock.return_subnet(instance.subnet)
     #             stock.return_stock()
 
-
-class AclTasks(BaseModel):
-    task_id = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务ID')
-    task_name = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务名')
-    task_type = models.CharField(max_length=255, blank=True, null=True, verbose_name='任务类型')
-    time = models.DateTimeField(blank=True, null=True, verbose_name='时间')
-    delay = models.IntegerField(blank=True, null=True, verbose_name='延迟')
-    server_group = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器组')
-    content = models.TextField(blank=True, null=True, verbose_name='内容')
-
-    class Meta:
-        db_table = 'acl_tasks'
-        verbose_name = 'ACL任务'
-        verbose_name_plural = 'ACL任务'
-        managed = True
 @receiver(m2m_changed, sender=ServerGroup.servers.through)
 def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, pk_set, **kwargs):
     """
