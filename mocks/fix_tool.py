@@ -403,3 +403,4 @@ def fix_cidrs():
 
 if __name__ == '__main__':
     fix_cidrs()
+    fix_stocks()
