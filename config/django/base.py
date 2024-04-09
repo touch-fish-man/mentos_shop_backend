@@ -124,7 +124,7 @@ DATABASES = {
         'NAME': 'mentos_proxy',
         'USER': 'mentos_shop',
         'PASSWORD': 'kangcw123qwe!@#',
-        'HOST': 'rm-0xifvzx2x3769byjmgo.mysql.rds.aliyuncs.com',
+        'HOST': 'rm-0xifvzx2x3769byjm.mysql.rds.aliyuncs.com',
         'PORT': 3066,
         'OPTIONS': {'charset': 'utf8mb4'},
         "ATOMIC_REQUESTS": False},

@@ -408,5 +408,5 @@ def fix_product_stock_variant():
 
 
 if __name__ == '__main__':
-    add_product_other()
+    delete_product()
     # fix_stocks()
