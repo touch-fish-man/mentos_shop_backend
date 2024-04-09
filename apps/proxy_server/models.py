@@ -129,7 +129,8 @@ class AclGroupThrough(BaseModel):
 class ServerGroup(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器组名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
-    servers = models.ManyToManyField('Server', verbose_name='服务器', through='ServerGroupThrough', related_name='server_groups')
+    servers = models.ManyToManyField('Server', verbose_name='服务器', through='ServerGroupThrough',
+                                     related_name='server_groups')
 
     class Meta:
         db_table = 'server_group'
@@ -153,7 +154,6 @@ def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, 
         for v in instance.variants.all():
             v.cidrs.clear()
             v.cidrs.add(*instance.get_cidrs())
-        ip_stocks = ProxyStock.objects.filter(server_group_id=instance.id).all()
 
 
 class ServerGroupThrough(BaseModel):
@@ -473,7 +473,8 @@ class ProductStock(BaseModel):
         cidr_ids = self.server_group.get_cidrs()
         acl_id = self.acl.id
         step = self.cart_step
-        ip_stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, acl_id=acl_id, cart_step=step,exclude_label=False).all()
+        ip_stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, acl_id=acl_id, cart_step=step,
+                                              exclude_label=False).all()
         total = ip_stocks.aggregate(total_stock=Sum('ip_stock'))['total_stock']
         # 如果没有ip_stocks，aggregate方法可能返回None
         if total is None:

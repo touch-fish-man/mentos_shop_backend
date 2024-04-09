@@ -107,7 +107,7 @@ class Variant(BaseModel):
     # 可以为空
     variant_desc = models.TextField(verbose_name='描述', blank=True, null=True)
     server_group = models.ForeignKey('proxy_server.ServerGroup', verbose_name='服务器组', blank=True, null=True,
-                                     on_delete=models.CASCADE, related_name='variants')
+                                     on_delete=models.PROTECT, related_name='variants')
     acl_group = models.ForeignKey('proxy_server.AclGroup', verbose_name='acl组', blank=True, null=True,
                                   on_delete=models.CASCADE)
     cart_step = models.IntegerField(default=8, verbose_name='购物车步长', choices=CART_STEP)
@@ -120,69 +120,6 @@ class Variant(BaseModel):
     proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
     cidrs = models.ManyToManyField('proxy_server.Cidr', through='VariantCidrThrough', related_name='cidrs')
 
-    def count_stock(self):
-        variant_stock = 0
-        cart_step = self.cart_step
-        acl_group = self.acl_group
-        server_group = self.server_group
-        cidr_ids, ip_count = self.get_cidr(server_group)
-        stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, cart_step=cart_step, acl_group=acl_group)
-        stocks_dict = {stock.cidr_id: stock for stock in stocks}
-        try:
-
-            for idx, cidr_id in enumerate(cidr_ids):
-                stock_obj = stocks_dict.get(cidr_id)
-                if stock_obj:
-                    self.stock_ids.append(stock_obj.id)
-                    variant_stock += stock_obj.ip_stock
-                else:
-                    # 不存在则创建
-                    logging.info(self.id)
-                    logging.info(cidr_ids)
-                    logging.info(ip_count)
-                    logging.info(idx)
-                    logging.info(cart_step)
-                    logging.info(acl_group)
-                    cart_stock = ip_count[idx] // cart_step
-                    porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id, cart_step=cart_step, acl_group=acl_group,
-                                                            ip_stock=ip_count[idx], cart_stock=cart_stock)
-                    subnets = porxy_stock.gen_subnets()
-                    porxy_stock.subnets = ",".join(subnets)
-                    porxy_stock.available_subnets = porxy_stock.subnets
-                    porxy_stock.save()
-                    variant_stock += ip_count[idx]
-                    self.stock_ids.append(porxy_stock.id)
-        except IntegrityError as e:
-            logging.info(e)
-            traceback.print_exc()
-            raise CustomValidationError("创建库存表失败:{}".format(e))
-        except Exception as e:
-            logging.info(e)
-            traceback.print_exc()
-            raise CustomValidationError("创建库存表失败")
-        return variant_stock
-
-    def get_cidr(self, server_group):
-        cidr_ids = []
-        if server_group:
-
-            server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
-                                                                                                        flat=True)
-            cidr_ids = ServerCidrThrough.objects.filter(server_id__in=server_ids).values_list('cidr_id', flat=True)
-            ip_count = Cidr.objects.filter(id__in=cidr_ids).values_list('id', 'ip_count')
-            ip_count_dict = dict(ip_count)
-            ip_count = [ip_count_dict.get(cidr_id) for cidr_id in cidr_ids]
-
-            return cidr_ids, ip_count
-        else:
-            return cidr_ids, []
-
-    # def update_stock(self):
-    #     get_stock = self.count_stock()
-    #     self.variant_stock = get_stock
-    #     self.save()
-    #     return get_stock
-
 
 @receiver(m2m_changed, sender=Variant.cidrs.through)
 def update_variant_stock(sender, instance, action, reverse, model, pk_set, **kwargs):
@@ -192,16 +129,6 @@ def update_variant_stock(sender, instance, action, reverse, model, pk_set, **kwa
             p_s.update_stock()
 
 
-def get_cidr(server_group):
-    cidrs = []
-    if server_group:
-        server_ids = ServerGroupThrough.objects.filter(server_group_id=server_group.id).values_list('server_id',
-                                                                                                    flat=True)
-        for x in ServerCidrThrough.objects.filter(server_id__in=server_ids).all():
-            cidrs.append(x.cidr)
-        return cidrs
-    else:
-        return cidrs
 
 
 @receiver(post_save, sender=Variant)
@@ -209,7 +136,7 @@ def update_variant_stock(sender, instance, created, **kwargs):
     if not created:
         acls = Acls.objects.all()
         cart_step = instance.cart_step
-        cidrs = get_cidr(instance.server_group)
+        cidrs = instance.server_group.get_cidrs()
         for acl_i in acls:
             acl_id = acl_i.id
             ip_stock_objs = []
