@@ -2,7 +2,7 @@ import logging
 import traceback
 
 from django.core.cache import cache
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, m2m_changed
 from django.dispatch import receiver
 
 from apps.core.models import BaseModel
@@ -107,7 +107,7 @@ class Variant(BaseModel):
     # 可以为空
     variant_desc = models.TextField(verbose_name='描述', blank=True, null=True)
     server_group = models.ForeignKey('proxy_server.ServerGroup', verbose_name='服务器组', blank=True, null=True,
-                                     on_delete=models.CASCADE)
+                                     on_delete=models.CASCADE, related_name='variants')
     acl_group = models.ForeignKey('proxy_server.AclGroup', verbose_name='acl组', blank=True, null=True,
                                   on_delete=models.CASCADE)
     cart_step = models.IntegerField(default=8, verbose_name='购物车步长', choices=CART_STEP)
@@ -177,19 +177,19 @@ class Variant(BaseModel):
         else:
             return cidr_ids, []
 
-    def update_stock(self):
-        get_stock = self.count_stock()
-        self.variant_stock = get_stock
-        self.save()
-        return get_stock
+    # def update_stock(self):
+    #     get_stock = self.count_stock()
+    #     self.variant_stock = get_stock
+    #     self.save()
+    #     return get_stock
 
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        if self.id:
-            get_stock = self.count_stock()
-            self.variant_stock = get_stock
-        super().save(force_insert=False, force_update=False, using=None,
-                     update_fields=None)
+
+@receiver(m2m_changed, sender=Variant.cidrs.through)
+def update_variant_stock(sender, instance, action, reverse, model, pk_set, **kwargs):
+    if action == 'post_add' or action == 'post_remove':
+        # cidr更新产品库存
+        for p_s in instance.product_stocks.all():
+            p_s.update_stock()
 
 
 def get_cidr(server_group):
@@ -211,7 +211,7 @@ def update_variant_stock(sender, instance, created, **kwargs):
         cart_step = instance.cart_step
         cidrs = get_cidr(instance.server_group)
         for acl_i in acls:
-            acl_id=acl_i.id
+            acl_id = acl_i.id
             ip_stock_objs = []
             for cidr_i in cidrs:
                 cart_stock = cidr_i.ip_count // cart_step

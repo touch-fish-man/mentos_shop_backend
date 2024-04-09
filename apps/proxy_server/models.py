@@ -107,6 +107,7 @@ def _mymodel_save(sender, instance, **kwargs):
     update_product_acl.delay([instance.id])
     redis_client.hset('acl_cache', instance.id, json.dumps(acl_dict, cls=DjangoJSONEncoder))
 
+
 @receiver(post_delete, sender=Acls)
 def _mymodel_delete(sender, instance, **kwargs):
     redis_client = cache.client.get_client()
@@ -128,12 +129,31 @@ class AclGroupThrough(BaseModel):
 class ServerGroup(BaseModel):
     name = models.CharField(max_length=255, blank=True, null=True, verbose_name='服务器组名')
     description = models.CharField(max_length=255, blank=True, null=True, verbose_name='描述')
-    servers = models.ManyToManyField('Server', verbose_name='服务器', through='ServerGroupThrough')
+    servers = models.ManyToManyField('Server', verbose_name='服务器', through='ServerGroupThrough', related_name='server_groups')
 
     class Meta:
         db_table = 'server_group'
         verbose_name = '服务器组'
         verbose_name_plural = '服务器组'
+
+    def get_cidrs(self):
+        cidrs = []
+        for server in self.servers.all():
+            for cidr in server.cidrs.all():
+                cidrs.append(cidr)
+        return cidrs
+
+
+@receiver(m2m_changed, sender=ServerGroup.servers.through)
+def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, pk_set, **kwargs):
+    """
+    服务器组变更修改varaints的cidr
+    """
+    if action == 'post_add' or action == 'post_remove':
+        for v in instance.variants.all():
+            v.cidrs.clear()
+            v.cidrs.add(*instance.get_cidrs())
+        ip_stocks = ProxyStock.objects.filter(server_group_id=instance.id).all()
 
 
 class ServerGroupThrough(BaseModel):
@@ -173,6 +193,19 @@ class Server(BaseModel):
                 "id": cidr.id,
             })
         return cidr_info
+
+
+@receiver(m2m_changed, sender=Server.cidrs.through)
+def _mymodel_m2m_changed_server(sender, instance, action, reverse, model, pk_set, **kwargs):
+    """
+    服务器变更修改varaints的cidr
+    """
+    if action == 'post_add' or action == 'post_remove':
+        server_groups = instance.server_groups.all()
+        for server_group in server_groups:
+            for v in server_group.variants.all():
+                v.cidrs.clear()
+                v.cidrs.add(*server_group.get_cidrs())
 
 
 def cidr_ip_count(cidr):
@@ -223,7 +256,7 @@ class Cidr(BaseModel):
 
 
 @receiver(m2m_changed, sender=Cidr.exclude_acl.through)
-def _mymodel_m2m_changed(sender, instance, action, reverse, model, pk_set, **kwargs):
+def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, **kwargs):
     logging.info('m2m_changed')
     if action == 'post_add':
         for acl_id in pk_set:
@@ -426,8 +459,9 @@ class ProductStock(BaseModel):
     cart_step = models.IntegerField(blank=True, null=True, verbose_name='购物车步长')
     stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量', default=0)
     server_group = models.ForeignKey('ServerGroup', on_delete=models.CASCADE, blank=True, null=True,
-                                     verbose_name='服务器组')
-    old_variant_id = models.IntegerField(blank=True, null=True, verbose_name='旧变体ID')
+                                     verbose_name='服务器组', related_name='product_stocks')
+    old_variant_id = models.ForeignKey('products.Variant', on_delete=models.CASCADE, blank=True, null=True,
+                                       verbose_name='旧变体ID', related_name='product_stocks')
     ip_stocks = models.ManyToManyField('ProxyStock', verbose_name='IP库存', related_name='product_stocks')
 
     class Meta:
@@ -442,8 +476,18 @@ class ProductStock(BaseModel):
         if total is None:
             total = 0
         self.stock = total
-        logging.info('更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.name))
+        logging.info(
+            '更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.name))
         self.save()
+
+
+@receiver(m2m_changed, sender=ProductStock.ip_stocks.through)
+def _mymodel_m2m_changed_product_stock(sender, instance, action, reverse, model, pk_set, **kwargs):
+    """
+    更新产品库存
+    """
+    if action == 'post_add' or action == 'post_remove':
+        instance.update_stock()
 
 
 @receiver(post_save, sender=ProductStock)
