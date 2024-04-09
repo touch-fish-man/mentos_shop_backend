@@ -146,6 +146,4 @@ def add_product_other():
                                                         option3=v.variant_option3,
                                                         cart_step=cart_step, variant=v,
                                                         server_group=server_group)
-            product_stock.update_stock()
-            product_stock.save()
         # print("更新商品", v.id)

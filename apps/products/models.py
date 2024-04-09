@@ -127,9 +127,7 @@ def update_variant_stock(sender, instance, action, reverse, model, pk_set, **kwa
         # cidr更新产品库存
         logging.info('tirgger update_variant_stock,action:%s' % action)
         for p_s in instance.product_stocks.all():
-            p_s.update_stock()
-
-
+            p_s.save()
 
 
 @receiver(post_save, sender=Variant)
@@ -163,7 +161,6 @@ def update_variant_stock(sender, instance, created, **kwargs):
                                                                           cart_step=cart_step,
                                                                           variant=instance,
                                                                           server_group=instance.server_group)
-            product_stock.update_stock()
             product_stock.save()
         return True
 

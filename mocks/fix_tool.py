@@ -20,7 +20,6 @@ console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr, Acls, CidrAclThrough, AclGroupThrough, ProductStock
 from apps.orders.models import Orders
-from apps.products.services import add_product_other
 from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
 
@@ -389,7 +388,7 @@ def delete_product():
 
 def fix_stocks():
     for x in ProductStock.objects.all():
-        x.update_stock()
+        x.save()
 
 
 def fix_cidrs():

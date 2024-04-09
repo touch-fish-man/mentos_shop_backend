@@ -13,7 +13,7 @@ from django.db.models import Sum
 from apps.core.models import BaseModel
 from django.db import models
 from apps.utils.kaxy_handler import KaxyClient
-from django.db.models.signals import post_delete, post_save, m2m_changed
+from django.db.models.signals import post_delete, post_save, m2m_changed, pre_save
 from django.dispatch.dispatcher import receiver
 from django.core.cache import caches, cache
 from django.forms.models import model_to_dict
@@ -400,9 +400,7 @@ class ProductStock(BaseModel):
     server_group = models.ForeignKey('ServerGroup', on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name='服务器组', related_name='product_stocks')
     variant = models.ForeignKey('products.Variant', on_delete=models.CASCADE, blank=True, null=True,
-                                       verbose_name='变体ID', related_name='product_stocks')
-    ip_stocks = models.ManyToManyField('ProxyStock', verbose_name='IP库存', related_name='product_stocks')
-
+                                verbose_name='变体ID', related_name='product_stocks')
     class Meta:
         db_table = 'product_stock'
         verbose_name = '产品库存'
@@ -419,9 +417,10 @@ class ProductStock(BaseModel):
         if total is None:
             total = 0
         self.stock = total
-        logging.info(
-            '更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.product_name, self.id, self.stock, self.acl.name))
-        self.save()
+        # logging.info(
+        #     '更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.product_name, self.id, self.stock,
+        #                                                         self.acl.name))
+        return self.stock
 
 
 class Proxy(BaseModel):
@@ -535,7 +534,12 @@ def proxy_stock_updated(sender, instance, **kwargs):
         instance.available_subnets = ','.join(available_subnets)
     for product_stock in instance.product_stocks.all():
         # logging.info('更新产品库存:{}'.format(product_stock.id))
-        product_stock.update_stock()
+        product_stock.save()
+
+
+@receiver(pre_save, sender=ProductStock)
+def _mymodel_pre_save(sender, instance, **kwargs):
+    instance.update_stock()
 
 
 @receiver(post_save, sender=ProductStock)

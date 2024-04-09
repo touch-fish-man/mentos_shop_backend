@@ -279,8 +279,6 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                                                         option3=variant_data.get('variant_option3'),
                                                         cart_step=cart_step, variant=v,
                                                         server_group=variant_data.get('server_group'))
-            product_stock.update_stock()
-            product_stock.save()
     # 创建product_collection
     for product_collection_data in product_collections_data:
         product_collection = ProductCollectionSerializer().create(product_collection_data)

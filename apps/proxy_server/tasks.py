@@ -498,6 +498,4 @@ def update_product_acl(acl_ids=None):
                                                         option3=variant.variant_option3,
                                                         cart_step=cart_step, variant=variant,
                                                         server_group=variant.server_group)
-            product_stock.update_stock()
-            product_stock.save()
     return True
