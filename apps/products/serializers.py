@@ -279,11 +279,7 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                                                         option3=variant_data.get('variant_option3'),
                                                         cart_step=cart_step, old_variant_id=v.id,
                                                         server_group=variant_data.get('server_group'))
-            stock = 0
-            for ip_stock_obj in ip_stock_objs:
-                product_stock.ip_stocks.add(ip_stock_obj)
-                stock += ip_stock_obj.ip_stock
-            product_stock.stock = stock
+            product_stock.update_stock()
             product_stock.save()
     # 创建product_collection
     for product_collection_data in product_collections_data:

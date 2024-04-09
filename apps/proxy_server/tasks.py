@@ -498,10 +498,6 @@ def update_product_acl(acl_ids=None):
                                                         option3=variant.variant_option3,
                                                         cart_step=cart_step, old_variant_id=variant.id,
                                                         server_group=variant.server_group)
-            stock = 0
-            for ip_stock_obj in ip_stock_objs:
-                product_stock.ip_stocks.add(ip_stock_obj)
-                stock += ip_stock_obj.ip_stock
-            product_stock.stock += stock
+            product_stock.update_stock()
             product_stock.save()
     return True

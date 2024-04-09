@@ -146,10 +146,6 @@ def add_product_other():
                                                         option3=v.variant_option3,
                                                         cart_step=cart_step, old_variant_id=v.id,
                                                         server_group=server_group)
-            stock = 0
-            for ip_stock_obj in ip_stock_objs:
-                product_stock.ip_stocks.add(ip_stock_obj)
-                stock += ip_stock_obj.ip_stock
-            product_stock.stock = stock
+            product_stock.update_stock()
             product_stock.save()
         # print("更新商品", v.id)

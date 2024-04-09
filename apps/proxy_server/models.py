@@ -470,8 +470,11 @@ class ProductStock(BaseModel):
         verbose_name_plural = '产品库存'
 
     def update_stock(self):
-        filtered_stocks = self.ip_stocks.filter(exclude_label=False)
-        total = filtered_stocks.aggregate(total_stock=Sum('ip_stock'))['total_stock']
+        cidr_ids = self.server_group.get_cidrs()
+        acl_id = self.acl.id
+        step = self.cart_step
+        ip_stocks = ProxyStock.objects.filter(cidr_id__in=cidr_ids, acl_id=acl_id, cart_step=step,exclude_label=False).all()
+        total = ip_stocks.aggregate(total_stock=Sum('ip_stock'))['total_stock']
         # 如果没有ip_stocks，aggregate方法可能返回None
         if total is None:
             total = 0
@@ -479,15 +482,6 @@ class ProductStock(BaseModel):
         logging.info(
             '更新产品:{} ProductStock:{} 库存:{} acl:{}'.format(self.product.id, self.id, self.stock, self.acl.name))
         self.save()
-
-
-@receiver(m2m_changed, sender=ProductStock.ip_stocks.through)
-def _mymodel_m2m_changed_product_stock(sender, instance, action, reverse, model, pk_set, **kwargs):
-    """
-    更新产品库存
-    """
-    if action == 'post_add' or action == 'post_remove':
-        instance.update_stock()
 
 
 @receiver(post_save, sender=ProductStock)
