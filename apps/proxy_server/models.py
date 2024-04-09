@@ -185,27 +185,7 @@ class Server(BaseModel):
                 "id": cidr.id,
             })
         return cidr_info
-@receiver(m2m_changed, sender=ServerGroup.servers.through)
-def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, pk_set, **kwargs):
-    """
-    服务器组变更修改varaints的cidr
-    """
-    if action == 'post_add' or action == 'post_remove':
-        for v in instance.variants.all():
-            v.cidrs.clear()
-            v.cidrs.add(*instance.get_cidrs())
 
-@receiver(m2m_changed, sender=Server.cidrs.through)
-def _mymodel_m2m_changed_server(sender, instance, action, reverse, model, pk_set, **kwargs):
-    """
-    服务器变更修改varaints的cidr
-    """
-    if action == 'post_add' or action == 'post_remove':
-        server_groups = instance.server_groups.all()
-        for server_group in server_groups:
-            for v in server_group.variants.all():
-                v.cidrs.clear()
-                v.cidrs.add(*server_group.get_cidrs())
 
 
 def cidr_ip_count(cidr):
@@ -598,3 +578,24 @@ class AclTasks(BaseModel):
         verbose_name = 'ACL任务'
         verbose_name_plural = 'ACL任务'
         managed = True
+@receiver(m2m_changed, sender=ServerGroup.servers.through)
+def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, pk_set, **kwargs):
+    """
+    服务器组变更修改varaints的cidr
+    """
+    if action == 'post_add' or action == 'post_remove':
+        for v in instance.variants.all():
+            v.cidrs.clear()
+            v.cidrs.add(*instance.get_cidrs())
+
+@receiver(m2m_changed, sender=Server.cidrs.through)
+def _mymodel_m2m_changed_server(sender, instance, action, reverse, model, pk_set, **kwargs):
+    """
+    服务器变更修改varaints的cidr
+    """
+    if action == 'post_add' or action == 'post_remove':
+        server_groups = instance.server_groups.all()
+        for server_group in server_groups:
+            for v in server_group.variants.all():
+                v.cidrs.clear()
+                v.cidrs.add(*server_group.get_cidrs())
