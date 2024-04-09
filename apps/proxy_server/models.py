@@ -145,15 +145,7 @@ class ServerGroup(BaseModel):
         return cidrs
 
 
-@receiver(m2m_changed, sender=ServerGroup.servers.through)
-def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, pk_set, **kwargs):
-    """
-    服务器组变更修改varaints的cidr
-    """
-    if action == 'post_add' or action == 'post_remove':
-        for v in instance.variants.all():
-            v.cidrs.clear()
-            v.cidrs.add(*instance.get_cidrs())
+
 
 
 class ServerGroupThrough(BaseModel):
@@ -193,7 +185,15 @@ class Server(BaseModel):
                 "id": cidr.id,
             })
         return cidr_info
-
+@receiver(m2m_changed, sender=ServerGroup.servers.through)
+def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, pk_set, **kwargs):
+    """
+    服务器组变更修改varaints的cidr
+    """
+    if action == 'post_add' or action == 'post_remove':
+        for v in instance.variants.all():
+            v.cidrs.clear()
+            v.cidrs.add(*instance.get_cidrs())
 
 @receiver(m2m_changed, sender=Server.cidrs.through)
 def _mymodel_m2m_changed_server(sender, instance, action, reverse, model, pk_set, **kwargs):
