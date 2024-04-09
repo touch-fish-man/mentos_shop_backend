@@ -210,7 +210,8 @@ def update_variant_stock(sender, instance, created, **kwargs):
         acls = Acls.objects.all()
         cart_step = instance.cart_step
         cidrs = get_cidr(instance.server_group)
-        for acl_id in acls:
+        for acl_i in acls:
+            acl_id=acl_i.id
             ip_stock_objs = []
             for cidr_i in cidrs:
                 cart_stock = cidr_i.ip_count // cart_step
