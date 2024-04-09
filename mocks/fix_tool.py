@@ -401,6 +401,13 @@ def fix_cidrs():
             print(cidr.id, x.id)
 
 
+def fix_product_stock_variant():
+    for x in ProductStock.objects.all():
+        x.variant = x.product.variants.filter(variant_option1=x.option1, variant_option2=x.option2,
+                                              variant_option3=x.option3).first()
+        x.save()
+
+
 if __name__ == '__main__':
-    fix_cidrs()
-    fix_stocks()
+    fix_product_stock_variant()
+    # fix_stocks()
