@@ -379,7 +379,7 @@ def fix_ip_stock_item():
 def delete_product():
     p_set = set()
     for x in ProductStock.objects.all():
-        key = "-".join((str(x.old_variant_id), str(x.acl_id)))
+        key = "-".join((str(x.variant.id), str(x.acl_id)))
         if key in p_set:
             x.delete()
             print(x.id)

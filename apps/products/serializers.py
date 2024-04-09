@@ -277,7 +277,7 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                                                         option1=variant_data.get('variant_option1'),
                                                         option2=variant_data.get('variant_option2'),
                                                         option3=variant_data.get('variant_option3'),
-                                                        cart_step=cart_step, old_variant_id=v,
+                                                        cart_step=cart_step, variant=v,
                                                         server_group=variant_data.get('server_group'))
             product_stock.update_stock()
             product_stock.save()

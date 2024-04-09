@@ -399,8 +399,8 @@ class ProductStock(BaseModel):
     stock = models.IntegerField(blank=True, null=True, verbose_name='IP数量', default=0)
     server_group = models.ForeignKey('ServerGroup', on_delete=models.CASCADE, blank=True, null=True,
                                      verbose_name='服务器组', related_name='product_stocks')
-    old_variant_id = models.ForeignKey('products.Variant', on_delete=models.CASCADE, blank=True, null=True,
-                                       verbose_name='旧变体ID', related_name='product_stocks')
+    variant = models.ForeignKey('products.Variant', on_delete=models.CASCADE, blank=True, null=True,
+                                       verbose_name='变体ID', related_name='product_stocks')
     ip_stocks = models.ManyToManyField('ProxyStock', verbose_name='IP库存', related_name='product_stocks')
 
     class Meta:
