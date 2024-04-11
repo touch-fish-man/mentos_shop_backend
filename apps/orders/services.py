@@ -230,7 +230,6 @@ def create_proxy_by_order_obj(order_obj):
                         stock_ids_str = ",".join([str(stock_id) for stock_id in stock_ids])
                         cidr_id = stocks[0].cidr.id
                         logging.info("cidr_id:{}".format(cidr_id))
-
                         server_ip = ServerCidrThrough.objects.filter(cidr_id=cidr_id).first().server.ip
                         kaxy_client = KaxyClient(server_ip)
                         if not kaxy_client.status:
