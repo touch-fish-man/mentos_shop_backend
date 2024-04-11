@@ -193,7 +193,8 @@ def create_proxy_by_order_obj(order_obj):
             logging.info('订单过期')
             msg = 'order expired'
             return False, msg, proxy_id_list
-        lock_id = 'create_proxy_by_id_{}'.format(id)
+        order_id = order_obj.order_id
+        lock_id = 'create_proxy_by_id_{}'.format(order_id)
         with cache.lock(lock_id):
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
