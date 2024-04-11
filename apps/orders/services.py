@@ -233,11 +233,13 @@ def create_proxy_by_order_obj(order_obj):
                         kaxy_client = KaxyClient(server_ip)
                         if not kaxy_client.status:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, "无法连接服务器")
+                            logging.info(msg)
                             return False, msg, proxy_id_list
                         try:
                             proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, cidr_str, acl_value)
                         except Exception as e:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, e)
+                            logging.exception(e)
                             return False, msg, proxy_id_list
                         for proxy_i in proxy_info["proxy"]:
                             ip, port, user, password = proxy_i.split(":")
