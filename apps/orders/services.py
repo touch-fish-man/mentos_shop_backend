@@ -283,6 +283,7 @@ def create_proxy_by_order_obj(order_obj):
     else:
         logging.info('订单不存在')
         msg = '订单不存在'
+    logging.info("order process fail,msg:{}".format(msg))
     return False, msg, proxy_id_list
 
 
