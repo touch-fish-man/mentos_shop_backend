@@ -505,7 +505,8 @@ class AclTasks(BaseModel):
 def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, **kwargs):
     logging.info('m2m_changed')
     if action in ["post_add", "post_remove", "post_clear"]:
-        acl = instance.acl, cidr = instance.cidr
+        acl = instance.acl
+        cidr = instance.cidr
         ip_stocks = ProxyStock.objects.filter(cidr=cidr, acl=acl).all()
         for stock in ip_stocks:
             stock.exclude_label = Cidr.exclude_acl.through.objects.filter(acl=acl, cidr=cidr).exists()
