@@ -412,6 +412,9 @@ def fix_exclude_cidr():
     for x in Cidr.objects.all():
         exclude_acls = x.exclude_acl.all()
         ProxyStock.objects.filter(cidr_id=x.id, acl_id__in=exclude_acls).update(exclude_label=True)
+    for x in ProductStock.objects.all():
+        x.save()
+
 
 
 
