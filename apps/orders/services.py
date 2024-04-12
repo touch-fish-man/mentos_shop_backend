@@ -401,6 +401,8 @@ def webhook_handle(order_info):
                     logging.info("order process fail")
                     order_info = {"id": shpify_order_id, "tags": "delivery_fail", "note": msg}
                     t1 = threading.Thread(target=change_shopify_order_info, args=(order_info,)).start()
+                    order.fail_reason = msg
+                    order.save()
 
             else:
                 logging.info("order not exist")
