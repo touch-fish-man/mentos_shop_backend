@@ -503,7 +503,7 @@ class AclTasks(BaseModel):
 
 @receiver(m2m_changed, sender=Cidr.exclude_acl.through)
 def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, **kwargs):
-    logging.info('m2m_changed')
+    logging.info('cidr exclude_acl changed,action:{}'.format(action))
     if action in ["post_add", "post_remove", "post_clear"]:
         cidr = instance
         exclude_acls = instance.exclude_acl.all().values_list('id', flat=True)
@@ -524,7 +524,7 @@ def proxy_stock_updated(sender, instance, **kwargs):
 
 @receiver(post_save, sender=ProxyStock)
 def proxy_stock_updated(sender, instance, **kwargs):
-    cidr_id = instance.cidr
+    cidr_id = instance.cidr.id
     acl_id = instance.acl_id
     cart_step = instance.cart_step
     for product_stock in ProductStock.objects.filter(acl_id=acl_id,cart_step=cart_step).all():
