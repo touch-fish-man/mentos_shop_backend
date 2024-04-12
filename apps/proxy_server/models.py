@@ -509,7 +509,11 @@ def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, 
         exclude_acls = instance.exclude_acl.all()
         ip_stocks = ProxyStock.objects.filter(cidr=cidr, acl__in=exclude_acls).all()
         for stock in ip_stocks:
-            stock.exclude_label = Cidr.exclude_acl.through.objects.filter(acl=stock.acl, cidr=stock.cidr).count() > 0
+            stock.exclude_label = True
+            stock.save()
+        not_stocks=ProxyStock.objects.filter(cidr=cidr, acl_not_in=exclude_acls).all()
+        for stock in not_stocks:
+            stock.exclude_label = False
             stock.save()
 
 
