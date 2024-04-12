@@ -24,6 +24,7 @@ from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.services import add_product_other
 
+
 def is_ip_in_network(ip_str, network_str):
     ip = ipaddress.ip_address(ip_str)
     network = ipaddress.ip_network(network_str)
@@ -407,6 +408,13 @@ def fix_product_stock_variant():
         x.save()
 
 
+def fix_exclude_cidr():
+    for x in Cidr.objects.all():
+        exclude_acls = x.exclude_acl.all()
+        ProxyStock.objects.filter(cidr_id=x.id, acl_id__in=exclude_acls).update(exclude_label=True)
+
+
+
 if __name__ == '__main__':
-    delete_product()
+    fix_exclude_cidr()
     # fix_stocks()

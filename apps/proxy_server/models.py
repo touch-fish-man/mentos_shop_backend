@@ -504,19 +504,12 @@ class AclTasks(BaseModel):
 @receiver(m2m_changed, sender=Cidr.exclude_acl.through)
 def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, **kwargs):
     logging.info('m2m_changed')
-    if action == 'post_add':
-        for acl_id in pk_set:
-            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
-            for stock in ip_stocks:
-                stock.exclude_label = True
-                stock.save()
-
-    elif action == 'post_remove':
-        for acl_id in pk_set:
-            ip_stocks = ProxyStock.objects.filter(cidr_id=instance.id, acl_id=acl_id).all()
-            for stock in ip_stocks:
-                stock.exclude_label = False
-                stock.save()
+    if action in ["post_add", "post_remove", "post_clear"]:
+        acl = instance.acl, cidr = instance.cidr
+        ip_stocks = ProxyStock.objects.filter(cidr=cidr, acl=acl).all()
+        for stock in ip_stocks:
+            stock.exclude_label = Cidr.exclude_acl.through.objects.filter(acl=acl, cidr=cidr).exists()
+            stock.save()
 
 
 @receiver(pre_save, sender=ProxyStock)
