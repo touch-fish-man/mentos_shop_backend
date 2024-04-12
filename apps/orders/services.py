@@ -193,7 +193,8 @@ def create_proxy_by_order_obj(order_obj):
             logging.info('订单过期')
             msg = 'order expired'
             return False, msg, proxy_id_list
-        lock_id = 'create_proxy_by_id_{}'.format(id)
+        order_id = order_obj.order_id
+        lock_id = 'create_proxy_by_id_{}'.format(order_id)
         with cache.lock(lock_id):
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
@@ -229,15 +230,18 @@ def create_proxy_by_order_obj(order_obj):
                             stock_ids.append(stock_info[0].id)
                         stock_ids_str = ",".join([str(stock_id) for stock_id in stock_ids])
                         cidr_id = stocks[0].cidr.id
+                        logging.info("cidr_id:{}".format(cidr_id))
                         server_ip = ServerCidrThrough.objects.filter(cidr_id=cidr_id).first().server.ip
                         kaxy_client = KaxyClient(server_ip)
                         if not kaxy_client.status:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, "无法连接服务器")
+                            logging.info(msg)
                             return False, msg, proxy_id_list
                         try:
                             proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, cidr_str, acl_value)
                         except Exception as e:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, e)
+                            logging.exception(e)
                             return False, msg, proxy_id_list
                         for proxy_i in proxy_info["proxy"]:
                             ip, port, user, password = proxy_i.split(":")
@@ -283,6 +287,7 @@ def create_proxy_by_order_obj(order_obj):
     else:
         logging.info('订单不存在')
         msg = '订单不存在'
+    logging.info("order process fail,msg:{}".format(msg))
     return False, msg, proxy_id_list
 
 

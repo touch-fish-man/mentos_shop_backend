@@ -96,7 +96,7 @@ def reset_proxy_fn(order_id, username):
             kaxy_client = KaxyClient(server_ip)
             kaxy_client.del_user(username)
         filter_dict = {"id": order_id, "pay_status": 1}
-        re_create_ret, ret_proxy_list, msg = create_proxy(filter_dict)
+        re_create_ret, msg,ret_proxy_list = create_proxy(filter_dict)
         if re_create_ret:
             new_proxy = Proxy.objects.filter(username=username).all()
             for p in new_proxy:
