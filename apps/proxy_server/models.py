@@ -528,9 +528,10 @@ def proxy_stock_updated(sender, instance, **kwargs):
     acl_id = instance.acl_id
     cart_step = instance.cart_step
     for product_stock in ProductStock.objects.filter(acl_id=acl_id,cart_step=cart_step).all():
-        # 更新产品库存
-        logging.info('更新产品库存:{}'.format(product_stock.id))
-        product_stock.save()
+        cidr_ids = [x.id for x in product_stock.server_group.get_cidrs()]
+        if cidr_id in cidr_ids:
+            # logging.info('更新产品库存{}'.format(product_stock.id))
+            product_stock.save()
 
 
 @receiver(pre_save, sender=ProductStock)
