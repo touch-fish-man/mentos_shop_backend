@@ -113,7 +113,7 @@ class Variant(BaseModel):
     cart_step = models.IntegerField(default=8, verbose_name='购物车步长', choices=CART_STEP)
     is_active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
     variant_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='价格')
-    variant_stock = models.IntegerField(verbose_name='库存', default=0)  # ip数量
+    variant_stock = models.IntegerField(verbose_name='库存', default=999)  # ip数量
     variant_option1 = models.CharField(max_length=255, verbose_name='选项1', blank=True, null=True)
     variant_option2 = models.CharField(max_length=255, verbose_name='选项2', blank=True, null=True)
     variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)

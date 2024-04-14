@@ -10,7 +10,7 @@ from rest_framework import serializers
 from .models import Product, Variant, ProductTag, ProductCollection, Option, OptionValue
 from apps.proxy_server.models import Acls, Cidr, ProxyStock
 from apps.proxy_server.serializers import ServersGroupSerializer, AclsGroupSerializer, AclGroup, ServerGroup
-from apps.proxy_server.models import ServerGroupThrough, ServerCidrThrough, ProductStock,CidrAclThrough
+from apps.proxy_server.models import ServerGroupThrough, ServerCidrThrough, ProductStock, CidrAclThrough
 from drf_writable_nested.serializers import WritableNestedModelSerializer
 from django.core.cache import caches
 
@@ -93,11 +93,9 @@ class VariantCreateSerializer(serializers.ModelSerializer):
             'variant_price',
             'variant_stock', 'variant_option1', 'variant_option2', 'variant_option3', "proxy_time")
 
-    def create(self, validated_data):
-        variant = Variant.objects.create(**validated_data)
-
-        variant.save()
-        return variant
+    def validate(self, attrs):
+        attrs['variant_stock'] = 9999
+        return attrs
 
 
 class ProductTagSerializer(serializers.ModelSerializer):
@@ -256,11 +254,11 @@ def create_product_other(product_id, product_collections_data, product_tags_data
         for acl_i in acls:
             ip_stock_objs = []
             for cidr_i in cidrs:
-                exclude_label=False
+                exclude_label = False
                 v.cidrs.add(cidr_i)
                 cart_stock = cidr_i.ip_count // cart_step
                 if CidrAclThrough.objects.filter(cidr_id=cidr_i.id, acl_id=acl_i.id).exists():
-                    exclude_label=True
+                    exclude_label = True
                 stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl=acl_i, cart_step=cart_step)
                 if is_create:
                     stock_obj.ip_stock = cidr_i.ip_count
@@ -273,12 +271,12 @@ def create_product_other(product_id, product_collections_data, product_tags_data
                 stock_obj.exclude_label = exclude_label
                 stock_obj.save()
                 ip_stock_objs.append(stock_obj)
-            product_stock,is_create = ProductStock.objects.get_or_create(product=product, acl=acl_i,
-                                                        option1=variant_data.get('variant_option1'),
-                                                        option2=variant_data.get('variant_option2'),
-                                                        option3=variant_data.get('variant_option3'),
-                                                        cart_step=cart_step, variant=v,
-                                                        server_group=variant_data.get('server_group'))
+            product_stock, is_create = ProductStock.objects.get_or_create(product=product, acl=acl_i,
+                                                                          option1=variant_data.get('variant_option1'),
+                                                                          option2=variant_data.get('variant_option2'),
+                                                                          option3=variant_data.get('variant_option3'),
+                                                                          cart_step=cart_step, variant=v,
+                                                                          server_group=variant_data.get('server_group'))
     # 创建product_collection
     for product_collection_data in product_collections_data:
         product_collection = ProductCollectionSerializer().create(product_collection_data)
