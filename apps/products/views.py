@@ -125,8 +125,9 @@ class ProductViewSet(ComModelViewSet):
         return SuccessResponse(data=variant_info)
 
     def list(self, request, *args, **kwargs):
-        if not request.user.is_superuser:
-            self.queryset = self.queryset.filter(old_flag=False).filter(valid=True).filter(active=True).filter(soft_delete=False)
+        if "order_page" in request.query_params or not request.user.is_superuser:
+            self.queryset = self.queryset.filter(old_flag=False).filter(valid=True).filter(active=True).filter(
+                soft_delete=False)
         page = self.paginate_queryset(self.queryset)
         serializer = self.get_serializer(page, many=True)
         get_data = serializer.data
