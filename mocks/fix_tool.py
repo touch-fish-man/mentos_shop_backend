@@ -11,7 +11,7 @@ import sys
 import requests
 import time
 from concurrent.futures import ThreadPoolExecutor
-
+from tqdm import tqdm
 from init_env import *
 from rich.console import Console
 import ipaddress
@@ -383,7 +383,7 @@ def find_proxy_stock_ids():
                 p.save()
         except Exception as e:
             print(e)
-    for k,v in remove_list.items():
+    for k,v in tqdm(remove_list.items()):
         stock_=ip_stock_dict[k]
         stock_.remove_available_subnet(v)
 
