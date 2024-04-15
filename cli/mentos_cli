@@ -160,23 +160,15 @@ def find_repeat():
     """
     cnt = 0
     xxx = {}
-    order_id = set()
     order_ = set()
     for ppp in Proxy.objects.all():
-        key = "-".join((str(ppp.ip), str(ppp.ip_stock_id)))
-        if key in xxx:
-            print(ppp.id, ppp.subnet, ppp.ip_stock_id, ppp.order_id, xxx[key])
-            order_.add((ppp.order_id, xxx[key]))
-            order_id.add(ppp.order_id)
-            cnt += 1
-        else:
-            xxx[key] = ppp.order_id
-    print("重复发货代理数量", cnt)
-    order_ = list(order_)
-    # 根据第二个元素排序
-    order_.sort(key=lambda x: x[1])
-    for xi in order_:
-        print(xi)
+        key = "-".join((str(ppp.ip), str(ppp.acl_ids)))
+        if key not  in xxx:
+            xxx[key] = set()
+        xxx[key].add(ppp.order_id)
+    for k, v in xxx.items():
+        if len(v) > 1:
+            print(k, v)
 
 
 @cli.command()
