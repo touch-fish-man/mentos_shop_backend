@@ -357,7 +357,7 @@ def find_proxy_stock_ids():
     ip_stock_dict={}
     p_s=ProxyStock.objects.all()
     for p_s_i in p_s:
-        p_s_i.reset_stock() # 重置库存
+        # p_s_i.reset_stock() # 重置库存
         ip_stock_dict[p_s_i.id]=p_s_i
     remove_list = {}
     for p in Proxy.objects.all():
@@ -385,9 +385,7 @@ def find_proxy_stock_ids():
             print(e)
     for k,v in remove_list.items():
         stock_=ip_stock_dict[k]
-        for subnet in v:
-            print(k,subnet)
-            stock_.remove_available_subnet(subnet)
+        stock_.remove_available_subnet(v)
 
 
 def fix_ip_stock_item():

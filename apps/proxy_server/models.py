@@ -339,19 +339,22 @@ class ProxyStock(BaseModel):
         if available_subnets:
             return available_subnets[0]
 
-    def remove_available_subnet(self, subnet):
+    def remove_available_subnet(self, subnets):
         """
         更新可用子网
         :return:
         """
+        if isinstance(subnets, str):
+            subnets = [subnets]
         available_subnets = self.available_subnets.split(',')
         if available_subnets:
-            if subnet in available_subnets:
-                available_subnets.remove(subnet)
-                available_subnets = list(set(available_subnets))
-                available_subnets.sort(key=lambda x: int(ipaddress.ip_network(x).network_address))
-                self.available_subnets = ','.join(available_subnets)
-                self.save()
+            for subnet in subnets:
+                if subnet in available_subnets:
+                    available_subnets.remove(subnet)
+                    available_subnets = list(set(available_subnets))
+                    available_subnets.sort(key=lambda x: int(ipaddress.ip_network(x).network_address))
+                    self.available_subnets = ','.join(available_subnets)
+        self.save()
 
     def return_subnet(self, subnet):
         """
