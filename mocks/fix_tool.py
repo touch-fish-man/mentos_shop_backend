@@ -424,11 +424,14 @@ def fix_proxy():
         c_o=Cidr.objects.filter(cidr=cidr_p).first()
         if c_o:
             x.cidr_id=c_o.id
+        else:
+            ids=x.ip_stock_ids.split(",")
+            x.cidr_id=ProductStock.objects.filter(id__in=ids).first().cidr_id
         x.local_variant_id=x.order.local_variant_id
         x.save()
 
 
 
 if __name__ == '__main__':
-    fix_product_stock_variant()
+    fix_proxy()
     # fix_stocks()
