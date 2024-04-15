@@ -403,9 +403,10 @@ def fix_cidrs():
 
 def fix_product_stock_variant():
     for x in ProductStock.objects.all():
-        x.variant = x.product.variants.filter(variant_option1=x.option1, variant_option2=x.option2,
-                                              variant_option3=x.option3).first()
+        s=x.stock
         x.save()
+        if s!=x.stock:
+            print(x.id)
 
 
 def fix_exclude_cidr():
