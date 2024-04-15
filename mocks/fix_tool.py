@@ -426,7 +426,7 @@ def fix_proxy():
             x.cidr_id=c_o.id
         else:
             ids=x.ip_stock_ids.split(",")
-            x.cidr_id=ProductStock.objects.filter(id__in=ids).first().cidr_id
+            x.cidr_id=ProxyStock.objects.filter(id__in=ids).first().cidr_id
         x.local_variant_id=x.order.local_variant_id
         x.save()
 
