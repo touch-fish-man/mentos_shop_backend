@@ -419,5 +419,5 @@ def fix_exclude_cidr():
 
 
 if __name__ == '__main__':
-    fix_exclude_cidr()
+    fix_product_stock_variant()
     # fix_stocks()
