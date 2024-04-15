@@ -390,10 +390,6 @@ def delete_product():
             p_set.add(key)
 
 
-def fix_stocks():
-    for x in ProductStock.objects.all():
-        x.save()
-
 
 def fix_cidrs():
     for x in Variant.objects.all():
@@ -404,7 +400,10 @@ def fix_cidrs():
             print(cidr.id, x.id)
 
 
-def fix_product_stock_variant():
+def update_product_stock():
+    """
+    更新product_stock表
+    """
     for x in ProductStock.objects.all():
         s=x.stock
         x.save()
@@ -418,7 +417,10 @@ def fix_exclude_cidr():
         ProxyStock.objects.filter(cidr_id=x.id, acl_id__in=exclude_acls).update(exclude_label=True)
     for x in ProductStock.objects.all():
         x.save()
-def fix_proxy():
+def fix_proxy_cidr_variant():
+    """
+    修复proxy表中的cidr_id和variant_id
+    """
     for x in Proxy.objects.all():
         cidr_p=x.subnet
         c_o=Cidr.objects.filter(cidr=cidr_p).first()
@@ -433,5 +435,5 @@ def fix_proxy():
 
 
 if __name__ == '__main__':
-    fix_proxy()
+    add_product_other()
     # fix_stocks()
