@@ -529,6 +529,7 @@ def proxy_stock_updated(sender, instance, **kwargs):
         # 去除空字符串
         available_subnets = [x for x in available_subnets if x]
         instance.available_subnets = ','.join(available_subnets)
+        instance.ip_stock = sum([ipaddress.ip_network(x).num_addresses for x in available_subnets])
 
 
 @receiver(post_save, sender=ProxyStock)
