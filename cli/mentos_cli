@@ -158,14 +158,13 @@ def find_repeat():
     """
     查找重复发货代理
     """
-    cnt = 0
     xxx = {}
-    order_ = set()
     for ppp in Proxy.objects.all():
         key = "-".join((str(ppp.ip), str(ppp.acl_ids)))
+        print(key)
         if key not  in xxx:
-            xxx[key] = set()
-        xxx[key].add(ppp.order_id)
+            xxx[key] = []
+        xxx[key].append(ppp.order_id)
     for k, v in xxx.items():
         if len(v) > 1:
             print(k, v)
