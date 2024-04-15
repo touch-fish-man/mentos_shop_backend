@@ -15,7 +15,7 @@ from tqdm import tqdm
 from init_env import *
 from rich.console import Console
 import ipaddress
-
+import json
 console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr, Acls, CidrAclThrough, AclGroupThrough, ProductStock
@@ -383,9 +383,11 @@ def find_proxy_stock_ids():
                 p.save()
         except Exception as e:
             print(e)
+    json.dump(remove_list, open("/tmp/remove_list.json", "w"))
     for k,v in tqdm(remove_list.items()):
         stock_=ip_stock_dict[k]
         stock_.remove_available_subnet(v)
+        stock_.save()
 
 
 def fix_ip_stock_item():

@@ -533,6 +533,9 @@ def proxy_stock_updated(sender, instance, **kwargs):
         available_subnets = [x for x in available_subnets if x]
         instance.available_subnets = ','.join(available_subnets)
         instance.ip_stock = sum([ipaddress.ip_network(x).num_addresses for x in available_subnets])
+    else:
+        instance.ip_stock = 0
+    print(instance.ip_stock)
 
 
 @receiver(post_save, sender=ProxyStock)
