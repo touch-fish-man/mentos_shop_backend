@@ -344,11 +344,13 @@ def fix_old_proxy_order_stock():
 
 
 def find_proxy_stock_ids():
+    """
+    查找proxy表中的ip_stock_ids 去除库存
+    """
     acl_group_acl_reverse = {}
     acls = list(Acls.objects.all().values_list("id", flat=True))
     for acl in AclGroup.objects.all():
         acl_group_acl_reverse[acl.id] = copy.deepcopy(acls)
-
     for acl in AclGroupThrough.objects.all():
         if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
             acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
@@ -356,8 +358,13 @@ def find_proxy_stock_ids():
         try:
             ip_stock_id = p.ip_stock_id
             acl_group_id = ProxyStock.objects.filter(id=ip_stock_id).first().acl_group_id
-            acl_ids = acl_group_acl_reverse.get(acl_group_id, [])
+            if acl_group_id:
+                acl_ids = acl_group_acl_reverse.get(acl_group_id, [])
+            elif:
+                acl_ids=p.acl_ids.split(",")
             ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
+            for x in ip_stock_ids:
+                x.remove_available_subnet(p.subnet)
             p.ip_stock_ids = ",".join([str(x.id) for x in ip_stock_ids])
             p.save()
         except Exception as e:
@@ -432,8 +439,6 @@ def fix_proxy_cidr_variant():
         x.local_variant_id=x.order.local_variant_id
         x.save()
 
-
-
 if __name__ == '__main__':
-    fix_proxy_cidr_variant()
+    find_proxy_stock_ids()
     # fix_stocks()
