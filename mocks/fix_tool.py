@@ -355,7 +355,7 @@ def find_proxy_stock_ids():
         if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
             acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
     ip_stock_dict={}
-    for p in Proxy.objects.filter(ip_stock_ids__isnull=False).all():
+    for p in Proxy.objects.filter(old_flag=0).all():
         try:
             ip_stock_id = p.ip_stock_id
             if ip_stock_id:
