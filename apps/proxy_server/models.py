@@ -315,6 +315,12 @@ class ProxyStock(BaseModel):
         self.soft_delete = True
         self.save()
 
+    def reset_stock(self):
+        self.available_subnets = self.subnets
+        self.ip_stock = sum([ipaddress.ip_network(x).num_addresses for x in self.available_subnets.split(',') if x])
+        self.cart_stock = self.ip_stock // self.cart_step
+        self.save()
+
     def gen_subnets(self):
         """
         生成子网
@@ -530,7 +536,7 @@ def proxy_stock_updated(sender, instance, **kwargs):
     cidr_id = instance.cidr.id
     acl_id = instance.acl_id
     cart_step = instance.cart_step
-    for product_stock in ProductStock.objects.filter(acl_id=acl_id,cart_step=cart_step).all():
+    for product_stock in ProductStock.objects.filter(acl_id=acl_id, cart_step=cart_step).all():
         cidr_ids = [x.id for x in product_stock.server_group.get_cidrs()]
         if cidr_id in cidr_ids:
             # logging.info('更新产品库存{}'.format(product_stock.id))
