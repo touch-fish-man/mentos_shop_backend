@@ -459,6 +459,5 @@ def fix_proxy_cidr_variant():
         x.save()
 
 if __name__ == '__main__':
-    for i in ProxyStock.objects.all():
-        i.save()
+    find_proxy_stock_ids()
 
