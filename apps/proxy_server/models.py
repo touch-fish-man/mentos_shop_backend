@@ -454,7 +454,6 @@ class Proxy(BaseModel):
     amazon_delay = models.IntegerField(blank=True, null=True, verbose_name='amazon延迟')
     google_delay = models.IntegerField(blank=True, null=True, verbose_name='google延迟')
     httpbin_delay = models.IntegerField(blank=True, null=True, verbose_name='httpbin延迟')
-    product_stock_ids = models.TextField(blank=True, null=True, verbose_name='产品库存ID')  # 回收库存时使用
     cidr_id = models.IntegerField(blank=True, null=True, verbose_name='CIDR ID')  # 回收库存时使用
     acl_ids = models.TextField(blank=True, null=True, verbose_name='ACL ID')  # 回收库存时使用
     old_flag = models.BooleanField(default=False, verbose_name='旧标记')  # 用于判断是否是旧的代理
@@ -535,7 +534,7 @@ def proxy_stock_updated_pre(sender, instance, **kwargs):
         instance.ip_stock = sum([ipaddress.ip_network(x).num_addresses for x in available_subnets])
     else:
         instance.ip_stock = 0
-    print(instance.ip_stock)
+    # print(instance.ip_stock)
 
 
 @receiver(post_save, sender=ProxyStock)
