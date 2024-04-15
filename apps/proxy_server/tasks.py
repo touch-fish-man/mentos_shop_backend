@@ -84,7 +84,7 @@ def check_server_status(faild_count=5):
 @shared_task(name='reset_proxy')
 def reset_proxy_fn(order_id, username):
     lock_id = "reset_proxy_" + str(order_id)
-    with cache.lock(lock_id):
+    with cache.lock(lock_id, timeout=5*60):
         ret_json = {}
         logging.info("==========create_proxy_by_id {}==========".format(order_id))
         delete_proxy_list = []
