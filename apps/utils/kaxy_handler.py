@@ -85,9 +85,10 @@ class KaxyClient:
             faild_cnt = cache.get("request_fail_cnt_{}".format(self.host))  # 8小时内失败次数
             if faild_cnt:
                 cache.set("request_fail_cnt_{}".format(self.host), int(faild_cnt) + 1)
+                cache.expire("request_fail_cnt_{}".format(self.host), 60 * 60 * 4)
             else:
                 cache.set("request_fail_cnt_{}".format(self.host), 1)
-                cache.expire("request_fail_cnt", 60 * 60 * 4)
+                cache.expire("request_fail_cnt_{}".format(self.host), 60 * 60 * 4)
             error_msg = "请求失败: {}".format(e)
             return error_msg, resp
         if resp.status_code != 200:
