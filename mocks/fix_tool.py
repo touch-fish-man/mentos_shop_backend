@@ -354,19 +354,32 @@ def find_proxy_stock_ids():
     for acl in AclGroupThrough.objects.all():
         if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
             acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
+    ip_stock_dict={}
     for p in Proxy.objects.all():
         try:
             ip_stock_id = p.ip_stock_id
-            acl_group_id = ProxyStock.objects.filter(id=ip_stock_id).first().acl_group_id
-            if acl_group_id:
-                acl_ids = acl_group_acl_reverse.get(acl_group_id, []) # old 
+            if ip_stock_id:
+                continue
+                acl_group_id = ProxyStock.objects.filter(id=ip_stock_id).first().acl_group_id
+                if ip_stock_id not in ip_stock_dict:
+                    ip_s=ProxyStock.objects.filter(id=ip_stock_id).first()
+                    ip_stock_dict[ip_stock_id]=ip_s
+                else:
+                    ip_s = ip_stock_dict[ip_stock_id]
+                acl_group_id=ip_s.acl_group_id
+                if acl_group_id:
+                    acl_ids = acl_group_acl_reverse.get(acl_group_id, []) # old 
+                else:
+                    acl_ids=p.acl_ids.split(",")
             else:
                 acl_ids=p.acl_ids.split(",")
             ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
             for x in ip_stock_ids:
                 x.remove_available_subnet(p.subnet)
+            org=p.ip_stock_ids
             p.ip_stock_ids = ",".join([str(x.id) for x in ip_stock_ids])
-            p.save()
+            if org!=p.ip_stock_ids:
+                p.save()
         except Exception as e:
             print(e)
 
