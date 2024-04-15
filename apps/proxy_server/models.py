@@ -526,7 +526,7 @@ def _mymodel_m2m_changed_cidr(sender, instance, action, reverse, model, pk_set, 
 
 
 @receiver(pre_save, sender=ProxyStock)
-def proxy_stock_updated(sender, instance, **kwargs):
+def proxy_stock_updated_pre(sender, instance, **kwargs):
     if instance.available_subnets:
         available_subnets = instance.available_subnets.split(',')
         # 去除空字符串
@@ -539,14 +539,14 @@ def proxy_stock_updated(sender, instance, **kwargs):
 
 
 @receiver(post_save, sender=ProxyStock)
-def proxy_stock_updated(sender, instance, **kwargs):
+def proxy_stock_updated_post(sender, instance, **kwargs):
     cidr_id = instance.cidr.id
     acl_id = instance.acl_id
     cart_step = instance.cart_step
     for product_stock in ProductStock.objects.filter(acl_id=acl_id, cart_step=cart_step).all():
         cidr_ids = [x.id for x in product_stock.server_group.get_cidrs()]
         if cidr_id in cidr_ids:
-            # logging.info('更新产品库存{}'.format(product_stock.id))
+            print('更新产品库存{}'.format(product_stock.id))
             product_stock.save()
 
 
