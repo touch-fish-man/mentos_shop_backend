@@ -355,17 +355,16 @@ def find_proxy_stock_ids():
         if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
             acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
     ip_stock_dict={}
-    for p in Proxy.objects.filter(old_flag=0).all():
+    p_s=ProxyStock.objects.all()
+    for p_s_i in p_s:
+        p_s_i.reset_stock() # 重置库存
+        ip_stock_dict[p_s_i.id]=p_s_i
+    remove_list = {}
+    for p in Proxy.objects.all():
         try:
             ip_stock_id = p.ip_stock_id
             if ip_stock_id:
-                continue
-                acl_group_id = ProxyStock.objects.filter(id=ip_stock_id).first().acl_group_id
-                if ip_stock_id not in ip_stock_dict:
-                    ip_s=ProxyStock.objects.filter(id=ip_stock_id).first()
-                    ip_stock_dict[ip_stock_id]=ip_s
-                else:
-                    ip_s = ip_stock_dict[ip_stock_id]
+                ip_s = ip_stock_dict[ip_stock_id]
                 acl_group_id=ip_s.acl_group_id
                 if acl_group_id:
                     acl_ids = acl_group_acl_reverse.get(acl_group_id, []) # old 
@@ -373,15 +372,22 @@ def find_proxy_stock_ids():
                     acl_ids=p.acl_ids.split(",")
             else:
                 acl_ids=p.acl_ids.split(",")
-            ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
+            ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, available_subnets__contains=p.subnet).all()
             for x in ip_stock_ids:
-                x.remove_available_subnet(p.subnet)
+                if x.id not in remove_list:
+                    remove_list[x.id]=set()
+                remove_list[x.id].add(p.subnet)
             org=p.ip_stock_ids
             p.ip_stock_ids = ",".join([str(x.id) for x in ip_stock_ids])
             if org!=p.ip_stock_ids:
                 p.save()
         except Exception as e:
             print(e)
+    for k,v in remove_list.items():
+        stock_=ip_stock_dict[k]
+        for subnet in v:
+            print(k,subnet)
+            stock_.remove_available_subnet(subnet)
 
 
 def fix_ip_stock_item():
