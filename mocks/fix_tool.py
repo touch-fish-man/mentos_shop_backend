@@ -415,10 +415,17 @@ def fix_exclude_cidr():
         ProxyStock.objects.filter(cidr_id=x.id, acl_id__in=exclude_acls).update(exclude_label=True)
     for x in ProductStock.objects.all():
         x.save()
-
+def fix_proxy():
+    for x in Proxy.objects.all():
+        cidr_p=x.subnet
+        c_o=Cidr.objects.filter(cidr=cidr_p).first()
+        if c_o:
+            x.cidr_id=c_o.id
+        x.local_variant_id=x.oerder.local_variant_id
+        x.save()
 
 
 
 if __name__ == '__main__':
-    fix_product_stock_variant()
+    fix_proxy()
     # fix_stocks()
