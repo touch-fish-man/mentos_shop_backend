@@ -187,8 +187,6 @@ class Product(BaseModel):
         self.soft_delete = True
         self.save()
 
-    def variants(self):
-        return Variant.objects.filter(product_id=self.id)
 
     @property
     def is_active(self):

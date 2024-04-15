@@ -41,45 +41,66 @@ def is_ip_in_network(ip_str, network_str):
     return ip in network
 
 
+# @cli.command()
+# def check_stock():
+#     """
+#     检查库存
+#     """
+#     product_id = console.input("请输入商品id")
+#     variant_ids = Variant.objects.filter(product_id=product_id).values_list('id', flat=True)
+#     for variant_id in variant_ids:
+#         variant = Variant.objects.get(id=variant_id)
+#         server_group = variant.server_group
+#         cidr_ids, ip_count = get_cidr(server_group)
+#         for cidr_id in cidr_ids:
+#             proxy_stocks = ProxyStock.objects.filter(variant_id=variant_id, cidr_id=cidr_id).all()
+#             if len(proxy_stocks) < ip_count:
+#                 print(f"商品{variant_id} 库存不足")
+
+
 @cli.command()
 def fix_stock():
     """
-    修复库存
+    修复库存,用于修复库存回收失败
     """
-    # for xxx in ProxyStock.objects.all():
-    #     ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()
-    #     if xxx.subnets:
-    #         subnets = xxx.subnets.split(",")
-    #         for p in ppp:
-    #             if p.subnet in subnets:
-    #                 subnets.remove(p.subnet)
-    #         subnets.sort()
-    #         cart_stock = len(subnets)
-    #         xxx.available_subnets = ",".join(subnets)
-    #         # print(xxx.available_subnets)
-    #         if xxx.cart_stock != cart_stock:
-    #             print("id: {} fix stock: {} -> {}".format(xxx.id, xxx.cart_stock, cart_stock))
-    #             xxx.cart_stock = cart_stock
-    #             xxx.available_subnets = ",".join(subnets)
-    #             xxx.ip_stock = cart_stock * xxx.cart_step
-    #             xxx.save()
-    for x in Variant.objects.all():
-        x.save()
+    product_id = console.input("请输入商品id")
+    variants = Variant.objects.filter(product_id=product_id).all()
+    for variant_i in variants:
+        product = variant_i.product
+        cidrs = variant_i.cidrs.all()
+        product_stocks = variant_i.product_stocks.all()
+        print(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
+        result=[]
+        for p_s in product_stocks:
+            acl = p_s.acl
+            cart_step = p_s.cart_step
+            for cidr_i in cidrs:
+                current_cidr_str = cidr_i.cidr
+                ip_s = ProxyStock.objects.filter(cidr=cidr_i, acl=acl, cart_step=cart_step).all()
+                for ip_s_i in ip_s:
+                    subnets = ip_s_i.subnets.split(",")
+                    proxies = Proxy.objects.filter(subnet__in=subnets).all()
+                    has_proxy = False
+                    for proxy_i in proxies:
+                        acl_ids = proxy_i.acl_ids.split(",")
+                        for acl_id in acl_ids:
+                            if acl_id == str(acl.id):
+                                has_proxy = True
+                                if current_cidr_str  in ip_s_i.available_subnets:
+                                    print(f"存在网段{current_cidr_str} acl:{acl.id} 的代理 ,但库存未扣除")
+                                    ip_s_i.remove_available_subnet(current_cidr_str)
+                    if not has_proxy:
+                        print(f"不存在网段{current_cidr_str} acl:{acl.id} 的代理")
+                        ip_s_i.return_subnet(current_cidr_str)
+                        print(f"回收网段{current_cidr_str} acl:{acl.id} 的库存")
+            p_s.save()
+            stock=p_s.stock
+            result.append(f"acl:{acl.id} 库存:{stock}")
+        for r in result:
+            print(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
+            print(r)
 
 
-@cli.command()
-def clean_stock():
-    """
-    清理无效库存条目
-    """
-    used_stock_ids = []
-    for va in Variant.objects.all():
-        used_stock_ids.extend(va.stock_ids)
-    for xxx in ProxyStock.objects.all():
-        ppp = Proxy.objects.filter(ip_stock_id=xxx.id).all()  # 没有发货数据
-        if not ppp and not used_stock_ids.__contains__(xxx.id):
-            print(xxx.id)
-            xxx.delete()
 
 
 def get_cidr(server_group):
@@ -161,12 +182,12 @@ def find_repeat():
     xxx = {}
     for ppp in Proxy.objects.all():
         key = "-".join((str(ppp.ip), str(ppp.acl_ids)))
-        if key not  in xxx:
+        if key not in xxx:
             xxx[key] = []
         xxx[key].append(ppp.order_id)
     for k, v in xxx.items():
         if len(v) > 1:
-            ip= k.split("-")[0]
+            ip = k.split("-")[0]
             print("ip:{} 重复订单:{}".format(ip, ",".join(map(str, v))))
 
 
@@ -184,12 +205,6 @@ def proxy_compare_order():
             xxx[ppp.order_id] += 1
         else:
             xxx[ppp.order_id] = 1
-        if not ppp.subnet:
-            for s in ProxyStock.objects.filter(id=ppp.ip_stock_id).first().gen_subnets():
-                if is_ip_in_network(ppp.ip, s):
-                    ppp.subnet = s
-                    ppp.save()
-                    break
     for ooo in Orders.objects.all():
         if ooo.id in xxx:
             if xxx[ooo.id] != ooo.proxy_num:
