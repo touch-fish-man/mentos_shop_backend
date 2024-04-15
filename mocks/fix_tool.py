@@ -378,7 +378,7 @@ def find_proxy_stock_ids():
                     remove_list[x.id]=set()
                 remove_list[x.id].add(p.subnet)
             ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
-            p.acl_ids = ",".join(acl_ids)
+            p.acl_ids = ",".join(map(str, acl_ids))
             p.ip_stock_ids = ",".join([str(x.id) for x in ip_stock_ids])
             p.save()
         except Exception as e:
