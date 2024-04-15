@@ -427,5 +427,5 @@ def fix_proxy():
 
 
 if __name__ == '__main__':
-    find_proxy_stock_ids()
+    fix_ip_stock()
     # fix_stocks()
