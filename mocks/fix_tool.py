@@ -435,5 +435,5 @@ def fix_proxy_cidr_variant():
 
 
 if __name__ == '__main__':
-    add_product_other()
+    fix_exclude_cidr()
     # fix_stocks()
