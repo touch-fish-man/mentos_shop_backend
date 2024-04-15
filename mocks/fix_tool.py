@@ -300,7 +300,10 @@ def delete_old_order():
     }
 
 
-def fix_ip_stock():
+def fix_old_proxy_order_stock():
+    """
+    修复旧订单的库存
+    """
     acl_group_acl_reverse = {}
     acls = list(Acls.objects.all().values_list("id", flat=True))
     for acl in AclGroup.objects.all():
@@ -427,5 +430,5 @@ def fix_proxy():
 
 
 if __name__ == '__main__':
-    fix_ip_stock()
+    fix_product_stock_variant()
     # fix_stocks()
