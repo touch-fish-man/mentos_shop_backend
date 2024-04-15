@@ -421,7 +421,7 @@ def fix_proxy():
         c_o=Cidr.objects.filter(cidr=cidr_p).first()
         if c_o:
             x.cidr_id=c_o.id
-        x.local_variant_id=x.oerder.local_variant_id
+        x.local_variant_id=x.order.local_variant_id
         x.save()
 
 
