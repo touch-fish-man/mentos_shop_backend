@@ -79,16 +79,17 @@ def fix_stock():
                 for ip_s_i in ip_s:
                     print(f"ip stock:{ip_s_i.id}")
                     subnets = ip_s_i.subnets.split(",")
-                    proxies = Proxy.objects.filter(subnet__in=subnets).all()
-                    for proxy_i in proxies:
-                        acl_ids = proxy_i.acl_ids.split(",")
+                    for x in subnets:
+                        proxies = Proxy.objects.filter(subnet=x).all()
+                        acl_ids=[]
+                        for proxy_i in proxies:
+                            acl_ids.extend(proxy_i.acl_ids.split(","))
                         if str(acl.id) not in acl_ids:
-                            print(f"不存在网段{proxy_i.subnet} acl:{acl.id} 的代理")
-                            ip_s_i.return_subnet(proxy_i.subnet)
-                            print(f"回收网段{proxy_i.subnet} acl:{acl.id} 的库存")
+                            print(f"不存在网段{x} acl:{acl.id} 的代理,回收库存")
+                            ip_s_i.return_subnet(x)
                         elif proxy_i.subnet in ip_s_i.available_subnets:
-                                    print(f"存在网段{proxy_i.subnet} acl:{acl.id} 的代理 ,但库存未扣除")
-                                    ip_s_i.remove_available_subnet(proxy_i.subnet)
+                            print(f"存在网段{proxy_i.subnet} acl:{acl.id} 的代理,但库存未扣除")
+                            ip_s_i.remove_available_subnet(proxy_i.subnet)
             p_s.save()
             stock=p_s.stock
             result.append(f"acl:{acl.id} 库存:{stock}")
