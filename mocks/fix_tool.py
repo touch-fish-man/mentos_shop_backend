@@ -377,10 +377,10 @@ def find_proxy_stock_ids():
                 if x.id not in remove_list:
                     remove_list[x.id]=set()
                 remove_list[x.id].add(p.subnet)
-            org=p.ip_stock_ids
+            ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
+            p.acl_ids = ",".join(acl_ids)
             p.ip_stock_ids = ",".join([str(x.id) for x in ip_stock_ids])
-            if org!=p.ip_stock_ids:
-                p.save()
+            p.save()
         except Exception as e:
             print(e)
     json.dump(remove_list, open("/tmp/remove_list.json", "w"))
