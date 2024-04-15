@@ -75,25 +75,20 @@ def fix_stock():
             acl = p_s.acl
             cart_step = p_s.cart_step
             for cidr_i in cidrs:
-                current_cidr_str = cidr_i.cidr
                 ip_s = ProxyStock.objects.filter(cidr=cidr_i, acl=acl, cart_step=cart_step).all()
                 for ip_s_i in ip_s:
                     print(f"ip stock:{ip_s_i.id}")
                     subnets = ip_s_i.subnets.split(",")
                     proxies = Proxy.objects.filter(subnet__in=subnets).all()
-                    has_proxy = False
                     for proxy_i in proxies:
                         acl_ids = proxy_i.acl_ids.split(",")
-                        for acl_id in acl_ids:
-                            if acl_id == str(acl.id):
-                                has_proxy = True
-                                if current_cidr_str  in ip_s_i.available_subnets:
-                                    print(f"存在网段{current_cidr_str} acl:{acl.id} 的代理 ,但库存未扣除")
-                                    ip_s_i.remove_available_subnet(current_cidr_str)
-                    if not has_proxy:
-                        print(f"不存在网段{current_cidr_str} acl:{acl.id} 的代理")
-                        ip_s_i.return_subnet(current_cidr_str)
-                        print(f"回收网段{current_cidr_str} acl:{acl.id} 的库存")
+                        if str(acl.id) not in acl_ids:
+                            print(f"不存在网段{proxy_i.subnet} acl:{acl.id} 的代理")
+                            ip_s_i.return_subnet(proxy_i.subnet)
+                            print(f"回收网段{proxy_i.subnet} acl:{acl.id} 的库存")
+                        elif proxy_i.subnet in ip_s_i.available_subnets:
+                                    print(f"存在网段{proxy_i.subnet} acl:{acl.id} 的代理 ,但库存未扣除")
+                                    ip_s_i.remove_available_subnet(proxy_i.subnet)
             p_s.save()
             stock=p_s.stock
             result.append(f"acl:{acl.id} 库存:{stock}")
