@@ -96,7 +96,7 @@ def fix_stock():
 
             with ThreadPoolExecutor() as executor:
                 for product_stock in product_stocks:
-                    task_id = progress.add_task("[cyan]处理中...", total=len(cidrs)*len(product_stock.cidrs))
+                    task_id = progress.add_task("[cyan]处理中...", total=len(cidrs))
                     executor.submit(process_product_stock, cidrs, product_stock, progress, task_id)
 
 
