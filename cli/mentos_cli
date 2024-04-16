@@ -108,6 +108,7 @@ def fix_stock():
         print(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
         with ThreadPoolExecutor() as executor:
             for product_stock in product_stocks:
+                print(f"库存id:{product_stock.id}")
                 executor.submit(process_product_stock, product, variant_i.variant_name, product_stock)
 
 
