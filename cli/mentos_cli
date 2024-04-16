@@ -67,8 +67,7 @@ def fix_stock():
     try:
         product_id = int(product_id)
     except Exception as e:
-        variants = Variant.objects.filter(product_id=product_id).all()
-    
+    variants = Variant.objects.filter(product_id=product_id).all()
     def process_product_stock(product, variant_name, p_s):
         acl = p_s.acl
         cart_step = p_s.cart_step
@@ -100,15 +99,13 @@ def fix_stock():
             print(f"商品:{product.product_name} 变体:{variant_name}")
             print(r)
 
-    def process_variant(variant_i):
+
+    for variant_i in variants:
         product = variant_i.product
         product_stocks = variant_i.product_stocks.all()
         print(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
         with ThreadPoolExecutor() as executor:
             executor.map(lambda p_s: process_product_stock(product, variant_i.variant_name, p_s), product_stocks)
-
-    with ThreadPoolExecutor() as executor:
-        executor.map(process_variant, variants)
 
 
 
