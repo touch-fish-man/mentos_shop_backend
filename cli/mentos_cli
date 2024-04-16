@@ -70,20 +70,17 @@ def fix_stock():
         print("请输入数字")
         return
     variants = Variant.objects.filter(product_id=product_id).all()
-    def process_product_stock(product, variant_name, p_s):
+    def process_product_stock(cidrs, p_s):
         acl = p_s.acl
         cart_step = p_s.cart_step
-        cidrs = p_s.cidrs.all()  # Assuming cidrs related to each product_stock
-        result = []
         for cidr_i in cidrs:
             ip_s = ProxyStock.objects.filter(cidr=cidr_i, acl=acl, cart_step=cart_step).all()
-            print(ip_s)
             for ip_s_i in ip_s:
                 print(f"ip stock id:{ip_s_i.id}")
                 subnets = ip_s_i.subnets.split(",")
                 for x in subnets:
                     proxies = Proxy.objects.filter(subnet=x).all()
-                    acl_ids = []
+                    acl_ids=[]
                     for proxy_i in proxies:
                         acl_ids.extend(proxy_i.acl_ids.split(","))
                     if str(acl.id) not in acl_ids:
@@ -91,26 +88,21 @@ def fix_stock():
                         if x not in origin_ava:
                             ip_s_i.return_subnet(x)
                             if origin_ava != ip_s_i.available_subnets:
-                                print(f"不存在网段{x} acl:{acl.id} 的代理,回收库存")
+                                print(f"不存在网段{x} acl:{acl.name} 的代理,回收库存")
                     elif proxy_i.subnet in ip_s_i.available_subnets:
-                        print(f"存在网段{proxy_i.subnet} acl:{acl.id} 的代理,但库存未扣除")
+                        print(f"存在网段{proxy_i.subnet} acl:{acl.name} 的代理,但库存未扣除")
                         ip_s_i.remove_available_subnet(proxy_i.subnet)
         p_s.save()
-        stock = p_s.stock
-        result.append(f"acl:{acl.id} 库存:{stock}")
-        for r in result:
-            print(f"商品:{product.product_name} 变体:{variant_name}")
-            print(r)
-
-
+        stock=p_s.stock
+        print(f"acl:{acl.name} 库存:{stock}")
     for variant_i in variants:
         product = variant_i.product
+        cidrs = variant_i.cidrs.all()
         product_stocks = variant_i.product_stocks.all()
         print(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
         with ThreadPoolExecutor() as executor:
             for product_stock in product_stocks:
-                print(f"库存id:{product_stock.id}")
-                executor.submit(process_product_stock, product, variant_i.variant_name, product_stock)
+                executor.submit(process_product_stock, cidrs, product_stock)
 
 
 
