@@ -95,8 +95,8 @@ def fix_stock():
             console.log(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
 
             with ThreadPoolExecutor() as executor:
-                for product_stock in product_stocks:
-                    task_id = progress.add_task(f"[cyan]处理中>acl:{product_stock.acl.name}", total=sum(len(ProxyStock.objects.filter(cidr=cidr, acl=product_stock.acl, cart_step=product_stock.cart_step).first().subnets.split(",")) for cidr in cidrs))
+                for idx,product_stock in enumerate(product_stocks):
+                    task_id = progress.add_task(f"[cyan]处理中{idx}>acl:{product_stock.acl.name}", total=sum(len(ProxyStock.objects.filter(cidr=cidr, acl=product_stock.acl, cart_step=product_stock.cart_step).first().subnets.split(",")) for cidr in cidrs))
                     executor.submit(process_product_stock, cidrs, product_stock, progress, task_id)
 
 
