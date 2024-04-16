@@ -69,13 +69,19 @@ def fix_stock():
     except Exception as e:
         print("请输入数字")
         return
+    def fix_stock():
+    """
+    修复库存，用于修复库存回收失败
+    """
+    product_id = input("请输入商品id：")
     variants = Variant.objects.filter(product_id=product_id).all()
-    for variant_i in variants:
+    
+    def process_variant(variant_i):
         product = variant_i.product
         cidrs = variant_i.cidrs.all()
         product_stocks = variant_i.product_stocks.all()
         print(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
-        result=[]
+        result = []
         for p_s in product_stocks:
             acl = p_s.acl
             cart_step = p_s.cart_step
@@ -86,7 +92,7 @@ def fix_stock():
                     subnets = ip_s_i.subnets.split(",")
                     for x in subnets:
                         proxies = Proxy.objects.filter(subnet=x).all()
-                        acl_ids=[]
+                        acl_ids = []
                         for proxy_i in proxies:
                             acl_ids.extend(proxy_i.acl_ids.split(","))
                         if str(acl.id) not in acl_ids:
@@ -99,11 +105,14 @@ def fix_stock():
                             print(f"存在网段{proxy_i.subnet} acl:{acl.id} 的代理,但库存未扣除")
                             ip_s_i.remove_available_subnet(proxy_i.subnet)
             p_s.save()
-            stock=p_s.stock
+            stock = p_s.stock
             result.append(f"acl:{acl.id} 库存:{stock}")
         for r in result:
             print(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
             print(r)
+
+    with ThreadPoolExecutor() as executor:
+        executor.map(process_variant, variants)
 
 
 
