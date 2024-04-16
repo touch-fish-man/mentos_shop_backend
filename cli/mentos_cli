@@ -19,6 +19,7 @@ from rich.progress import track
 import ipaddress
 from rich.table import Table
 from rich.progress import Progress, TaskID
+
 console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
@@ -41,12 +42,10 @@ def is_ip_in_network(ip_str, network_str):
     network = ipaddress.ip_network(network_str)
     return ip in network
 
+
 def process_product_stock(cidrs, p_s, progress, task_id: TaskID):
     acl = p_s.acl
     cart_step = p_s.cart_step
-    total_subnets = sum(len(ProxyStock.objects.filter(cidr=cidr, acl=acl, cart_step=cart_step).first().subnets.split(","))
-                        for cidr in cidrs)
-
     for cidr_i in cidrs:
         ip_s = ProxyStock.objects.filter(cidr=cidr_i, acl=acl, cart_step=cart_step).all()
         for ip_s_i in ip_s:
@@ -61,15 +60,16 @@ def process_product_stock(cidrs, p_s, progress, task_id: TaskID):
                     if x not in origin_ava:
                         ip_s_i.return_subnet(x)
                         if origin_ava != ip_s_i.available_subnets:
-                            console.log(f"不存在网段{x} acl:{acl.name} 的代理,回收库存")
+                            print(f"不存在网段{x} acl:{acl.name} 的代理,回收库存")
                 elif proxy_i.subnet in ip_s_i.available_subnets:
-                    console.log(f"存在网段{proxy_i.subnet} acl:{acl.name} 的代理,但库存未扣除")
+                    print(f"存在网段{proxy_i.subnet} acl:{acl.name} 的代理,但库存未扣除")
                     ip_s_i.remove_available_subnet(proxy_i.subnet)
                 progress.update(task_id, advance=1)
 
     p_s.save()
     stock = p_s.stock
     console.log(f"acl:{acl.name} 库存:{stock}")
+    return acl.name, stock
 
 
 @cli.command()
@@ -86,6 +86,7 @@ def fix_stock():
 
     variants = Variant.objects.filter(product_id=product_id).all()
     progress = Progress()
+    tasks=[]
 
     with progress:
         for variant_i in variants:
@@ -95,12 +96,14 @@ def fix_stock():
             console.log(f"商品:{product.product_name} 变体:{variant_i.variant_name}")
 
             with ThreadPoolExecutor() as executor:
-                for idx,product_stock in enumerate(product_stocks):
-                    task_id = progress.add_task(f"[cyan]处理中{idx}>acl:{product_stock.acl.name}", total=sum(len(ProxyStock.objects.filter(cidr=cidr, acl=product_stock.acl, cart_step=product_stock.cart_step).first().subnets.split(",")) for cidr in cidrs))
-                    executor.submit(process_product_stock, cidrs, product_stock, progress, task_id)
-
-
-
+                for idx, product_stock in enumerate(product_stocks):
+                    task_id = progress.add_task(f"[cyan]处理中{idx}>acl:{product_stock.acl.name}", total=sum(
+                        len(ProxyStock.objects.filter(cidr=cidr, acl=product_stock.acl,
+                                                      cart_step=product_stock.cart_step).first().subnets.split(",")) for
+                        cidr in cidrs))
+                    tasks.append(executor.submit(process_product_stock, cidrs, product_stock, progress, task_id))
+        for task in tasks:
+            console.log(task.result())
 
 
 def get_cidr(server_group):
