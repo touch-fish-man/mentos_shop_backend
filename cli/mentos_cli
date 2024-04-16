@@ -65,7 +65,7 @@ def process_product_stock(cidrs, p_s, progress, task_id: TaskID):
                 elif proxy_i.subnet in ip_s_i.available_subnets:
                     console.log(f"存在网段{proxy_i.subnet} acl:{acl.name} 的代理,但库存未扣除")
                     ip_s_i.remove_available_subnet(proxy_i.subnet)
-                progress.update(task_id, advance=1)
+        progress.update(task_id, advance=1)
 
     p_s.save()
     stock = p_s.stock
@@ -96,7 +96,7 @@ def fix_stock():
 
             with ThreadPoolExecutor() as executor:
                 for product_stock in product_stocks:
-                    task_id = progress.add_task("[cyan]处理中...", total=len(cidrs))
+                    task_id = progress.add_task(f"[cyan]处理中...{product_stock.id}", total=sum(len(ProxyStock.objects.filter(cidr=cidr, acl=product_stock.acl, cart_step=product_stock.cart_step).first().subnets.split(",")) for cidr in cidrs))
                     executor.submit(process_product_stock, cidrs, product_stock, progress, task_id)
 
 
