@@ -85,7 +85,7 @@ def fix_stock():
         return
 
     variants = Variant.objects.filter(product_id=product_id).all()
-    progress = Progress(console=console)
+    progress = Progress(console=console,expand=True)
     tasks=[]
 
     with progress:
