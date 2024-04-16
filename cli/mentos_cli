@@ -67,6 +67,8 @@ def fix_stock():
     try:
         product_id = int(product_id)
     except Exception as e:
+        print("请输入数字")
+        return
     variants = Variant.objects.filter(product_id=product_id).all()
     def process_product_stock(product, variant_name, p_s):
         acl = p_s.acl
