@@ -20,7 +20,7 @@ import ipaddress
 from rich.table import Table
 from rich.progress import Progress, TaskID
 
-console = Console()
+
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
 from apps.orders.models import Orders
@@ -30,8 +30,7 @@ import click
 from apps.orders.tasks import delete_proxy_expired
 import subprocess
 from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule, ClockedSchedule
-
-
+console = Console()
 @click.group()
 def cli():
     pass
