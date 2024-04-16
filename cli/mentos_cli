@@ -77,6 +77,7 @@ def fix_stock():
         result = []
         for cidr_i in cidrs:
             ip_s = ProxyStock.objects.filter(cidr=cidr_i, acl=acl, cart_step=cart_step).all()
+            print(ip_s)
             for ip_s_i in ip_s:
                 print(f"ip stock id:{ip_s_i.id}")
                 subnets = ip_s_i.subnets.split(",")
