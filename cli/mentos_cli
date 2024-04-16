@@ -60,15 +60,15 @@ def process_product_stock(cidrs, p_s, progress, task_id: TaskID):
                     if x not in origin_ava:
                         ip_s_i.return_subnet(x)
                         if origin_ava != ip_s_i.available_subnets:
-                            print(f"不存在网段{x} acl:{acl.name} 的代理,回收库存")
+                            console.print(f"不存在网段{x} acl:{acl.name} 的代理,回收库存")
                 elif proxy_i.subnet in ip_s_i.available_subnets:
-                    print(f"存在网段{proxy_i.subnet} acl:{acl.name} 的代理,但库存未扣除")
+                    console.print(f"存在网段{proxy_i.subnet} acl:{acl.name} 的代理,但库存未扣除")
                     ip_s_i.remove_available_subnet(proxy_i.subnet)
                 progress.update(task_id, advance=1)
 
     p_s.save()
     stock = p_s.stock
-    console.log(f"acl:{acl.name} 库存:{stock}")
+    console.print(f"acl:{acl.name} 库存:{stock}")
     return acl.name, stock
 
 
@@ -102,8 +102,6 @@ def fix_stock():
                                                       cart_step=product_stock.cart_step).first().subnets.split(",")) for
                         cidr in cidrs))
                     tasks.append(executor.submit(process_product_stock, cidrs, product_stock, progress, task_id))
-        for task in tasks:
-            console.log(task.result())
 
 
 def get_cidr(server_group):
