@@ -201,6 +201,10 @@ def delivery_order(order_pk=None, order_id=None):
             'msg': msg,
             'proxy_list': ret_proxy_list
         }
+    return {
+        'status': 0,
+        'msg': 'order not found'
+    }
 
 
 @shared_task(name='update_shopify_product',autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 5})
