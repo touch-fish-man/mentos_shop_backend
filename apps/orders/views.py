@@ -223,7 +223,7 @@ class OrdersApi(ComModelViewSet):
                 from apps.orders.tasks import delivery_order
                 if cache.get(lock_id):
                     return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
-                delivery_order(order_pk=order_id)
+                delivery_order.apply(order_pk=order_id)
 
             else:
                 return ErrorResponse(data={}, msg="订单不存在")
