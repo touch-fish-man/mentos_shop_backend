@@ -457,7 +457,7 @@ def fix_proxy_cidr_variant():
             x.cidr_id=ProxyStock.objects.filter(id__in=ids).first().cidr_id
         x.local_variant_id=x.order.local_variant_id
         x.save()
-def  reate_ip_stock():
+def create_ip_stock():
     for v  in Variant.objects.all():
         cart_step=v.cart_step
         cidrs = v.server_group.get_cidrs()
