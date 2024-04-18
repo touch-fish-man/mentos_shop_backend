@@ -141,24 +141,33 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         else:
             return cidr_ids, []
 
-    # def validate(self, attrs):
-    #     cidr_ids, ip_count = self.get_cidr(attrs.get('server_group'))
-    #     cart_step = attrs.get('cart_step')
-    #     for idx, cidr_id in enumerate(cidr_ids):
-    #         # 如果库存表不存在，就创建
-    #         # if not ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step).exists():
-    #         #     cart_stock = ip_count[idx] // attrs.get('cart_step')
-    #         #     porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id,
-    #         #                                             ip_stock=ip_count[idx], cart_step=attrs.get('cart_step'),
-    #         #                                             cart_stock=cart_stock)
-    #         #     subnets = porxy_stock.gen_subnets()
-    #         #     porxy_stock.subnets = ",".join(subnets)
-    #         #     porxy_stock.available_subnets = porxy_stock.subnets
-    #         #     porxy_stock.save()
-    #     return attrs
+    def validate(self, attrs):
+        acls = Acls.objects.all()
+        cart_step = attrs['cart_step']
+        cidrs = self.get_cidr(attrs['server_group'])
+        instance = self.instance
 
-    def save(self, **kwargs):
-        return super().save(**kwargs)
+        for acl_i in acls:
+            acl_id = acl_i.id
+            for cidr_i in cidrs:
+                cart_stock = cidr_i.ip_count // cart_step
+                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
+                                                                        cart_step=cart_step)
+                if is_create:
+                    stock_obj.ip_stock = cidr_i.ip_count
+                    stock_obj.cart_stock = cart_stock
+                    subnets = stock_obj.gen_subnets()
+                    stock_obj.subnets = ",".join(subnets)
+                    stock_obj.available_subnets = stock_obj.subnets
+                    stock_obj.save()
+                stock_obj.soft_delete = False
+                stock_obj.save()
+        # 更新库存
+        old_product_stocks = instance.product_stocks.all()
+        for old_product_stock in old_product_stocks:
+            old_product_stock.server_group = attrs['server_group']
+            old_product_stock.save()
+        return attrs
 
 
 class ProductCollectionSerializer(serializers.ModelSerializer):

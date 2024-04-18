@@ -121,50 +121,6 @@ class Variant(BaseModel):
     cidrs = models.ManyToManyField('proxy_server.Cidr', through='VariantCidrThrough', related_name='cidrs')
 
 
-@receiver(m2m_changed, sender=Variant.cidrs.through)
-def update_variant_stock(sender, instance, action, reverse, model, pk_set, **kwargs):
-    if action == 'post_add' or action == 'post_remove':
-        # cidr更新产品库存
-        logging.info('tirgger update_variant_stock,action:%s' % action)
-        for p_s in instance.product_stocks.all():
-            p_s.save()
-
-
-@receiver(post_save, sender=Variant)
-def update_variant_stock(sender, instance, created, **kwargs):
-    if not created:
-        acls = Acls.objects.all()
-        cart_step = instance.cart_step
-        cidrs = instance.server_group.get_cidrs()
-        for acl_i in acls:
-            acl_id = acl_i.id
-            ip_stock_objs = []
-            for cidr_i in cidrs:
-                cart_stock = cidr_i.ip_count // cart_step
-                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
-                                                                        cart_step=cart_step)
-                if is_create:
-                    stock_obj.ip_stock = cidr_i.ip_count
-                    stock_obj.cart_stock = cart_stock
-                    subnets = stock_obj.gen_subnets()
-                    stock_obj.subnets = ",".join(subnets)
-                    stock_obj.available_subnets = stock_obj.subnets
-                    stock_obj.save()
-                stock_obj.soft_delete = False
-                stock_obj.save()
-                ip_stock_objs.append(stock_obj)
-            product_stock, is_create = ProductStock.objects.get_or_create(product=instance.product,
-                                                                          acl_id=acl_id,
-                                                                          option1=instance.variant_option1,
-                                                                          option2=instance.variant_option2,
-                                                                          option3=instance.variant_option3,
-                                                                          cart_step=cart_step,
-                                                                          variant=instance,
-                                                                          server_group=instance.server_group)
-            product_stock.save()
-        return True
-
-
 class Product(BaseModel):
     """
     商品
@@ -187,18 +143,9 @@ class Product(BaseModel):
         self.soft_delete = True
         self.save()
 
-
     @property
     def is_active(self):
         return Variant.objects.filter(product_id=self.id, is_active=True).exists()
-
-    def variant_options(self):
-        return Option.objects.filter(product_id=self.id)
-
-    def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None):
-        super().save(force_insert=False, force_update=False, using=None,
-                     update_fields=None)
 
 
 class ProductTagRelation(BaseModel):
@@ -209,3 +156,14 @@ class ProductTagRelation(BaseModel):
 class ProductCollectionRelation(BaseModel):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     product_collection = models.ForeignKey(ProductCollection, on_delete=models.CASCADE)
+
+
+@receiver(m2m_changed, sender=Variant.cidrs.through)
+def update_variant_stock(sender, instance, action, reverse, model, pk_set, **kwargs):
+    if action == 'post_add' or action == 'post_remove':
+        # cidr更新产品库存
+        logging.info('tirgger update_variant_stock,action:%s' % action)
+        for p_s in instance.product_stocks.all():
+            p_s.save()
+
+
