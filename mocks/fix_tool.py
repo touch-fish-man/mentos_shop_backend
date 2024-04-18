@@ -475,6 +475,8 @@ def create_ip_stock():
                     obj.ip_stock = cidr.ip_count
                     obj.save()
                     print(obj.id)
+            else:
+                print(ProxyStock.objects.filter(cidr_id=cidr.id, acl_id=acl.id, cart_step=cart_step,acl_group__isnull=True).first().id)
 if __name__ == '__main__':
     create_ip_stock()
 
