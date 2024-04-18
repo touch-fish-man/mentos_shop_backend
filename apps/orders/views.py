@@ -224,9 +224,8 @@ class OrdersApi(ComModelViewSet):
                 if cache.get(lock_id):
                     return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
                 delivery_order.apply(order_pk=order_id)
-
             else:
-                return ErrorResponse(data={}, msg="订单不存在")
+                return ErrorResponse(data={}, msg=f'订单{order_id}不存在')
         return SuccessResponse(data={}, msg="重置成功")
 
     @action(methods=['get'], detail=True, url_path='check_proxy', url_name='check_proxy')
