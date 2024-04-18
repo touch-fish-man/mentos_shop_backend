@@ -466,6 +466,7 @@ def create_ip_stock():
             print(v.server_group.get_cidrs())
         for cidr in cidrs:
             for acl in Acls.objects.all():
+                print(cidr.id, acl.id)
                 if not ProxyStock.objects.filter(cidr_id=cidr.id, acl_id=acl.id, cart_step=cart_step,acl_group__isnull=True).exists():
                     obj = ProxyStock.objects.create(cidr_id=cidr.id, acl_id=acl.id,
                                                                     cart_step=cart_step,acl_group__isnull=True)
