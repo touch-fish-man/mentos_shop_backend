@@ -470,5 +470,6 @@ def create_ip_stock():
         #                 x.delete()
         v.save()
 if __name__ == '__main__':
+    fix_exclude_cidr()
     create_ip_stock()
 
