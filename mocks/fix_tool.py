@@ -457,7 +457,20 @@ def fix_proxy_cidr_variant():
             x.cidr_id=ProxyStock.objects.filter(id__in=ids).first().cidr_id
         x.local_variant_id=x.order.local_variant_id
         x.save()
-
+def  reate_ip_stock():
+    for v  in Variant.objects.all():
+        cart_step=v.cart_step
+        cidrs = v.server_group.get_cidrs()
+        for cidr in cidrs:
+            for acl in Acls.objects.all():
+                obj, is_create = ProxyStock.objects.get_or_create(cidr_id=cidr.id, acl_id=acl.id,
+                                                                cart_step=cart_step)
+                if is_create:
+                    obj.subnets = obj.gen_subnets()
+                    obj.available_subnets = obj.gen_subnets()
+                    obj.ip_stock = cidr.ip_count
+                    obj.save()
+                    print(obj.id)
 if __name__ == '__main__':
-    update_product_stock()
+    create_ip_stock()
 
