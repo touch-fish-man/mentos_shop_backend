@@ -1,5 +1,6 @@
 # -*- coding:utf-8 -*-
 import time
+import traceback
 
 import paramiko
 import os
@@ -38,10 +39,21 @@ def back_cmd(host, port, user, password, command):
             if ssh_shell.exit_status_ready():
                 break
         return ssh_shell
-    except:
-        print("{} 命令执行失败".format(host))
+    except Exception as e:
+        print(traceback.format_exc())
+        raise e
     finally:
         client.close()
+def test_cmd(host, port, user, password):
+    cmd="ls"
+    try:
+        ssh_command(host, port, user, password, cmd)
+        return True
+    except:
+        print("server {} connect failed".format(host))
+        return False
+
+
 
 
 def ssh_command(host, port, user, password, command):
@@ -53,12 +65,12 @@ def ssh_command(host, port, user, password, command):
         # 检查是否连接成功
         if not client.get_transport().is_active():
             print("server {} connect failed".format(host))
-            return
+            raise Exception("server {} connect failed".format(host))
         stdin, stdout, stderr = client.exec_command(command)
         return stdout
-    except:
-        print("{} 命令执行失败".format(host))
-        print(sys.exc_info())
+    except Exception as e:
+        print(traceback.format_exc())
+        raise e
     finally:
         client.close()
 

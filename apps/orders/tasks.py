@@ -195,7 +195,7 @@ def delivery_order(order_pk=None, order_id=None):
             'id': order_pk,
             'pay_status': 1,
         }
-        re_create_ret, msg,ret_proxy_list=create_proxy(filter_dict)
+        re_create_ret, msg, ret_proxy_list = create_proxy(filter_dict)
         return {
             'status': re_create_ret,
             'msg': msg,
@@ -205,13 +205,15 @@ def delivery_order(order_pk=None, order_id=None):
         'status': 0,
         'msg': 'order not found'
     }
+
+
 @shared_task(name='one_key_delivery_order')
 def one_key_delivery_order(order_ids=None):
     lock_id = 'one_key_reset_{}'.format(order_ids)
-    results= []
+    results = []
     if cache.client.get(lock_id):
         return results
-    cache.client.set(lock_id, 1, timeout=60*5)
+    cache.client.set(lock_id, 1, timeout=60 * 5)
     for order_id in order_ids:
         order = Orders.objects.filter(id=order_id).first()
         if order:
@@ -220,17 +222,20 @@ def one_key_delivery_order(order_ids=None):
                 'id': order_id,
                 'pay_status': 1,
             }
-            re_create_ret, msg,ret_proxy_list=create_proxy(filter_dict)
-            results.append( {
+            re_create_ret, msg, ret_proxy_list = create_proxy(filter_dict)
+            results.append({
                 'status': re_create_ret,
-                "order_id":order_id,
+                "order_id": order_id,
                 'msg': msg,
                 'proxy_list': ret_proxy_list
             })
+    logging.info(f"一键发货结果完成:{order_ids}")
     return results
 
-@shared_task(name='update_shopify_product',autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 5})
-def update_shopify_product(product_id=None,action=None):
+
+@shared_task(name='update_shopify_product', autoretry_for=(Exception,), retry_backoff=True,
+             retry_kwargs={'max_retries': 5})
+def update_shopify_product(product_id=None, action=None):
     """
     更新shopify产品
     """
@@ -247,10 +252,10 @@ def update_shopify_product(product_id=None,action=None):
     if action == 'delete':
         cache_client.hdel(cache_key, product_id)
     else:  # update or create
-        product_dict=[]
+        product_dict = []
         for _ in range(3):
             try:
-                product_dict = shopify_client.get_products(format=True,product_id=product_id)
+                product_dict = shopify_client.get_products(format=True, product_id=product_id)
                 break
             except Exception as e:
                 print(e)

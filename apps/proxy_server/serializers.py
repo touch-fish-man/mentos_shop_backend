@@ -10,6 +10,8 @@ from apps.utils.kaxy_handler import KaxyClient
 from django.core.validators import validate_ipv46_address
 import logging
 
+from apps.utils.run_init import test_cmd
+
 
 class AclsSerializer(CommonSerializer):
     class Meta:
@@ -195,6 +197,8 @@ class ServerCreateSerializer(CommonSerializer):
             update_cidr=attrs.pop("update_cidr")=="1"
             from apps.proxy_server.tasks import init_server
             cidr_list= [cidr['cidr'] for cidr in attrs['cidrs']]
+            if not test_cmd(attrs['ip'], port, "root", password):
+                raise CustomValidationError("代理服务器ssh连接失败，请检查服务器是否正常")
             init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
 
         return attrs
