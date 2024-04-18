@@ -468,7 +468,8 @@ def create_ip_stock():
                 for acl in Acls.objects.all():
                     print(cidr.id, acl.id)
                     if ProxyStock.objects.filter(cidr_id=cidr.id, acl_id=acl.id, cart_step=cart_step,acl_group__isnull=True).count()>1:
-                        ProxyStock.objects.filter(cidr_id=cidr.id, acl_id=acl.id, cart_step=cart_step,acl_group__isnull=True).all()[1:].delete()
+                        for x in ProxyStock.objects.filter(cidr_id=cidr.id, acl_id=acl.id, cart_step=cart_step,acl_group__isnull=True).all()[1:]:
+                            x.delete()
 if __name__ == '__main__':
     create_ip_stock()
 
