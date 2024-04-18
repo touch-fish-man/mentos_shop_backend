@@ -195,7 +195,12 @@ def delivery_order(order_pk=None, order_id=None):
             'id': order_pk,
             'pay_status': 1,
         }
-        create_proxy(filter_dict)
+        re_create_ret, msg,ret_proxy_list=create_proxy(filter_dict)
+        return {
+            'status': re_create_ret,
+            'msg': msg,
+            'proxy_list': ret_proxy_list
+        }
 
 
 @shared_task(name='update_shopify_product',autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 5})

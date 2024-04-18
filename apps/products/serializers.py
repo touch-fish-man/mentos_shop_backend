@@ -141,21 +141,21 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         else:
             return cidr_ids, []
 
-    def validate(self, attrs):
-        cidr_ids, ip_count = self.get_cidr(attrs.get('server_group'))
-        cart_step = attrs.get('cart_step')
-        for idx, cidr_id in enumerate(cidr_ids):
-            # 如果库存表不存在，就创建
-            if not ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step).exists():
-                cart_stock = ip_count[idx] // attrs.get('cart_step')
-                porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id,
-                                                        ip_stock=ip_count[idx], cart_step=attrs.get('cart_step'),
-                                                        cart_stock=cart_stock)
-                subnets = porxy_stock.gen_subnets()
-                porxy_stock.subnets = ",".join(subnets)
-                porxy_stock.available_subnets = porxy_stock.subnets
-                porxy_stock.save()
-        return attrs
+    # def validate(self, attrs):
+    #     cidr_ids, ip_count = self.get_cidr(attrs.get('server_group'))
+    #     cart_step = attrs.get('cart_step')
+    #     for idx, cidr_id in enumerate(cidr_ids):
+    #         # 如果库存表不存在，就创建
+    #         # if not ProxyStock.objects.filter(cidr_id=cidr_id, cart_step=cart_step).exists():
+    #         #     cart_stock = ip_count[idx] // attrs.get('cart_step')
+    #         #     porxy_stock = ProxyStock.objects.create(cidr_id=cidr_id,
+    #         #                                             ip_stock=ip_count[idx], cart_step=attrs.get('cart_step'),
+    #         #                                             cart_stock=cart_stock)
+    #         #     subnets = porxy_stock.gen_subnets()
+    #         #     porxy_stock.subnets = ",".join(subnets)
+    #         #     porxy_stock.available_subnets = porxy_stock.subnets
+    #         #     porxy_stock.save()
+    #     return attrs
 
     def save(self, **kwargs):
         return super().save(**kwargs)
