@@ -205,7 +205,29 @@ def delivery_order(order_pk=None, order_id=None):
         'status': 0,
         'msg': 'order not found'
     }
-
+@shared_task(name='one_key_delivery_order')
+def one_key_delivery_order(order_ids=None):
+    lock_id = 'one_key_reset_{}'.format(order_ids)
+    results= []
+    if cache.client.get(lock_id):
+        return results
+    cache.client.set(lock_id, 1, timeout=60*5)
+    for order_id in order_ids:
+        order = Orders.objects.filter(id=order_id).first()
+        if order:
+            Proxy.objects.filter(order_id=order_id).all().delete()
+            filter_dict = {
+                'id': order_id,
+                'pay_status': 1,
+            }
+            re_create_ret, msg,ret_proxy_list=create_proxy(filter_dict)
+            results.append( {
+                'status': re_create_ret,
+                "order_id":order_id,
+                'msg': msg,
+                'proxy_list': ret_proxy_list
+            })
+    return results
 
 @shared_task(name='update_shopify_product',autoretry_for=(Exception,), retry_backoff=True, retry_kwargs={'max_retries': 5})
 def update_shopify_product(product_id=None,action=None):

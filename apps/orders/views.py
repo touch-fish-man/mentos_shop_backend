@@ -215,17 +215,11 @@ class OrdersApi(ComModelViewSet):
             order_ids = order_ids.split(',')
         except Exception as e:
             return ErrorResponse(data={}, msg="订单id格式错误")
-        for order_id in order_ids:
-            order = Orders.objects.filter(id=order_id).first()
-            lock_id = 'create_proxy_by_id_{}'.format(id)
-            if order:
-                Proxy.objects.filter(order_id=order_id).all().delete()
-                from apps.orders.tasks import delivery_order
-                if cache.get(lock_id):
-                    return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
-                delivery_order.apply(order_pk=order_id)
-            else:
-                return ErrorResponse(data={}, msg=f'订单{order_id}不存在')
+        lock_id = 'one_key_reset_{}'.format(order_ids)
+        if cache.get(lock_id):
+            return ErrorResponse(data={}, msg="代理正在重置中,请稍后重试,根据代理数量不同,重置时间不同")
+        from apps.orders.tasks import one_key_delivery_order
+        one_key_delivery_order.delay(order_ids)
         return SuccessResponse(data={}, msg="重置成功")
 
     @action(methods=['get'], detail=True, url_path='check_proxy', url_name='check_proxy')
