@@ -459,9 +459,9 @@ def fix_proxy_cidr_variant():
         x.save()
 def create_ip_stock():
     acls=list(Acls.objects.all())
-    for v  in Variant.objects.all():
-        cart_step=v.cart_step
-        cidrs = v.cidrs.all()
+    for v  in ProductStock.objects.all():
+        # cart_step=v.cart_step
+        # cidrs = v.cidrs.all()
         # for cidr in cidrs:
         #     for acl in acls:
         #         if ProxyStock.objects.filter(cidr_id=cidr.id, acl_id=acl.id, cart_step=cart_step,acl_group__isnull=True).count()>1:
