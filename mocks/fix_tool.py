@@ -460,9 +460,10 @@ def fix_proxy_cidr_variant():
 def create_ip_stock():
     for v  in Variant.objects.all():
         cart_step=v.cart_step
-        cidrs = v.cidrs
+        cidrs = v.cidrs.all()
         if v.id==388:
-            print(v.cidrs)
+            print(cidrs)
+            print(v.server_group.get_cidrs())
         for cidr in cidrs:
             for acl in Acls.objects.all():
                 if not ProxyStock.objects.filter(cidr_id=cidr.id, acl_id=acl.id, cart_step=cart_step,acl_group__isnull=True).exists():
