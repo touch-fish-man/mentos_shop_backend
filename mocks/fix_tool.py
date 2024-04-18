@@ -460,7 +460,7 @@ def fix_proxy_cidr_variant():
 def create_ip_stock():
     for v  in Variant.objects.all():
         cart_step=v.cart_step
-        cidrs = v.server_group.get_cidrs()
+        cidrs = v.cidrs
         if v.id==388:
             print(v.cidrs)
         for cidr in cidrs:
