@@ -245,6 +245,7 @@ class ServerUpdateSerializer(CommonSerializer):
         if "update_cidr" in attrs:
             update_cidr=attrs.pop("update_cidr")=="1"
         if run_init or update_cidr:
+            logging.info("run_init:{} update_cidr:{}".format(run_init, update_cidr))
             from apps.proxy_server.tasks import init_server
             cidr_list = [cidr['cidr'] for cidr in attrs['cidrs']]
             init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)

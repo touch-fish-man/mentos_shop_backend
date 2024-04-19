@@ -163,7 +163,8 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                 stock_obj.soft_delete = False
                 stock_obj.save()
         # 更新库存
-        old_product_stocks = instance.product_stocks.all()
+        variant_id = instance.id
+        old_product_stocks = ProductStock.objects.filter(variant_id=variant_id)
         for old_product_stock in old_product_stocks:
             old_product_stock.server_group = attrs['server_group']
             old_product_stock.save()
