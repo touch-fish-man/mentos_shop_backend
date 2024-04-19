@@ -117,6 +117,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     server_group = serializers.PrimaryKeyRelatedField(queryset=ServerGroup.objects.all(), required=True)
     shopify_variant_id = serializers.CharField(required=False)
     id = serializers.CharField(required=False)
+    is_active = serializers.BooleanField(required=False)
 
     class Meta:
         model = Variant
@@ -151,7 +152,9 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         redis_client.set(cache_key, 1, ex=60)
         acls = Acls.objects.all()
         cart_step = attrs['cart_step']
+        logging.info(attrs['server_group'])
         cidrs = attrs['server_group'].get_cidrs()
+        logging.info(cidrs)
         instance = Variant.objects.get(id=attrs['id'])
         instance.cidrs.clear()
         for cidr_i in cidrs:
