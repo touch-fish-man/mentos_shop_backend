@@ -2,7 +2,7 @@ import logging
 import traceback
 
 from django.core.cache import cache
-from django.db.models.signals import post_save, m2m_changed
+from django.db.models.signals import post_save, m2m_changed, pre_save
 from django.dispatch import receiver
 
 from apps.core.models import BaseModel
@@ -119,6 +119,18 @@ class Variant(BaseModel):
     variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
     proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
     cidrs = models.ManyToManyField('proxy_server.Cidr', through='VariantCidrThrough', related_name='cidrs')
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        #修改server_group时 如果server_group 更改了cidr 则更新variant的cidr
+        if self.server_group:
+            cidrs = self.server_group.cidrs.all()
+            if cidrs:
+                self.cidrs.clear()
+                for cidr in cidrs:
+                    self.cidrs.add(cidr)
+        return super().save(force_insert, force_update, using, update_fields)
+        
 
 
 class Product(BaseModel):
@@ -158,12 +170,11 @@ class ProductCollectionRelation(BaseModel):
     product_collection = models.ForeignKey(ProductCollection, on_delete=models.CASCADE)
 
 
+
 @receiver(m2m_changed, sender=Variant.cidrs.through)
 def update_variant_stock(sender, instance, action, reverse, model, pk_set, **kwargs):
-    if action == 'post_add' or action == 'post_remove':
+    if action in ['post_add', 'post_remove', 'post_clear']:
         # cidr更新产品库存
         logging.info('tirgger update_variant_stock,action:%s' % action)
         for p_s in instance.product_stocks.all():
             p_s.save()
-
-
