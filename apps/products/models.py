@@ -124,6 +124,7 @@ class Variant(BaseModel):
     ):
         if self.server_group:
             cidrs = self.server_group.get_cidrs()
+            logging.info('cidrs:%s' % cidrs)
             if cidrs:
                 self.cidrs.clear()
                 for cidr in cidrs:
