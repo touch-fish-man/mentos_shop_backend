@@ -77,6 +77,7 @@ class KaxyClient:
             error_msg = ""
             if faild_cnt:
                 cache.delete("request_fail_cnt_{}".format(self.host))
+            self.status = True
         except Exception as e:
             logging.exception(e)
             resp_log = "响应: {}".format(e)
@@ -90,10 +91,12 @@ class KaxyClient:
                 cache.set("request_fail_cnt_{}".format(self.host), 1)
                 cache.expire("request_fail_cnt_{}".format(self.host), 60 * 60 * 4)
             error_msg = "请求失败: {}".format(e)
+            self.status = False
             return error_msg, resp
         if resp.status_code != 200:
             if "write-user-acl" not in path:
                 logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
+            self.status = False
             error_msg = "请求失败: {}".format(resp.text)
         return error_msg, resp
 

@@ -184,6 +184,7 @@ def create_proxy_by_order_obj(order_obj,is_continue):
     msg = ""
     proxy_list = []
     proxy_id_list = []
+    server_client = {}
     if order_obj:
         if order_obj.pay_status != 1:
             logging.info('订单未支付')
@@ -242,7 +243,14 @@ def create_proxy_by_order_obj(order_obj,is_continue):
                         cidr_id = stocks[0].cidr.id
                         logging.info("cidr_id:{}".format(cidr_id))
                         server_ip = ServerCidrThrough.objects.filter(cidr_id=cidr_id).first().server.ip
-                        kaxy_client = KaxyClient(server_ip)
+                        if server_ip not in server_client:
+                            server_client[server_ip] = KaxyClient(server_ip)
+                            if not server_client[server_ip].status:
+                                msg = "服务器{}创建代理失败:{}".format(server_ip, "无法连接服务器")
+                                logging.info(msg)
+                                return False, msg, proxy_id_list
+                        else:
+                            kaxy_client = server_client[server_ip]
                         if not kaxy_client.status:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, "无法连接服务器")
                             logging.info(msg)
