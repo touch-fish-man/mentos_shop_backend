@@ -61,7 +61,7 @@ def ssh_command(host, port, user, password, command):
     try:
         client.load_system_host_keys()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(host, port, user, password, banner_timeout=600)
+        client.connect(host, port, user, password, banner_timeout=600,allow_agent=False)
         # 检查是否连接成功
         if not client.get_transport().is_active():
             print("server {} connect failed".format(host))
@@ -80,7 +80,7 @@ def scp_file(host, port, user, password, local_file, remote_file):
         "sshpass -p {}  scp -o StrictHostKeyChecking=no -P {} {} {}@{}:{}".format(password, port, local_file, user,
                                                                                   host, remote_file))
     # sftp = paramiko.Transport((host, int(port)))
-    # sftp.connect(username=user, password=password)
+    # sftp.connect(username=user, password=password,allow_agent=False)
     # sftp = paramiko.SFTPClient.from_transport(sftp)
     # sftp.put(local_file, remote_file)
     # sftp.close()
@@ -105,3 +105,6 @@ def main(host, port, user, password, cidrs,init_run,update_ip):
         print("添加ip")
         ssh_command(host, port, user, password, "sudo sh /etc/rc.d/init.d/auto_load_ip")
     print("server {} done".format(host))
+if __name__ == "__main__":
+    host, port, user, password="45.135.46.30", 22, "root", "kangcw123qwe!@#"
+    test_cmd(host, port, user, password)
