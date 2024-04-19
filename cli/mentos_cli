@@ -580,6 +580,8 @@ def send_proxy():
                 print("发货完成")
             else:
                 print(f"发货不正确,发货数量:{proxy_count},订单数量:{order_obj.product_quantity}")
+        else:
+            print("代理数量够了")
     else:
         print("订单不存在")
 
