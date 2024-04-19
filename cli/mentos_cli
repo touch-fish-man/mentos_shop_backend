@@ -569,7 +569,7 @@ def send_proxy():
     proxy_count = Proxy.objects.filter(order_id=order_id).count()
     if order_obj:
         if proxy_count < order_obj.proxy_num:
-            create_proxy_by_order_obj(order_obj, False)
+            create_proxy_by_order_obj(order_obj, True)
             proxy_count = Proxy.objects.filter(order_id=order_id).count()
             if order_obj.product_quantity == proxy_count:
                 print("发货完成")
@@ -577,6 +577,32 @@ def send_proxy():
                 print(f"发货不正确,发货数量:{proxy_count},订单数量:{order_obj.product_quantity}")
     else:
         print("订单不存在")
+
+
+@cli.command()
+def reset_product_order():
+    """
+    重置商品订单
+    """
+    product_id = console.input("请输入商品id:")
+    start_time = console.input("请输入开始UTC8时间(所有订单直接回车)格式:2021-01-01 00:00:00:")
+    end_time = console.input("请输入结束时间(所有订单直接回车):")
+    if start_time:
+        start_time = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+    else:
+        start_time = datetime.datetime.strptime("2020-01-01 00:00:00", "%Y-%m-%d %H:%M:%S")
+    if end_time:
+        end_time = datetime.datetime.strptime(end_time, "%Y-%m-%d %H:%M:%S")
+    else:
+        end_time = datetime.datetime.now()
+    start_time = start_time - datetime.timedelta(hours=8)
+    end_time = end_time - datetime.timedelta(hours=8)
+    from apps.products.tasks import reset_proxy_fn
+    orders = Orders.objects.filter(id=product_id, pay_status=1, created_at__range=(start_time, end_time)).all()
+    for order_obj in orders:
+        order_id = order_obj.id
+        username = order_obj.username
+        reset_proxy_fn(order_id, username)
 
 
 cli_all = click.CommandCollection(sources=[cli])
