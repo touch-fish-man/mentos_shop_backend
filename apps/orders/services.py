@@ -210,13 +210,13 @@ def create_proxy_by_order_obj(order_obj,is_continue):
             proxy_expired_at = order_obj.expired_at  # 代理过期时间
             product_quantity = order_obj.product_quantity
             if is_continue:
-                proxy_list = Proxy.objects.filter(order=order_obj).all()
-                if len(proxy_list) >= product_quantity:
+                proxy_count = Proxy.objects.filter(order=order_obj).all().count()
+                if proxy_count >= product_quantity:
                     logging.info('代理数量已经够了')
                     msg = '代理数量已经够了'
                     return False, msg, proxy_id_list
                 else:
-                    product_quantity -= len(proxy_list)
+                    product_quantity -= proxy_count
             variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
             if variant_obj:
                 cart_step = variant_obj.cart_step
