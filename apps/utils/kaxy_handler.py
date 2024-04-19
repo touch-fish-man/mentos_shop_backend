@@ -69,8 +69,8 @@ class KaxyClient:
         try:
             kwargs.update({"verify": False})
             if "timeout" not in kwargs:
-                kwargs.update({"timeout": 10})
-            resp = requests.request(method, url, headers=headers, **kwargs)
+                kwargs.update({"timeout": (5, 20)})
+            resp = requests.request(method, url, headers=headers,**kwargs)
             resp_log = "响应: {}-->{}".format(resp.status_code, resp.text)
             logger.info(resp_log)
             logger.info("-" * 100)

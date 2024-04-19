@@ -402,7 +402,7 @@ def remove_blacklist(server_groups, domains):
     return {"status": 1}
 
 
-@shared_task(name='stock_return_task',autoretry_for=(Exception,), retry_kwargs={'max_retries': 7, 'countdown': 5})
+@shared_task(name='stock_return_task', autoretry_for=(Exception,), retry_kwargs={'max_retries': 7, 'countdown': 5})
 def stock_return_task(ip_stock_ids, subnet):
     """
     代理库存归还
@@ -411,15 +411,14 @@ def stock_return_task(ip_stock_ids, subnet):
     from apps.proxy_server.models import ProxyStock
     proxy_stocks = ProxyStock.objects.filter(id__in=ids).all()
     has_proxy = Proxy.objects.filter(subnet=subnet).all()
+    acl_ids=[]
+    for p in has_proxy:
+        acl_ids.extend(p.acl_id.split(',') if p.acl_id else [])
     for proxy_stock in proxy_stocks:
-        release_stock =set()
-        release_stock.add(str(proxy_stock.id))
-        for proxy in has_proxy:
-            hold_stock = set(proxy.ip_stock_ids.split(','))
-            if hold_stock & release_stock:
-                logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id}")
-                continue
-        proxy_stock.return_subnet(subnet)
+        if str(proxy_stock.acl_id) in acl_ids:
+            logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id}")
+        else:
+            proxy_stock.return_subnet(subnet)
     return {"status": 1}
 
 
