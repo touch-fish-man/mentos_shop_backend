@@ -566,12 +566,15 @@ def send_proxy():
 
     from apps.orders.services import create_proxy_by_order_obj
     order_obj = Orders.objects.filter(id=order_id).first()
+    proxy_count = Proxy.objects.filter(order_id=order_id).count()
     if order_obj:
-        create_proxy_by_order_obj(order_obj, False)
-        if order_obj.product_quantity == order_obj.delivery_num:
-            print("发货完成")
-        else:
-            print(f"发货不正确,发货数量:{order_obj.delivery_num},订单数量:{order_obj.product_quantity}")
+        if proxy_count < order_obj.proxy_num:
+            create_proxy_by_order_obj(order_obj, False)
+            proxy_count = Proxy.objects.filter(order_id=order_id).count()
+            if order_obj.product_quantity == proxy_count:
+                print("发货完成")
+            else:
+                print(f"发货不正确,发货数量:{proxy_count},订单数量:{order_obj.product_quantity}")
     else:
         print("订单不存在")
 
