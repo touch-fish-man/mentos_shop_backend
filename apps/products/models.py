@@ -123,7 +123,7 @@ class Variant(BaseModel):
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
         if self.server_group:
-            cidrs = self.server_group.cidrs.all()
+            cidrs = self.server_group.get_cidrs()
             if cidrs:
                 self.cidrs.clear()
                 for cidr in cidrs:
