@@ -144,7 +144,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         acls = Acls.objects.all()
         cart_step = attrs['cart_step']
-        cidrs = self.get_cidr(attrs['server_group'])
+        cidrs = attrs['server_group'].get_cidrs()
         instance = self.instance
 
         for acl_i in acls:
