@@ -320,7 +320,7 @@ class KaxyClient:
         user_acl_dict[user] = acl_user_str
         return user_acl_dict
 
-    def create_user_acl_by_prefix(self, user, prefix, acl_str):
+    def create_user_acl_by_prefix(self, user, prefix, acl_str=None):
         # 创建用户acl，指定ip前缀
         proxy_info = {"proxy": [], "num_of_ips": 0}
         for x in range(5):

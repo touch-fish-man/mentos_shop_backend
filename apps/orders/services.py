@@ -195,6 +195,7 @@ def create_proxy_by_order_obj(order_obj,is_continue):
             return False, msg, proxy_id_list
         order_id = order_obj.order_id
         lock_id = 'create_proxy_by_id_{}'.format(order_id)
+        is_add_acl=False
         with cache.lock(lock_id):
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
@@ -230,6 +231,7 @@ def create_proxy_by_order_obj(order_obj,is_continue):
                     return False, msg, proxy_id_list
                 if available_cidrs:
                     for cidr_str, stock_infos in available_cidrs.items():
+                        # add_acl onece
                         error_cnt = 0
                         stocks = []
                         stock_ids = []
@@ -246,7 +248,10 @@ def create_proxy_by_order_obj(order_obj,is_continue):
                             logging.info(msg)
                             return False, msg, proxy_id_list
                         try:
-                            proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, cidr_str, acl_value)
+                            proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, cidr_str)
+                            if len(proxy_info["proxy"])>0 and not is_add_acl:
+                                if kaxy_client.add_user_acl(proxy_username,acl_value):
+                                    is_add_acl = True
                         except Exception as e:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, e)
                             logging.exception(e)
