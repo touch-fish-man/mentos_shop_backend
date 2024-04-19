@@ -153,10 +153,10 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         cart_step = attrs['cart_step']
         cidrs = attrs['server_group'].get_cidrs()
         instance = self.instance
-
-        for acl_i in acls:
-            acl_id = acl_i.id
-            for cidr_i in cidrs:
+        instance.cidrs.clear()
+        for cidr_i in cidrs:
+            for acl_i in acls:
+                acl_id = acl_i.id
                 cart_stock = cidr_i.ip_count // cart_step
                 stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
                                                                         cart_step=cart_step)
@@ -169,6 +169,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                     stock_obj.save()
                 stock_obj.soft_delete = False
                 stock_obj.save()
+            self.instance.cidrs.add(cidr_i)
         # 更新库存
         variant_id = attrs["id"]
         old_product_stocks = ProductStock.objects.filter(variant_id=variant_id)

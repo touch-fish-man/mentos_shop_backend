@@ -119,19 +119,19 @@ class Variant(BaseModel):
     variant_option3 = models.CharField(max_length=255, verbose_name='选项3', blank=True, null=True)
     proxy_time = models.IntegerField(verbose_name='代理时间', default=30)
     cidrs = models.ManyToManyField('proxy_server.Cidr', through='VariantCidrThrough', related_name='cidrs')
-    def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
-    ):
-        logging.info(self.server_group)
-        if self.server_group:
-            cidrs = self.server_group.get_cidrs()
-            logging.info('cidrs:%s' % cidrs)
-            if cidrs:
-                self.cidrs.clear()
-                for cidr in cidrs:
-                    logging.info('add cidr:%s' % cidr)
-                    self.cidrs.add(cidr)
-        return super().save(force_insert, force_update, using, update_fields)
+    # def save(
+    #     self, force_insert=False, force_update=False, using=None, update_fields=None
+    # ):
+    #     logging.info(self.server_group)
+    #     if self.server_group:
+    #         cidrs = self.server_group.get_cidrs()
+    #         logging.info('cidrs:%s' % cidrs)
+    #         if cidrs:
+    #             self.cidrs.clear()
+    #             for cidr in cidrs:
+    #                 logging.info('add cidr:%s' % cidr)
+    #                 self.cidrs.add(cidr)
+    #     return super().save(force_insert, force_update, using, update_fields)
 
 
 
