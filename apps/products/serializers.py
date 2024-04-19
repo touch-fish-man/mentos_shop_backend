@@ -142,6 +142,13 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids, []
 
     def validate(self, attrs):
+        cache = caches['default']
+        v_id=attrs['id']
+        cache_key = f"update_variant_{v_id}"
+        redis_client = cache.client.get_client()
+        if redis_client.get(cache_key):
+            raise CustomValidationError("请勿重复提交")
+        redis_client.set(cache_key, 1, ex=60)
         acls = Acls.objects.all()
         cart_step = attrs['cart_step']
         cidrs = attrs['server_group'].get_cidrs()
@@ -168,6 +175,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         for old_product_stock in old_product_stocks:
             old_product_stock.server_group = attrs['server_group']
             old_product_stock.save()
+        cache.delete(cache_key)
         return attrs
 
 
