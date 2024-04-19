@@ -248,6 +248,7 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=False):
                         server_ip = ServerCidrThrough.objects.filter(cidr_id=cidr_id).first().server.ip
                         if server_ip not in server_client:
                             server_client[server_ip] = KaxyClient(server_ip)
+                            kaxy_client = server_client[server_ip]
                         else:
                             kaxy_client = server_client[server_ip]
                         if not kaxy_client.status:
