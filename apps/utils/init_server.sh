@@ -2,8 +2,6 @@
 cat "sshd: ALL" >> /etc/hosts.allow
 yum -y install epel-release
 yum -y install fail2ban
-systemctl start fail2ban
-systemctl enable fail2ban
 if [ ! -f /etc/fail2ban/jail.local ]; then
   echo "[sshd]
 ignoreip = 127.0.0.1/8
@@ -17,6 +15,8 @@ action = %(action_mwl)s
 banaction = firewallcmd-ipset
 logpath = /var/log/secure" > /etc/fail2ban/jail.local
 fi
+systemctl restart fail2ban
+systemctl enable fail2ban
 if [ ! -f /root/init_success.txt ]; then
   yum -y update
   yum install net-tools -y
