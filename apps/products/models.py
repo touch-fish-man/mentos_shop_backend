@@ -122,6 +122,7 @@ class Variant(BaseModel):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
+        logging.info(self.server_group)
         if self.server_group:
             cidrs = self.server_group.get_cidrs()
             logging.info('cidrs:%s' % cidrs)
