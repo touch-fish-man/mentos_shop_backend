@@ -474,6 +474,6 @@ def create_ip_stock():
 
 if __name__ == '__main__':
     order_obj=Orders.objects.filter(id=17482).first()
-    create_proxy_by_order_obj("order_obj",True)
+    create_proxy_by_order_obj(order_obj,True)
     # create_ip_stock()
 
