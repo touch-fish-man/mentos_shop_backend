@@ -1,7 +1,7 @@
 #!/bin/bash
 cat "sshd: ALL" >> /etc/hosts.allow
 yum -y install epel-release
-yum -y install fan2ban
+yum -y install fail2ban
 systemctl start fail2ban
 systemctl enable fail2ban
 if [ ! -f /etc/fail2ban/jail.local ]; then
