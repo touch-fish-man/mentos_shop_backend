@@ -177,6 +177,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             old_product_stock.server_group = attrs['server_group']
             old_product_stock.save()
         cache.delete(cache_key)
+        logging.info(attrs)
         return attrs
 
 
