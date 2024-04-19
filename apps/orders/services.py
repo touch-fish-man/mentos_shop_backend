@@ -227,7 +227,7 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
                 for cidr in variant_obj.cidrs.all():
                     cidr_list.append(cidr.id)
                 available_cidrs = get_available_cidrs(acl_ids, cidr_list, cart_step)
-                tmp_num=product_quantity
+                tmp_num=product_quantity//cart_step
                 if part_send:
                     tmp_num=1
                 if len(available_cidrs) < tmp_num:
