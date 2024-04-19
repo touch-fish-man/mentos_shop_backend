@@ -21,7 +21,7 @@ def gen_order_id():
 
 class Orders(BaseModel):
     PAY_STATUS = {0: "未支付", 1: "支付成功", 2: "支付失败"}
-    ORDER_STATUS = {0: "未支付", 1: "已支付", 2: "已取消", 3: "已过期", 4: "已发货"}
+    ORDER_STATUS = {0: "未支付", 1: "已支付", 2: "已取消", 3: "已过期", 4: "已发货", 5: "部分发货"}
     PAY_STATUS_REVERSE = {v: int(k) for k, v in PAY_STATUS.items()}
     ORDER_STATUS_REVERSE = {v: int(k) for k, v in ORDER_STATUS.items()}
     # 用户

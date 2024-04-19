@@ -289,7 +289,9 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
                     # 更新订单状态
                     order_obj.order_status = 4
                     order_obj.delivery_status = 1
-                    order_obj.delivery_num = len(proxy_list)
+                    order_obj.delivery_num = Proxy.objects.filter(order=order_obj).all().count()
+                    if order_obj.delivery_num == order_obj.product_quantity:
+                        order_obj.fail_reason = ""
                     order_obj.save()
                     variant_obj.save()  # 更新套餐库存
                     email_template = settings.EMAIL_TEMPLATES.get("delivery")
