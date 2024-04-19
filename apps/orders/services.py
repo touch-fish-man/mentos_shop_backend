@@ -219,6 +219,7 @@ def create_proxy_by_order_obj(order_obj,is_continue):
                     return False, msg, proxy_id_list
                 else:
                     product_quantity -= proxy_count
+                    logging.info('继续创建代理,还需创建{}个'.format(product_quantity))
             variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
             if variant_obj:
                 cart_step = variant_obj.cart_step
