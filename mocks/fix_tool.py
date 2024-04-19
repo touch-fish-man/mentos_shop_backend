@@ -13,7 +13,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
-from apps.orders.services import create_proxy_by_order_obj
+
 from init_env import *
 from rich.console import Console
 import ipaddress
@@ -25,7 +25,7 @@ from apps.orders.models import Orders
 from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.services import add_product_other
-
+from apps.orders.services import create_proxy_by_order_obj
 
 def is_ip_in_network(ip_str, network_str):
     ip = ipaddress.ip_address(ip_str)
