@@ -106,5 +106,5 @@ def main(host, port, user, password, cidrs,init_run,update_ip):
         ssh_command(host, port, user, password, "sudo sh /etc/rc.d/init.d/auto_load_ip")
     print("server {} done".format(host))
 if __name__ == "__main__":
-    host, port, user, password="45.135.46.30", 22, "root", "kangcw123qwe!@#"
+    host, port, user, password="45.135.46.30", 52262, "root", "kangcw123qwe!@#"
     test_cmd(host, port, user, password)
