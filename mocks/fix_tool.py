@@ -471,5 +471,5 @@ def create_ip_stock():
         v.save()
 if __name__ == '__main__':
     fix_exclude_cidr()
-    create_ip_stock()
+    # create_ip_stock()
 
