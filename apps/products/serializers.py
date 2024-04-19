@@ -151,9 +151,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         redis_client.set(cache_key, 1, ex=60)
         acls = Acls.objects.all()
         cart_step = attrs['cart_step']
-        logging.info(attrs['server_group'])
         cidrs = attrs['server_group'].get_cidrs()
-        logging.info(cidrs)
         instance = Variant.objects.get(id=attrs['id'])
         instance.cidrs.clear()
         for cidr_i in cidrs:
@@ -172,7 +170,6 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                 stock_obj.soft_delete = False
                 stock_obj.save()
             instance.cidrs.add(cidr_i)
-            instance.save()
         # 更新库存
         variant_id = attrs["id"]
         old_product_stocks = ProductStock.objects.filter(variant_id=variant_id)
