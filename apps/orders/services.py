@@ -177,7 +177,7 @@ def get_renew_checkout_link(order_id, request):
         return None, None
 
 
-def create_proxy_by_order_obj(order_obj,is_continue):
+def create_proxy_by_order_obj(order_obj,is_continue,part_send=False):
     """
     根据订单创建代理
     """
@@ -227,7 +227,10 @@ def create_proxy_by_order_obj(order_obj,is_continue):
                 for cidr in variant_obj.cidrs.all():
                     cidr_list.append(cidr.id)
                 available_cidrs = get_available_cidrs(acl_ids, cidr_list, cart_step)
-                if len(available_cidrs) * cart_step < product_quantity:
+                tmp_num=product_quantity
+                if part_send:
+                    tmp_num=1
+                if len(available_cidrs) < tmp_num:
                     logging.info('可用子网数量不足')
                     msg = "可用子网数量不足"
                     return False, msg, proxy_id_list
