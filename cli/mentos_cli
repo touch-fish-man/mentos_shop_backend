@@ -20,7 +20,6 @@ import ipaddress
 from rich.table import Table
 from rich.progress import Progress, TaskID
 
-
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
 from apps.orders.models import Orders
@@ -30,7 +29,10 @@ import click
 from apps.orders.tasks import delete_proxy_expired
 import subprocess
 from django_celery_beat.models import PeriodicTask, IntervalSchedule, CrontabSchedule, ClockedSchedule
+
 console = Console()
+
+
 @click.group()
 def cli():
     pass
@@ -84,8 +86,8 @@ def fix_stock():
         return
 
     variants = Variant.objects.filter(product_id=product_id).all()
-    progress = Progress(console=console,expand=True)
-    tasks=[]
+    progress = Progress(console=console, expand=True)
+    tasks = []
 
     with progress:
         for variant_i in variants:
@@ -553,6 +555,25 @@ def update():
         print("没有改动")
     else:
         os.system("supervisorctl restart all")
+
+
+@cli.command()
+def send_proxy():
+    """
+    订单断点发货，不清理旧代理补齐订单
+    """
+    order_id = console.input("请输入订单id:")
+
+    from apps.orders.services import create_proxy_by_order_obj
+    order_obj = Orders.objects.filter(id=order_id).first()
+    if order_obj:
+        create_proxy_by_order_obj(order_obj, False)
+        if order_obj.product_quantity == order_obj.delivery_num:
+            print("发货完成")
+        else:
+            print(f"发货不正确,发货数量:{order_obj.delivery_num},订单数量:{order_obj.product_quantity}")
+    else:
+        print("订单不存在")
 
 
 cli_all = click.CommandCollection(sources=[cli])
