@@ -122,15 +122,15 @@ class Variant(BaseModel):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        #修改server_group时 如果server_group 更改了cidr 则更新variant的cidr
         if self.server_group:
             cidrs = self.server_group.cidrs.all()
             if cidrs:
                 self.cidrs.clear()
                 for cidr in cidrs:
+                    logging.info('add cidr:%s' % cidr)
                     self.cidrs.add(cidr)
         return super().save(force_insert, force_update, using, update_fields)
-        
+
 
 
 class Product(BaseModel):
