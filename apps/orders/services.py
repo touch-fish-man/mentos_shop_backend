@@ -232,7 +232,6 @@ def create_proxy_by_order_obj(order_obj,is_continue):
                     return False, msg, proxy_id_list
                 if available_cidrs:
                     for cidr_str, stock_infos in available_cidrs.items():
-                        # add_acl onece
                         error_cnt = 0
                         stocks = []
                         stock_ids = []
@@ -245,10 +244,6 @@ def create_proxy_by_order_obj(order_obj,is_continue):
                         server_ip = ServerCidrThrough.objects.filter(cidr_id=cidr_id).first().server.ip
                         if server_ip not in server_client:
                             server_client[server_ip] = KaxyClient(server_ip)
-                            if not server_client[server_ip].status:
-                                msg = "服务器{}创建代理失败:{}".format(server_ip, "无法连接服务器")
-                                logging.info(msg)
-                                return False, msg, proxy_id_list
                         else:
                             kaxy_client = server_client[server_ip]
                         if not kaxy_client.status:
