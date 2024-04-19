@@ -152,7 +152,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         acls = Acls.objects.all()
         cart_step = attrs['cart_step']
         cidrs = attrs['server_group'].get_cidrs()
-        instance = self.instance
+        instance = Variant.objects.get(id=attrs['id'])
         instance.cidrs.clear()
         for cidr_i in cidrs:
             for acl_i in acls:
