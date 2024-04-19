@@ -78,14 +78,19 @@ def fix_stock():
     """
     修复库存,用于修复库存回收失败
     """
-    product_id = console.input("请输入商品id:")
-    try:
-        product_id = int(product_id)
-    except ValueError:
-        console.print("请输入数字")
-        return
+    product_id = console.input("请输入商品id所有商品输入all:")
+    query=Variant.objects
+    if product_id != "all":
+        try:
+            product_id = int(product_id)
+            query = query.filter(product_id=product_id)
+        except ValueError:
+            console.print("请输入数字")
+            return
+    else:
+        query = query.filter(product__old_flag=False)
 
-    variants = Variant.objects.filter(product_id=product_id).all()
+    variants = query.all()
     progress = Progress(console=console, expand=True)
     tasks = []
 
