@@ -177,7 +177,7 @@ def get_renew_checkout_link(order_id, request):
         return None, None
 
 
-def create_proxy_by_order_obj(order_obj,is_continue,part_send=False):
+def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
     """
     根据订单创建代理
     """
