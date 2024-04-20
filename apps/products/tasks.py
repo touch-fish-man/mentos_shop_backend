@@ -414,7 +414,7 @@ def stock_return_task(ip_stock_ids, subnet):
     has_proxy = Proxy.objects.filter(subnet=subnet).all()
     acl_ids=[]
     for p in has_proxy:
-        acl_ids.extend(p.acl_id.split(',') if p.acl_id else [])
+        acl_ids.extend(p.acl_ids.split(',') if p.acl_id else [])
     for proxy_stock in proxy_stocks:
         cache_key = f"stock_return_task_action_{proxy_stock.id}"
         cache_client = cache.client.get_client()
