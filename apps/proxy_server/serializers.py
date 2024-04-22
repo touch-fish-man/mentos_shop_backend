@@ -118,7 +118,7 @@ class ServerSerializer(CommonSerializer):
 
     class Meta:
         model = Server
-        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'server_status')
+        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'server_status',"port","password")
 
 
 class ServersGroupSerializer(CommonSerializer):
@@ -191,9 +191,9 @@ class ServerCreateSerializer(CommonSerializer):
         if "run_init" in attrs:
             run_init=attrs.pop("run_init")=="1"
         if "password" in attrs:
-            password=attrs.pop("password")
+            password=attrs["password"]
         if "port" in attrs:
-            port=attrs.pop("port")
+            port=attrs["port"]
         if "update_cidr" in attrs:
             update_cidr=attrs.pop("update_cidr")=="1"
         if run_init or update_cidr:
