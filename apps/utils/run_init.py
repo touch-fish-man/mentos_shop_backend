@@ -89,7 +89,7 @@ def scp_file(host, port, user, password, local_file, remote_file):
 def main(host, port, user, password, cidrs,init_run,update_ip):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     script_path = os.path.join(base_dir,"init_server.sh")
-    remote_script_path = "/root/" + script_path
+    remote_script_path = "/root/init_server.sh"
     if init_run:
         print("初始化server {}".format(host))
         ssh_command(host, port, user, password, "ls")
