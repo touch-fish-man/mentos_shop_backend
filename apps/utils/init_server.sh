@@ -29,6 +29,7 @@ if [ ! -f /root/init_success.txt ]; then
     sudo chmod -R +x /etc/kaxy
     rm -rf /etc/systemd/system/proxy.service
     sudo bash /etc/kaxy/deploy.sh
+    mv -f /opt/prefix.conf /etc/kaxy/conf.d/prefix.conf
     sudo systemctl status proxy
   fi
   if [ ! -f /usr/bin/docker ]; then
