@@ -15,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from redis import Redis
 from config.django import local as env
 
-REDIS_URL = f"redis://:{env.REDIS_PASSWORD}@{env.REDIS_HOST}:6379/2"
+REDIS_URL = f"redis://:{env.REDIS_PASSWORD}@{env.REDIS_HOST}:6379/1"
 cache = Redis.from_url(REDIS_URL, decode_responses=True)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

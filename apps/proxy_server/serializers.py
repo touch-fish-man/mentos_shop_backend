@@ -202,7 +202,8 @@ class ServerCreateSerializer(CommonSerializer):
             if not test_cmd(attrs['ip'], port, "root", password):
                 raise CustomValidationError("代理服务器ssh连接失败，请检查服务器是否正常")
             init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
-        cache.delete("request_fail_cnt_{}".format(attrs['ip']))
+        cache_client = cache.client.get_client()
+        cache_client.delete("request_fail_cnt_{}".format(attrs['ip']))
         return attrs
 
     def create(self, validated_data):
@@ -215,6 +216,8 @@ class ServerCreateSerializer(CommonSerializer):
             cidr_obj = Cidr.objects.get_or_create(**cidr)
             cidrs_list.append(cidr_obj[0].id)
         server.cidrs.set(cidrs_list)
+        cache_client=cache.client.get_client()
+        cache_client.delete("request_fail_cnt_{}".format(validated_data['ip']))
         return server
 
 
