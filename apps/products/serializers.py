@@ -141,22 +141,16 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             return cidr_ids, ip_count
         else:
             return cidr_ids, []
-
-    def validate(self, attrs):
+    def update(self, instance, validated_data):
+        cache_key = f"update_variant_{validated_data['id']}"
         cache = caches['default']
-        v_id=attrs['id']
-        cache_key = f"update_variant_{v_id}"
         redis_client = cache.client.get_client()
-        if redis_client.get(cache_key):
-            raise CustomValidationError("请勿重复提交")
         redis_client.set(cache_key, 1, ex=60)
         acls = Acls.objects.all()
-        cart_step = attrs['cart_step']
-        logging.info(attrs['server_group'])
-        cidrs = attrs['server_group'].get_cidrs()
+        cart_step = validated_data['cart_step']
+        logging.info(validated_data['server_group'])
+        cidrs = validated_data['server_group'].get_cidrs()
         logging.info(cidrs)
-        instance = Variant.objects.get(id=attrs['id'])
-        instance.cidrs.clear()
         for cidr_i in cidrs:
             for acl_i in acls:
                 acl_id = acl_i.id
@@ -172,15 +166,22 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                     stock_obj.save()
                 stock_obj.soft_delete = False
                 stock_obj.save()
-            instance.cidrs.add(cidr_i)
         # 更新库存
-        variant_id = attrs["id"]
+        variant_id = validated_data["id"]
         old_product_stocks = ProductStock.objects.filter(variant_id=variant_id)
         for old_product_stock in old_product_stocks:
-            old_product_stock.server_group = attrs['server_group']
+            old_product_stock.server_group = validated_data['server_group']
             old_product_stock.save()
-        cache.delete(cache_key)
-        logging.info(attrs)
+        instance.cidrs.set(cidrs)
+        redis_client.delete(cache_key)
+
+    def validate(self, attrs):
+        cache = caches['default']
+        v_id=attrs['id']
+        cache_key = f"update_variant_{v_id}"
+        redis_client = cache.client.get_client()
+        if redis_client.get(cache_key):
+            raise CustomValidationError("请勿重复提交")
         return attrs
 
 
