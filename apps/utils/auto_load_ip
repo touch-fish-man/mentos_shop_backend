@@ -1,0 +1,8 @@
+#!/bin/bash
+# chkconfig: 2345 20 80
+# description: Auto load IP addresses
+data=$(cat /etc/kaxy/conf.d/prefix.conf | tr "," "\n")
+for line in $data
+do
+  ip addr add $line dev lo
+done

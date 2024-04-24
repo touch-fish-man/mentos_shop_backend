@@ -151,7 +151,7 @@ def check_proxy(proxy, id):
     def check_site(url):
         try:
             s_time = time.time()
-            response = requests.get(url, proxies=proxies, timeout=5, verify=False)
+            response = requests.get(url, proxies=proxies, timeout=15, verify=False)
             delay = int((time.time() - s_time) * 1000)
             return response.status_code == 200, delay
         except requests.exceptions.ProxyError:
@@ -205,7 +205,7 @@ async def fetch_using_proxy(url, proxy):
     try:
         connector = ProxyConnector.from_url(proxy)
     except:
-        logging.error(f"Error parsing proxy URL: {proxy}")
+        #logging.error(f"Error parsing proxy URL: {proxy}")
         return url, proxy, 99999, False
     if ".255:" in proxy:
         return url, proxy, 99999, False
@@ -221,11 +221,11 @@ async def fetch_using_proxy(url, proxy):
                 else:
                     return url, proxy, 99999, False
     except asyncio.TimeoutError as e:
-        logging.info(f'Error. URL: {url}, Proxy: {proxy}; request timeout')
+        #logging.info(f'Error. URL: {url}, Proxy: {proxy}; request timeout')
         latency = 99999
         return url, proxy, latency, False
     except Exception as e:
-        logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}', exc_info=True)
+        #logging.info(f'Error. URL: {url}, Proxy: {proxy}; Error: {e}', exc_info=True)
         latency = 99999
         return url, proxy, latency, False
     finally:

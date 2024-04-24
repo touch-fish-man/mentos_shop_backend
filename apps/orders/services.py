@@ -177,13 +177,14 @@ def get_renew_checkout_link(order_id, request):
         return None, None
 
 
-def create_proxy_by_order_obj(order_obj):
+def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
     """
     根据订单创建代理
     """
     msg = ""
     proxy_list = []
     proxy_id_list = []
+    server_client = {}
     if order_obj:
         if order_obj.pay_status != 1:
             logging.info('订单未支付')
@@ -195,6 +196,7 @@ def create_proxy_by_order_obj(order_obj):
             return False, msg, proxy_id_list
         order_id = order_obj.order_id
         lock_id = 'create_proxy_by_id_{}'.format(order_id)
+        is_add_acl=False
         with cache.lock(lock_id):
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
@@ -209,6 +211,15 @@ def create_proxy_by_order_obj(order_obj):
             acl_value = "\n".join(white_acl_list.get("acl_value"))
             proxy_expired_at = order_obj.expired_at  # 代理过期时间
             product_quantity = order_obj.product_quantity
+            if is_continue:
+                proxy_count = Proxy.objects.filter(order=order_obj).all().count()
+                if proxy_count >= product_quantity:
+                    logging.info('代理数量已经够了')
+                    msg = '代理数量已经够了'
+                    return False, msg, proxy_id_list
+                else:
+                    product_quantity -= proxy_count
+                    logging.info('继续创建代理,还需创建{}个'.format(product_quantity))
             variant_obj = Variant.objects.filter(id=order_obj.local_variant_id).first()  # 获取订单对应的套餐
             if variant_obj:
                 cart_step = variant_obj.cart_step
@@ -216,7 +227,10 @@ def create_proxy_by_order_obj(order_obj):
                 for cidr in variant_obj.cidrs.all():
                     cidr_list.append(cidr.id)
                 available_cidrs = get_available_cidrs(acl_ids, cidr_list, cart_step)
-                if len(available_cidrs) * cart_step < product_quantity:
+                tmp_num=product_quantity//cart_step
+                if part_send:
+                    tmp_num=1
+                if len(available_cidrs) < tmp_num:
                     logging.info('可用子网数量不足')
                     msg = "可用子网数量不足"
                     return False, msg, proxy_id_list
@@ -232,13 +246,20 @@ def create_proxy_by_order_obj(order_obj):
                         cidr_id = stocks[0].cidr.id
                         logging.info("cidr_id:{}".format(cidr_id))
                         server_ip = ServerCidrThrough.objects.filter(cidr_id=cidr_id).first().server.ip
-                        kaxy_client = KaxyClient(server_ip)
+                        if server_ip not in server_client:
+                            server_client[server_ip] = KaxyClient(server_ip)
+                            kaxy_client = server_client[server_ip]
+                        else:
+                            kaxy_client = server_client[server_ip]
                         if not kaxy_client.status:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, "无法连接服务器")
                             logging.info(msg)
                             return False, msg, proxy_id_list
                         try:
-                            proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, cidr_str, acl_value)
+                            proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, cidr_str)
+                            if len(proxy_info["proxy"])>0 and not is_add_acl:
+                                if kaxy_client.add_user_acl(proxy_username,acl_value):
+                                    is_add_acl = True
                         except Exception as e:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, e)
                             logging.exception(e)
@@ -268,7 +289,9 @@ def create_proxy_by_order_obj(order_obj):
                     # 更新订单状态
                     order_obj.order_status = 4
                     order_obj.delivery_status = 1
-                    order_obj.delivery_num = len(proxy_list)
+                    order_obj.delivery_num = Proxy.objects.filter(order=order_obj).all().count()
+                    if order_obj.delivery_num == order_obj.product_quantity:
+                        order_obj.fail_reason = ""
                     order_obj.save()
                     variant_obj.save()  # 更新套餐库存
                     email_template = settings.EMAIL_TEMPLATES.get("delivery")
@@ -291,9 +314,9 @@ def create_proxy_by_order_obj(order_obj):
     return False, msg, proxy_id_list
 
 
-def create_proxy(filter_dict):
+def create_proxy(filter_dict,is_continue=False):
     order_obj = Orders.objects.filter(**filter_dict).first()
-    return create_proxy_by_order_obj(order_obj)
+    return create_proxy_by_order_obj(order_obj,is_continue)
 
 
 def renew_proxy_by_order(order_id):

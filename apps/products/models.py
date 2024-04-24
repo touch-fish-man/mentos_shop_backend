@@ -148,7 +148,7 @@ class Product(BaseModel):
     soft_delete = models.BooleanField(default=False, verbose_name='软删除', blank=True, null=True)
 
     # variants = models.ManyToManyField(Variant)
-    variant_options = models.ManyToManyField(Option, verbose_name='选项', through='OptionValue')
+    variant_options = models.ManyToManyField(Option, verbose_name='选项', through='OptionValue',related_name='product_variants')
     active = models.BooleanField(default=True, verbose_name='是否上架', blank=True, null=True)
     valid = models.BooleanField(default=False, verbose_name='是否有效', blank=True, null=True)
     old_flag = models.BooleanField(default=False, verbose_name='是否旧商品', blank=True, null=True)

@@ -15,7 +15,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from redis import Redis
 from config.django import local as env
 
-REDIS_URL = f"redis://:{env.REDIS_PASSWORD}@{env.REDIS_HOST}:6379/2"
+REDIS_URL = f"redis://:{env.REDIS_PASSWORD}@{env.REDIS_HOST}:6379/1"
 cache = Redis.from_url(REDIS_URL, decode_responses=True)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -69,14 +69,15 @@ class KaxyClient:
         try:
             kwargs.update({"verify": False})
             if "timeout" not in kwargs:
-                kwargs.update({"timeout": 10})
-            resp = requests.request(method, url, headers=headers, **kwargs)
+                kwargs.update({"timeout": (15, 30)})
+            resp = requests.request(method, url, headers=headers,**kwargs)
             resp_log = "响应: {}-->{}".format(resp.status_code, resp.text)
             logger.info(resp_log)
             logger.info("-" * 100)
             error_msg = ""
             if faild_cnt:
                 cache.delete("request_fail_cnt_{}".format(self.host))
+            self.status = True
         except Exception as e:
             logging.exception(e)
             resp_log = "响应: {}".format(e)
@@ -90,10 +91,12 @@ class KaxyClient:
                 cache.set("request_fail_cnt_{}".format(self.host), 1)
                 cache.expire("request_fail_cnt_{}".format(self.host), 60 * 60 * 4)
             error_msg = "请求失败: {}".format(e)
+            self.status = False
             return error_msg, resp
         if resp.status_code != 200:
             if "write-user-acl" not in path:
                 logging.info("请求失败: {}-->{}".format(resp.text, kwargs))
+            self.status = False
             error_msg = "请求失败: {}".format(resp.text)
         return error_msg, resp
 
@@ -320,7 +323,7 @@ class KaxyClient:
         user_acl_dict[user] = acl_user_str
         return user_acl_dict
 
-    def create_user_acl_by_prefix(self, user, prefix, acl_str):
+    def create_user_acl_by_prefix(self, user, prefix, acl_str=None):
         # 创建用户acl，指定ip前缀
         proxy_info = {"proxy": [], "num_of_ips": 0}
         for x in range(5):

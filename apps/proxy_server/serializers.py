@@ -1,5 +1,6 @@
 import ipaddress
 
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
@@ -117,7 +118,7 @@ class ServerSerializer(CommonSerializer):
 
     class Meta:
         model = Server
-        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'server_status')
+        fields = ('id', 'name', 'ip', 'description', 'cidrs', 'server_status',"port","password")
 
 
 class ServersGroupSerializer(CommonSerializer):
@@ -190,9 +191,9 @@ class ServerCreateSerializer(CommonSerializer):
         if "run_init" in attrs:
             run_init=attrs.pop("run_init")=="1"
         if "password" in attrs:
-            password=attrs.pop("password")
+            password=attrs["password"]
         if "port" in attrs:
-            port=attrs.pop("port")
+            port=attrs["port"]
         if "update_cidr" in attrs:
             update_cidr=attrs.pop("update_cidr")=="1"
         if run_init or update_cidr:
@@ -201,7 +202,8 @@ class ServerCreateSerializer(CommonSerializer):
             if not test_cmd(attrs['ip'], port, "root", password):
                 raise CustomValidationError("代理服务器ssh连接失败，请检查服务器是否正常")
             init_server.delay(attrs['ip'], port, "root", password, cidr_list, run_init, update_cidr)
-
+        cache_client = cache.client.get_client()
+        cache_client.delete("request_fail_cnt_{}".format(attrs['ip']))
         return attrs
 
     def create(self, validated_data):
@@ -214,6 +216,8 @@ class ServerCreateSerializer(CommonSerializer):
             cidr_obj = Cidr.objects.get_or_create(**cidr)
             cidrs_list.append(cidr_obj[0].id)
         server.cidrs.set(cidrs_list)
+        cache_client=cache.client.get_client()
+        cache_client.delete("request_fail_cnt_{}".format(validated_data['ip']))
         return server
 
 
@@ -240,9 +244,9 @@ class ServerUpdateSerializer(CommonSerializer):
         if "run_init" in attrs:
             run_init=attrs.pop("run_init")=="1"
         if "password" in attrs:
-            password=attrs.pop("password")
+            password=attrs["password"]
         if "port" in attrs:
-            port=attrs.pop("port")
+            port=attrs["port"]
         if "update_cidr" in attrs:
             update_cidr=attrs.pop("update_cidr")=="1"
         if run_init or update_cidr:

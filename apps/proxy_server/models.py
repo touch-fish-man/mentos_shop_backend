@@ -163,6 +163,8 @@ class Server(BaseModel):
     cidrs = models.ManyToManyField('Cidr', verbose_name='CIDR', through='ServerCidrThrough')
     server_status = models.IntegerField(blank=True, null=True, verbose_name='服务器状态', default=1)
     faild_count = models.IntegerField(blank=True, null=True, verbose_name='失败次数', default=0)
+    port = models.IntegerField(blank=True, null=True, verbose_name='端口')
+    password = models.CharField(max_length=255, blank=True, null=True, verbose_name='密码')
 
     class Meta:
         db_table = 'server'
@@ -583,13 +585,6 @@ def _mymodel_delete(sender, instance, **kwargs):
         # 通知回收库存
         from apps.proxy_server.tasks import stock_return_task
         stock_return_task.delay(instance.ip_stock_ids, instance.subnet)
-    # # 归还子网,归还库存
-    # if stock:
-    #     if Proxy.objects.filter(subnet=instance.subnet, ip_stock_id=stock.id).count() == 0:
-    #         with cache.lock(redis_key):
-    #             logging.info('归还子网{},归还库存{}'.format(instance.subnet, instance.ip_stock_id))
-    #             stock.return_subnet(instance.subnet)
-    #             stock.return_stock()
 
 
 @receiver(m2m_changed, sender=ServerGroup.servers.through)

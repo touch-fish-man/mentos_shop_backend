@@ -89,7 +89,7 @@ def scp_file(host, port, user, password, local_file, remote_file):
 def main(host, port, user, password, cidrs,init_run,update_ip):
     base_dir = os.path.dirname(os.path.abspath(__file__))
     script_path = os.path.join(base_dir,"init_server.sh")
-    remote_script_path = "/root/" + script_path
+    remote_script_path = "/root/init_server.sh"
     if init_run:
         print("初始化server {}".format(host))
         ssh_command(host, port, user, password, "ls")
@@ -100,8 +100,14 @@ def main(host, port, user, password, cidrs,init_run,update_ip):
         back_cmd(host, port, user, password, "nohup sh {} > /root/init_server.log 2>&1 & \n".format(remote_script_path))
     if update_ip:
         ips = "\n".join(cidrs)
+        print("上传自启动脚本")
+        script_path = os.path.join(base_dir, "auto_load_ip")
+        remote_script_path = "/etc/init.d/auto_load_ip"
+        scp_file(host, port, user, password, script_path, remote_script_path)
+        ssh_command(host, port, user, password, "chkconfig --add auto_load_ip && chkconfig auto_load_ip on")
         print("写入prefix.conf")
         ssh_command(host, port, user, password, "echo '{}' > /etc/kaxy/conf.d/prefix.conf".format(ips))
+        ssh_command(host, port, user, password, "echo '{}' > /opt/prefix.conf".format(ips))
         print("添加ip")
         ssh_command(host, port, user, password, "sudo sh /etc/rc.d/init.d/auto_load_ip")
     print("server {} done".format(host))
