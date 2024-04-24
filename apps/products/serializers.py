@@ -174,6 +174,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             old_product_stock.save()
         instance.cidrs.set(cidrs)
         redis_client.delete(cache_key)
+        return super().update(instance, validated_data)
 
     def validate(self, attrs):
         cache = caches['default']
