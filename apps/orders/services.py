@@ -108,6 +108,8 @@ def get_checkout_link(request):
     variant_option1 = option_selected.get("option1", "")
     variant_option2 = option_selected.get("option2", "")
     variant_option3 = option_selected.get("option3", "")
+    if len(acl_selected) == 0:
+        return None, None
     variant_obj = Variant.objects.filter(product=order_info_dict["product_id"], variant_option1=variant_option1,
                                          variant_option2=variant_option2, variant_option3=variant_option3)
     acl_variant_ids = Acls.objects.filter(id__in=acl_selected).all().values_list("shopify_variant_id", flat=True)
