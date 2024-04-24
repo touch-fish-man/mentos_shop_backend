@@ -163,7 +163,7 @@ class Server(BaseModel):
     cidrs = models.ManyToManyField('Cidr', verbose_name='CIDR', through='ServerCidrThrough')
     server_status = models.IntegerField(blank=True, null=True, verbose_name='服务器状态', default=1)
     faild_count = models.IntegerField(blank=True, null=True, verbose_name='失败次数', default=0)
-    port = models.IntegerField(blank=True, null=True, verbose_name='端口')
+    port = models.IntegerField(blank=True, null=True, verbose_name='端口',blank=True)
     password = models.CharField(max_length=255, blank=True, null=True, verbose_name='密码')
 
     class Meta:
