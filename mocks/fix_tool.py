@@ -25,7 +25,8 @@ from apps.orders.models import Orders
 from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.services import add_product_other
-from apps.orders.services import create_proxy_by_order_obj
+from apps.orders.services import create_proxy_by_order_obj, renew_proxy_by_order
+
 
 def is_ip_in_network(ip_str, network_str):
     ip = ipaddress.ip_address(ip_str)
@@ -471,9 +472,12 @@ def create_ip_stock():
         #                 print(x.id)
         #                 x.delete()
         v.save()
+def fix_renew():
+    # renew_status >1
+    for x in Orders.objects.filter(renew_status__gt=1).all():
+        order_id=x.order_id
+        renew_proxy_by_order(order_id)
 
 if __name__ == '__main__':
-    order_obj=Orders.objects.filter(id=17482).first()
-    create_proxy_by_order_obj(order_obj,True)
-    # create_ip_stock()
+    fix_renew()
 
