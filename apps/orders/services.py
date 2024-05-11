@@ -325,7 +325,7 @@ def renew_proxy_by_order(order_id):
     """
     根据订单续费代理
     """
-    order_obj = Orders.objects.filter(order_id=order_id, renew_status=1).first()
+    order_obj = Orders.objects.filter(order_id=order_id).first()
     if order_obj:
         proxies = Proxy.objects.filter(order=order_obj).all()
         for proxy in proxies:
