@@ -26,6 +26,8 @@ from apps.products.models import Product, Variant
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.cache import cache
 
+from .tasks import devery_order
+
 
 class OrdersApi(ComModelViewSet):
     """
@@ -165,20 +167,23 @@ class OrdersApi(ComModelViewSet):
             return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理重置成功,请稍后刷新页面查看")
 
-    @action(methods=['post'], detail=True, url_path='fill_proxy', url_name='fill_proxy')
+    @action(methods=['post'], detail=True, url_path='devery_order', url_name='devery_order')
     def fill_proxy(self, request, *args, **kwargs):
         order_pk = kwargs.get('pk')
         order = Orders.objects.filter(id=order_pk)
         if order.exists():
+            lock_id = "devery_order_{}".format(order_pk)
+            if cache.get(lock_id):
+                return ErrorResponse(data={}, msg="订单正在补发中,请稍后重试")
             order_obj = order.first()
             proxy_count = Proxy.objects.filter(order_id=order_pk).count()
             if proxy_count < order_obj.proxy_num:
-                create_proxy_by_order_obj(order_obj, True)
+                devery_order.delay(order_pk)
             else:
                 return SuccessResponse(data={}, msg="发货完整，无需补发")
         else:
             return ErrorResponse(data={}, msg="订单不存在")
-        return SuccessResponse(data={}, msg="订单补发成功")
+        return SuccessResponse(data={}, msg="订单补发任务下发成功")
 
     @action(methods=['get'], detail=True, url_path='get_proxy_detail', url_name='get_proxy_detail')
     def get_proxy_detail(self, request, *args, **kwargs):

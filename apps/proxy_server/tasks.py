@@ -17,6 +17,7 @@ from django.utils import timezone
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
 import os
 
+from apps.orders.models import Orders
 from apps.orders.services import create_proxy
 from apps.products.models import Product, Variant
 from apps.proxy_server.models import Proxy, Acls, ProxyStock, ProductStock, ServerGroupThrough, ServerCidrThrough
@@ -271,6 +272,11 @@ async def check_proxies_from_db(order_id):
     fail_list = set()
     success_updates = {}
     total_count = len(proxies)
+    order_i = Orders.objects.filter(id=order_id).first()
+    if order_i:
+        order_i.delivery_num=total_count
+        order_i.delivery_status=total_count==order_i.proxy_num
+        order_i.save()
     progress_counter = AsyncCounter()
 
     async def bounded_fetch(url, proxy, progress, task_id, total, counter):

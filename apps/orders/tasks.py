@@ -6,7 +6,7 @@ import logging
 import pytz
 from celery.schedules import crontab
 from apps.orders.models import Orders
-from apps.orders.services import create_proxy
+from apps.orders.services import create_proxy, create_proxy_by_order_obj
 from apps.products.models import Variant
 from apps.proxy_server.models import Proxy
 from apps.users.models import User
@@ -290,3 +290,27 @@ def delete_old_order():
         'status': 1
     }
     return json.dumps(data)
+
+
+@shared_task(name='devery_order')
+def devery_order(order_id=None):
+    """
+    发货
+    """
+    lock_id = "devery_order_{}".format(order_id)
+    cache.client.set(lock_id, 1, timeout=60 * 10)
+    ret_dict = {'status': 0,
+                'msg': '发货失败'}
+    order = Orders.objects.filter(id=order_id)
+    if order.exists():
+        order_obj = order.first()
+        proxy_count = Proxy.objects.filter(order_id=order_id).count()
+        if proxy_count < order_obj.proxy_num:
+            create_proxy_by_order_obj(order_obj, True)
+            ret_dict = {'status': 1,
+                        'msg': '发货成功'}
+        else:
+            ret_dict = {'status': 1,
+                        'msg': '无需发货'}
+    cache.client.delete(lock_id)
+    return ret_dict
