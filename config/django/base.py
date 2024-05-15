@@ -352,23 +352,23 @@ LOGGING = {
     "loggers": {
         # default日志
         "": {
-            "handlers": ["console", "error", "file"],
+            "handlers": ["console", "error"],
             "level": "INFO",
             "propagate": False,
         },
         "scripts": {
-            "handlers": ["console", "error", "file"],
+            "handlers": ["console", "error"],
             "level": "INFO",
             "propagate": False,
         },
         "django": {
-            "handlers": ["console", "error", "file"],
+            "handlers": ["console", "error"],
             "level": "INFO",
             "propagate": False,
         },
         # 数据库相关日志
         "django.db.backends": {
-            "handlers": ["console", "error", "file"],
+            "handlers": ["console", "error"],
             "propagate": True,
             "level": "INFO",
         },
