@@ -16,7 +16,7 @@ from apps.orders.serializers import OrdersSerializer, OrdersUpdateSerializer, \
 from apps.proxy_server.models import Proxy
 from rest_framework.views import APIView
 from .services import verify_webhook, shopify_order, get_checkout_link, get_renew_checkout_link, webhook_handle_thread, \
-    create_proxy, delete_proxy_by_order_pk
+    create_proxy, delete_proxy_by_order_pk, create_proxy_by_order_obj
 import logging
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -164,6 +164,21 @@ class OrdersApi(ComModelViewSet):
         else:
             return ErrorResponse(data={}, msg="订单不存在")
         return SuccessResponse(data={}, msg="代理重置成功,请稍后刷新页面查看")
+
+    @action(methods=['post'], detail=True, url_path='fill_proxy', url_name='fill_proxy')
+    def fill_proxy(self, request, *args, **kwargs):
+        order_pk = kwargs.get('pk')
+        order = Orders.objects.filter(id=order_pk)
+        if order.exists():
+            order_obj = order.first()
+            proxy_count = Proxy.objects.filter(order_id=order_pk).count()
+            if proxy_count < order_obj.proxy_num:
+                create_proxy_by_order_obj(order_obj, True)
+            else:
+                return SuccessResponse(data={}, msg="发货完整，无需补发")
+        else:
+            return ErrorResponse(data={}, msg="订单不存在")
+        return SuccessResponse(data={}, msg="订单补发成功")
 
     @action(methods=['get'], detail=True, url_path='get_proxy_detail', url_name='get_proxy_detail')
     def get_proxy_detail(self, request, *args, **kwargs):
