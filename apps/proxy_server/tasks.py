@@ -274,9 +274,10 @@ async def check_proxies_from_db(order_id):
     total_count = len(proxies)
     order_i = Orders.objects.filter(id=order_id).first()
     if order_i:
-        order_i.delivery_num=total_count
-        order_i.delivery_status=total_count==order_i.proxy_num
-        order_i.save()
+        if total_count!=order_i.proxy_num:
+            order_i.delivery_num=total_count
+            order_i.delivery_status=total_count==order_i.proxy_num
+            order_i.save()
     progress_counter = AsyncCounter()
 
     async def bounded_fetch(url, proxy, progress, task_id, total, counter):
