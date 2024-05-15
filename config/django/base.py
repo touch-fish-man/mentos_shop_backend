@@ -15,6 +15,7 @@ from sentry_sdk.integrations.django import DjangoIntegration
 from pathlib import Path
 import os
 import pymysql
+from urllib3.exceptions import ConnectTimeoutError, MaxRetryError
 
 if os.environ.get('DJANGO_ENV') != 'prod' or os.environ.get('DJANGO_ENV') != 'test':
     pymysql.version_info = (1, 4, 6, "final", 0)
@@ -128,7 +129,7 @@ DATABASES = {
         'PORT': 3066,
         'OPTIONS': {'charset': 'utf8mb4'},
         "ATOMIC_REQUESTS": False},
-        "OPTIONS": {'init_command': 'SET @connection_name = "django";'},
+    "OPTIONS": {'init_command': 'SET @connection_name = "django";'},
 
 }
 
@@ -429,20 +430,39 @@ DISCORD_BOT_TOKEN = env('DISCORD_BOT_TOKEN')
 DISCORD_BOT_CHANNELS = env('DISCORD_BOT_CHANNELS')
 POINTS_PER_MESSAGE = int(env('POINTS_PER_MESSAGE'))
 MAX_POINTS_PER_DAY = int(env('MAX_POINTS_PER_DAY'))
+
+ignore_exceptions = [ConnectTimeoutError, MaxRetryError]
+
+
+def before_breadcrumb(crumb, hint):
+    return crumb
+
+
+def before_send(event, hint):
+    if 'exc_info' in hint:
+        exc_type, exc_value, tb = hint['exc_info']
+        if exc_type in ignore_exceptions:
+            return None
+    return event
+
+
+
 sentry_sdk.init(
-  dsn="https://6f87b898f182a430c4608b3835109fb0@o4505645854621696.ingest.sentry.io/4505645869694976",
-  integrations=[DjangoIntegration()],
+    dsn="https://6f87b898f182a430c4608b3835109fb0@o4505645854621696.ingest.sentry.io/4505645869694976",
+    integrations=[DjangoIntegration()],
 
-  # Set traces_sample_rate to 1.0 to capture 100%
-  # of transactions for performance monitoring.
-  # We recommend adjusting this value in production.
-  traces_sample_rate=1.0,
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0,
+    profiles_sampler=0.1,
 
-  # If you wish to associate users to errors (assuming you are using
-  # django.contrib.auth) you may enable sending PII data.
-  send_default_pii=True
+    # If you wish to associate users to errors (assuming you are using
+    # django.contrib.auth) you may enable sending PII data.
+    send_default_pii=True,
+    before_breadcrumb=before_breadcrumb,
+    before_send=before_send,
 )
 # 导入邮件模板配置
 from .email_templates import *
 from .celery import *
-
