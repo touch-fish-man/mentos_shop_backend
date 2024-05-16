@@ -13,11 +13,11 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 
-
 from init_env import *
 from rich.console import Console
 import ipaddress
 import json
+
 console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr, Acls, CidrAclThrough, AclGroupThrough, ProductStock
@@ -25,7 +25,7 @@ from apps.orders.models import Orders
 from apps.products.models import Variant, ProductTag, ProductTagRelation
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.services import add_product_other
-from apps.orders.services import create_proxy_by_order_obj, renew_proxy_by_order
+from apps.orders.services import create_proxy_by_order_obj, renew_proxy_by_order, get_white_acl
 
 
 def is_ip_in_network(ip_str, network_str):
@@ -357,28 +357,28 @@ def find_proxy_stock_ids():
     for acl in AclGroupThrough.objects.all():
         if acl.acl_id in acl_group_acl_reverse[acl.acl_group_id]:
             acl_group_acl_reverse[acl.acl_group_id].remove(acl.acl_id)
-    ip_stock_dict={}
-    p_s=ProxyStock.objects.all()
+    ip_stock_dict = {}
+    p_s = ProxyStock.objects.all()
     for p_s_i in p_s:
         # p_s_i.reset_stock() # 重置库存
-        ip_stock_dict[p_s_i.id]=p_s_i
+        ip_stock_dict[p_s_i.id] = p_s_i
     remove_list = {}
     for p in Proxy.objects.all():
         try:
             ip_stock_id = p.ip_stock_id
             if ip_stock_id:
                 ip_s = ip_stock_dict[ip_stock_id]
-                acl_group_id=ip_s.acl_group_id
+                acl_group_id = ip_s.acl_group_id
                 if acl_group_id:
-                    acl_ids = acl_group_acl_reverse.get(acl_group_id, []) # old 
+                    acl_ids = acl_group_acl_reverse.get(acl_group_id, [])  # old
                 else:
-                    acl_ids=p.acl_ids.split(",")
+                    acl_ids = p.acl_ids.split(",")
             else:
-                acl_ids=p.acl_ids.split(",")
+                acl_ids = p.acl_ids.split(",")
             ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, available_subnets__contains=p.subnet).all()
             for x in ip_stock_ids:
                 if x.id not in remove_list:
-                    remove_list[x.id]=set()
+                    remove_list[x.id] = set()
                 remove_list[x.id].add(p.subnet)
             ip_stock_ids = ProxyStock.objects.filter(acl_id__in=acl_ids, subnets__contains=p.subnet).all()
             p.acl_ids = ",".join(map(str, acl_ids))
@@ -387,8 +387,8 @@ def find_proxy_stock_ids():
         except Exception as e:
             print(e)
     json.dump(remove_list, open("/tmp/remove_list.json", "w"))
-    for k,v in tqdm(remove_list.items()):
-        stock_=ip_stock_dict[k]
+    for k, v in tqdm(remove_list.items()):
+        stock_ = ip_stock_dict[k]
         stock_.remove_available_subnet(v)
         stock_.save()
 
@@ -419,7 +419,6 @@ def delete_product():
             p_set.add(key)
 
 
-
 def fix_cidrs():
     for x in Variant.objects.all():
         cidrs = x.server_group.get_cidrs()
@@ -434,9 +433,9 @@ def update_product_stock():
     更新product_stock表
     """
     for x in ProductStock.objects.all():
-        s=x.stock
+        s = x.stock
         x.save()
-        if s!=x.stock:
+        if s != x.stock:
             print(x.id)
 
 
@@ -446,23 +445,27 @@ def fix_exclude_cidr():
         ProxyStock.objects.filter(cidr_id=x.id, acl_id__in=exclude_acls).update(exclude_label=True)
     for x in ProductStock.objects.all():
         x.save()
+
+
 def fix_proxy_cidr_variant():
     """
     修复proxy表中的cidr_id和variant_id
     """
     for x in Proxy.objects.all():
-        cidr_p=x.subnet
-        c_o=Cidr.objects.filter(cidr=cidr_p).first()
+        cidr_p = x.subnet
+        c_o = Cidr.objects.filter(cidr=cidr_p).first()
         if c_o:
-            x.cidr_id=c_o.id
+            x.cidr_id = c_o.id
         else:
-            ids=x.ip_stock_ids.split(",")
-            x.cidr_id=ProxyStock.objects.filter(id__in=ids).first().cidr_id
-        x.local_variant_id=x.order.local_variant_id
+            ids = x.ip_stock_ids.split(",")
+            x.cidr_id = ProxyStock.objects.filter(id__in=ids).first().cidr_id
+        x.local_variant_id = x.order.local_variant_id
         x.save()
+
+
 def create_ip_stock():
-    acls=list(Acls.objects.all())
-    for v  in ProductStock.objects.all():
+    acls = list(Acls.objects.all())
+    for v in ProductStock.objects.all():
         # cart_step=v.cart_step
         # cidrs = v.cidrs.all()
         # for cidr in cidrs:
@@ -472,12 +475,35 @@ def create_ip_stock():
         #                 print(x.id)
         #                 x.delete()
         v.save()
+
+
 def fix_renew():
     # renew_status >1
     for x in Orders.objects.filter(renew_status__gt=1).all():
-        order_id=x.order_id
+        order_id = x.order_id
         renew_proxy_by_order(order_id)
 
-if __name__ == '__main__':
-    fix_renew()
 
+def fix_acl():
+    # 按用户名分组
+    ps = Proxy.objects.all()
+    user_dict = {}
+    for p in ps:
+        if p.username not in user_dict:
+            user_dict[p.username] = {}
+        server_ip = p.server_ip
+        tmp_dict = {server_ip: ""}
+        acl_ids = p.acl_ids.split(",")
+        white_acl_list = get_white_acl(acl_ids)
+        acl_value = "\n".join(white_acl_list.get("acl_value"))
+        tmp_dict[server_ip] = acl_value
+        user_dict[p.username][server_ip] = tmp_dict
+    for k, v in user_dict.items():
+        for server_ip, acl_value in v.items():
+            if acl_value:
+                kc = KaxyClient(server_ip)
+                kc.add_user_acl(k, acl_value)
+
+
+if __name__ == '__main__':
+    fix_acl()
