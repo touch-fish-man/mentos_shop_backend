@@ -492,12 +492,10 @@ def fix_acl():
         if p.username not in user_dict:
             user_dict[p.username] = {}
         server_ip = p.server_ip
-        tmp_dict = {server_ip: ""}
         acl_ids = p.acl_ids.split(",")
         white_acl_list = get_white_acl(acl_ids)
         acl_value = "\n".join(white_acl_list.get("acl_value"))
-        tmp_dict[server_ip] = acl_value
-        user_dict[p.username][server_ip] = tmp_dict
+        user_dict[p.username][server_ip] = acl_value
     for k, v in user_dict.items():
         for server_ip, acl_value in v.items():
             if acl_value:
