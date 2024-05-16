@@ -492,13 +492,15 @@ def fix_acl():
         if p.username not in user_dict:
             user_dict[p.username] = {}
         server_ip = p.server_ip
-        acl_ids = p.acl_ids.split(",")
-        white_acl_list = get_white_acl(acl_ids)
-        acl_value = "\n".join(white_acl_list.get("acl_value"))
-        user_dict[p.username][server_ip] = acl_value
+        if p.acl_ids:
+            acl_ids = p.acl_ids.split(",")
+            white_acl_list = get_white_acl(acl_ids)
+            acl_value = "\n".join(white_acl_list.get("acl_value"))
+            user_dict[p.username][server_ip] = acl_value
     for k, v in user_dict.items():
         for server_ip, acl_value in v.items():
             if acl_value:
+                print(k, server_ip)
                 kc = KaxyClient(server_ip)
                 kc.add_user_acl(k, acl_value)
 
