@@ -179,7 +179,7 @@ def get_renew_checkout_link(order_id, request):
         return None, None
 
 
-def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
+def create_proxy_by_order_obj(order_obj, is_continue, part_send=True):
     """
     根据订单创建代理
     """
@@ -187,6 +187,7 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
     proxy_list = []
     proxy_id_list = []
     server_client = {}
+    server_acl_list = {}
     if order_obj:
         if order_obj.pay_status != 1:
             logging.info('订单未支付')
@@ -198,7 +199,6 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
             return False, msg, proxy_id_list
         order_id = order_obj.order_id
         lock_id = 'create_proxy_by_id_{}'.format(order_id)
-        is_add_acl=False
         with cache.lock(lock_id):
             order_user_obj = User.objects.filter(id=order_obj.uid).first()
             order_user = order_obj.username
@@ -229,9 +229,9 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
                 for cidr in variant_obj.cidrs.all():
                     cidr_list.append(cidr.id)
                 available_cidrs = get_available_cidrs(acl_ids, cidr_list, cart_step)
-                tmp_num=product_quantity//cart_step
+                tmp_num = product_quantity // cart_step
                 if part_send:
-                    tmp_num=1
+                    tmp_num = 1
                 if len(available_cidrs) < tmp_num:
                     logging.info('可用子网数量不足')
                     msg = "可用子网数量不足"
@@ -259,9 +259,12 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
                             return False, msg, proxy_id_list
                         try:
                             proxy_info = kaxy_client.create_user_acl_by_prefix(proxy_username, cidr_str)
-                            if len(proxy_info["proxy"])>0 and not is_add_acl:
-                                if kaxy_client.add_user_acl(proxy_username,acl_value):
-                                    is_add_acl = True
+                            if server_ip not in server_acl_list:
+                                server_acl_list[server_ip] = 0
+                            for server_i, acl_i in server_acl_list.items():
+                                if acl_i == 0:
+                                    if kaxy_client.add_user_acl(proxy_username, acl_value):
+                                        server_acl_list[server_i] = 1
                         except Exception as e:
                             msg = "服务器{}创建代理失败:{}".format(server_ip, e)
                             logging.exception(e)
@@ -272,7 +275,8 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
                                                      server_ip=server_ip,
                                                      order=order_obj, expired_at=proxy_expired_at, user=order_user_obj,
                                                      ip_stock_ids=stock_ids_str, subnet=cidr_str,
-                                                     acl_ids=",".join(acl_ids),local_variant_id=order_obj.local_variant_id,cidr_id=cidr_id)
+                                                     acl_ids=",".join(acl_ids),
+                                                     local_variant_id=order_obj.local_variant_id, cidr_id=cidr_id)
                             proxy_id_list.append(p.id)
                         proxy_list.extend(proxy_info["proxy"])
                         for stock in stocks:
@@ -316,9 +320,9 @@ def create_proxy_by_order_obj(order_obj,is_continue,part_send=True):
     return False, msg, proxy_id_list
 
 
-def create_proxy(filter_dict,is_continue=False):
+def create_proxy(filter_dict, is_continue=False):
     order_obj = Orders.objects.filter(**filter_dict).first()
-    return create_proxy_by_order_obj(order_obj,is_continue)
+    return create_proxy_by_order_obj(order_obj, is_continue)
 
 
 def renew_proxy_by_order(order_id):
