@@ -501,9 +501,11 @@ def fix_acl():
         for server_ip, acl_value in v.items():
             if acl_value:
                 print(k, server_ip)
-                kc = KaxyClient(server_ip)
-                kc.add_user_acl(k, acl_value)
-
+                try:
+                    kc = KaxyClient(server_ip)
+                    kc.add_user_acl(k, acl_value)
+                except Exception as e:
+                    print(e)
 
 if __name__ == '__main__':
     fix_acl()

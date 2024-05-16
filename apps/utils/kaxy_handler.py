@@ -70,7 +70,7 @@ class KaxyClient:
             kwargs.update({"verify": False})
             if "timeout" not in kwargs:
                 if "acl" in path:
-                    kwargs.update({"timeout": (60, 120)})
+                    kwargs.update({"timeout": (120, 360)})
                 else:
                     kwargs.update({"timeout": (30, 60)})
             resp = requests.request(method, url, headers=headers,**kwargs)
