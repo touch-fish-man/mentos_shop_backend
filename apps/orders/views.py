@@ -101,11 +101,10 @@ class OrdersApi(ComModelViewSet):
     def reset_proxy_password(self, request, *args, **kwargs):
         order_id = kwargs.get('pk')
         server_ip = Proxy.objects.filter(order_id=order_id).values_list('server_ip', flat=True).distinct()
-        username = Proxy.objects.filter(order_id=order_id).values_list('username', flat=True).distinct()
-        if len(server_ip) and len(username):
+        usernames = Proxy.objects.filter(order_id=order_id).values_list('username', flat=True).distinct()
+        if len(server_ip) and len(usernames):
             for s_ip in server_ip:
-                for u in username:
-                    username_ = u.username
+                for username_ in usernames:
                     client = KaxyClient(s_ip)
                     if not client.status:
                         return ErrorResponse(data={}, msg="服务器{}连接失败,请检查服务器状态".format(ip_))
