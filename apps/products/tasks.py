@@ -421,7 +421,7 @@ def stock_return_task(ip_stock_ids, subnet):
         cache_client = cache.client.get_client()
         with cache_client.lock(cache_key, timeout=60):
             if str(proxy_stock.acl_id) in acl_ids:
-                logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id},ACL_ID:{proxy_stock.acl_id},SUBNET:{subnet},占用的代理ID:{proxy_ids}")
+                logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id},ACL_ID:{proxy_stock.acl_id},SUBNET:{subnet},占用的代理ID:{proxy_ids},占用的ACL_ID:{acl_ids}")
             else:
                 proxy_stock.return_subnet(subnet)
                 logging.info(f"代理库存归还成功,库存ID:{proxy_stock.id},ACL_ID:{proxy_stock.acl_id},SUBNET:{subnet}")
