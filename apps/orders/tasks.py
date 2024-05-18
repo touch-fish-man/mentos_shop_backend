@@ -313,5 +313,9 @@ def devery_order(order_id=None):
         else:
             ret_dict = {'status': 1,
                         'msg': '无需发货'}
+    else:
+        logging.info(f"订单不存在:{order_id}")
+        ret_dict = {'status': 0,
+                    'msg': '订单不存在'}
     cache.client.delete(lock_id)
     return ret_dict
