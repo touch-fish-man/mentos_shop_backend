@@ -413,6 +413,7 @@ def stock_return_task(ip_stock_ids, subnet):
     proxy_stocks = ProxyStock.objects.filter(id__in=ids).all()
     has_proxy = Proxy.objects.filter(subnet=subnet).all()
     acl_ids=[]
+    proxy_ids = [p.id for p in has_proxy]
     for p in has_proxy:
         acl_ids.extend(p.acl_ids.split(',') if p.acl_ids else [])
     for proxy_stock in proxy_stocks:
@@ -420,9 +421,10 @@ def stock_return_task(ip_stock_ids, subnet):
         cache_client = cache.client.get_client()
         with cache_client.lock(cache_key, timeout=60):
             if str(proxy_stock.acl_id) in acl_ids:
-                logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id}")
+                logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id},ACL_ID:{proxy_stock.acl_id},SUBNET:{subnet},占用的代理ID:{proxy_ids}")
             else:
                 proxy_stock.return_subnet(subnet)
+                logging.info(f"代理库存归还成功,库存ID:{proxy_stock.id},ACL_ID:{proxy_stock.acl_id},SUBNET:{subnet}")
     return {"status": 1}
 
 
