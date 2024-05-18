@@ -529,7 +529,7 @@ def compare_proxy():
                     dict_data = {}
                     if server_i not in no_delete_dict:
                         no_delete_dict[server_i] = {}
-                    dict_data[user] = set(proxy_str) - set(servers[server_i][user])
+                    dict_data[user] = list(set(proxy_str) - set(servers[server_i][user]))
                     no_delete_dict[server_i].update(dict_data)
             else:
                 if server_i not in no_control_dict:
