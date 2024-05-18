@@ -532,7 +532,7 @@ def compare_proxy():
             p_key=":".join([ip, port, username])
             proxy_dict[p_key] = server_i
             if server_i not in servers:
-                print(server_i)
+                proxy_dict[p_key] = server_i
                 continue
             if user in servers[server_i]:
                 if set(proxy_str) != set(servers[server_i][user]):
@@ -550,6 +550,7 @@ def compare_proxy():
                 no_control_dict[server_i][user] = proxy_str
     json.dump(no_delete_dict, open("/opt/mentos_shop_backend/logs/no_delete_dict.json", "w"))
     json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"))
+    json.dump(proxy_dict, open("/opt/mentos_shop_backend/logs/proxy_dict.json", "w"))
 
 
 if __name__ == '__main__':
