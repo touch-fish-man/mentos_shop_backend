@@ -513,6 +513,7 @@ def compare_proxy():
     servers2= set()
     no_delete_dict = {}
     no_control_dict = {}
+    proxy_dict= {}
     for x in Server.objects.all():
         servers2.add(x.ip)
     for x in Proxy.objects.all():
@@ -527,6 +528,12 @@ def compare_proxy():
         proxy_list = kaxy.list_users().get("data", [])
         proxy_list = {x["user"]: x["proxy_str"] for x in proxy_list}
         for user, proxy_str in proxy_list.items():
+            ip, port, username, password = proxy_str.split(":")
+            p_key=":".join([ip, port, username])
+            proxy_dict[p_key] = server_i
+            if server_i not in servers:
+                print(server_i)
+                continue
             if user in servers[server_i]:
                 if set(proxy_str) != set(servers[server_i][user]):
                     # 导出多余的代理
