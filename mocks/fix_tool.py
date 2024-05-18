@@ -510,15 +510,19 @@ def fix_acl():
 
 def compare_proxy():
     servers = {}
+    servers2= set()
     no_delete_dict = {}
     no_control_dict = {}
+    for x in Server.objects.all():
+        servers2.add(x.server_ip)
     for x in Proxy.objects.all():
+        servers2.add(x.server_ip)
         if x.server_ip not in servers:
             servers[x.server_ip] = {}
         if x.username not in servers[x.server_ip]:
             servers[x.server_ip][x.username] = []
         servers[x.server_ip][x.username].append(":".join(map(str, [x.ip, x.port, x.username, x.password])))
-    for server_i in servers:
+    for server_i in servers2:
         kaxy = KaxyClient(server_i)
         proxy_list = kaxy.list_users().get("data", [])
         proxy_list = {x["user"]: x["proxy_str"] for x in proxy_list}
@@ -529,17 +533,16 @@ def compare_proxy():
                     dict_data = {}
                     if server_i not in no_delete_dict:
                         no_delete_dict[server_i] = {}
+                    dict_data["db_cnt"]=len(servers[server_i][user])
+                    dict_data["kaxy_cnt"]=len(proxy_str)
                     dict_data[user] = list(set(proxy_str) - set(servers[server_i][user]))
                     no_delete_dict[server_i].update(dict_data)
             else:
                 if server_i not in no_control_dict:
                     no_control_dict[server_i] = {}
                 no_control_dict[server_i][user] = proxy_str
-    export_dict = {
-        "no_delete_list": no_delete_dict,
-        "no_control_list": no_control_dict
-    }
-    json.dump(export_dict, open("/opt/mentos_shop_backend/logs/export_dict.json", "w"), indent=4)
+    json.dump(no_delete_dict, open("/opt/mentos_shop_backend/logs/no_delete_dict.json", "w"))
+    json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"))
 
 
 if __name__ == '__main__':
