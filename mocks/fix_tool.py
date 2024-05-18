@@ -507,5 +507,40 @@ def fix_acl():
                 except Exception as e:
                     print(e)
 
+
+def compare_proxy():
+    servers = {}
+    no_delete_dict = {}
+    no_control_dict = {}
+    for x in Proxy.objects.all():
+        if x.server_ip not in servers:
+            servers[x.server_ip] = {}
+        if x.username not in servers[x.server_ip]:
+            servers[x.server_ip][x.username] = []
+        servers[x.server_ip][x.username].append(x.ip + ":" + x.port + ":" + x.username + ":" + x.password)
+    for server_i in servers:
+        kaxy = KaxyClient(server_i)
+        proxy_list = kaxy.list_users().get("data", [])
+        proxy_list = {x["user"]: x["proxy_str"] for x in proxy_list}
+        for user, proxy_str in proxy_list.items():
+            if user in servers[server_i]:
+                if set(proxy_str) != set(servers[server_i][user]):
+                    # 导出多余的代理
+                    dict_data = {}
+                    if server_i not in no_delete_dict:
+                        no_delete_dict[server_i] = {}
+                    dict_data[user] = set(proxy_str) - set(servers[server_i][user])
+                    no_delete_dict[server_i].update(dict_data)
+            else:
+                if server_i not in no_control_dict:
+                    no_control_dict[server_i] = {}
+                no_control_dict[server_i][user] = proxy_str
+    export_dict = {
+        "no_delete_list": no_delete_dict,
+        "no_control_list": no_control_dict
+    }
+    json.dump(export_dict, open("/opt/mentos_shop_backend/logs/export_dict.json", "w"), indent=4)
+
+
 if __name__ == '__main__':
-    fix_acl()
+    compare_proxy()
