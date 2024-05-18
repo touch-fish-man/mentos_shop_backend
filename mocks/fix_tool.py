@@ -529,7 +529,7 @@ def compare_proxy():
         if proxy_list:
             proxy_list = {x["user"]: x["proxy_str"] for x in proxy_list}
             for user, proxy_str in proxy_list.items():
-                if server_i  in servers:
+                if server_i in servers:
                     if user in servers[server_i]:
                         if set(proxy_str) != set(servers[server_i][user]):
                             # 导出多余的代理
@@ -539,7 +539,7 @@ def compare_proxy():
                             dict_data["db_cnt"]=len(servers[server_i][user])
                             dict_data["kaxy_cnt"]=len(proxy_str)
                             dict_data[user] = list(set(proxy_str) - set(servers[server_i][user]))
-                            no_delete_dict[server_i].update(dict_data)
+                            no_delete_dict[server_i].update({user:dict_data})
                     else:
                         if server_i not in no_control_dict:
                             no_control_dict[server_i] = {}
