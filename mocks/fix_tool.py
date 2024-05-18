@@ -551,9 +551,9 @@ def compare_proxy():
                         proxy_dict[p_key] = [server_i]
                     if server_i not in proxy_dict[p_key]:
                         proxy_dict[p_key].append(server_i)
-    json.dump(no_delete_dict, open("/opt/mentos_shop_backend/logs/no_delete_dict.json", "w"))
-    json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"))
-    json.dump(proxy_dict, open("/opt/mentos_shop_backend/logs/proxy_dict.json", "w"))
+    json.dump(no_delete_dict, open("/opt/mentos_shop_backend/logs/no_delete_dict.json", "w"),indent=4)
+    json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"),indent=4)
+    json.dump(proxy_dict, open("/opt/mentos_shop_backend/logs/proxy_dict.json", "w"),indent=4)
 
 
 if __name__ == '__main__':
