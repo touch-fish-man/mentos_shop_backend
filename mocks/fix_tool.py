@@ -528,26 +528,28 @@ def compare_proxy():
         proxy_list = kaxy.list_users().get("data", [])
         proxy_list = {x["user"]: x["proxy_str"] for x in proxy_list}
         for user, proxy_str in proxy_list.items():
-            ip, port, username, password = proxy_str.split(":")
-            p_key=":".join([ip, port, username])
-            proxy_dict[p_key] = server_i
-            if server_i not in servers:
-                proxy_dict[p_key] = server_i
-                continue
-            if user in servers[server_i]:
-                if set(proxy_str) != set(servers[server_i][user]):
-                    # 导出多余的代理
-                    dict_data = {}
-                    if server_i not in no_delete_dict:
-                        no_delete_dict[server_i] = {}
-                    dict_data["db_cnt"]=len(servers[server_i][user])
-                    dict_data["kaxy_cnt"]=len(proxy_str)
-                    dict_data[user] = list(set(proxy_str) - set(servers[server_i][user]))
-                    no_delete_dict[server_i].update(dict_data)
-            else:
-                if server_i not in no_control_dict:
-                    no_control_dict[server_i] = {}
-                no_control_dict[server_i][user] = proxy_str
+            if server_i  in servers:
+                if user in servers[server_i]:
+                    if set(proxy_str) != set(servers[server_i][user]):
+                        # 导出多余的代理
+                        dict_data = {}
+                        if server_i not in no_delete_dict:
+                            no_delete_dict[server_i] = {}
+                        dict_data["db_cnt"]=len(servers[server_i][user])
+                        dict_data["kaxy_cnt"]=len(proxy_str)
+                        dict_data[user] = list(set(proxy_str) - set(servers[server_i][user]))
+                        no_delete_dict[server_i].update(dict_data)
+                else:
+                    if server_i not in no_control_dict:
+                        no_control_dict[server_i] = {}
+                    no_control_dict[server_i][user] = proxy_str
+            for proxy_str_i in proxy_str:
+                ip, port, username, password = proxy_str_i.split(":")
+                p_key = ":".join([ip, port, username])
+                if p_key not in proxy_dict:
+                    proxy_dict[p_key] = [server_i]
+                if server_i not in proxy_dict[p_key]:
+                    proxy_dict[p_key].append(server_i)
     json.dump(no_delete_dict, open("/opt/mentos_shop_backend/logs/no_delete_dict.json", "w"))
     json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"))
     json.dump(proxy_dict, open("/opt/mentos_shop_backend/logs/proxy_dict.json", "w"))
