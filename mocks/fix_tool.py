@@ -557,4 +557,5 @@ def compare_proxy():
 
 
 if __name__ == '__main__':
-    compare_proxy()
+    from apps.proxy_server.tasks import stock_return_task
+    stock_return_task.delay("3476", '124.175.229.96/29')
