@@ -517,7 +517,7 @@ def compare_proxy():
             servers[x.server_ip] = {}
         if x.username not in servers[x.server_ip]:
             servers[x.server_ip][x.username] = []
-        servers[x.server_ip][x.username].append(":".join([x.ip, x.port, x.username, x.password]))
+        servers[x.server_ip][x.username].append(":".join(map(str, [x.ip, x.port, x.username, x.password])))
     for server_i in servers:
         kaxy = KaxyClient(server_i)
         proxy_list = kaxy.list_users().get("data", [])
