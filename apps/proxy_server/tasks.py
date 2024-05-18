@@ -54,7 +54,7 @@ def check_server_status(faild_count=5):
     """
     检查服务器状态,每10分钟检查一次
     """
-    servers = Server.objects.filter(faild_count__lt=faild_count).all()
+    servers = Server.objects.all()
     faild_list = []
     for server in servers:
         try:
@@ -70,7 +70,6 @@ def check_server_status(faild_count=5):
             server.server_status = 0
             server.faild_count += 1
             faild_list.append(server.ip)
-        print(server.ip, server.server_status)
         server.save()
         if server.faild_count >= 5:
             # 服务器连续5次检查失败
