@@ -305,6 +305,7 @@ def devery_order(order_id=None):
     if order.exists():
         order_obj = order.first()
         proxy_count = Proxy.objects.filter(order_id=order_id).count()
+        logging.info(f"发货订单:{order_id},已发货:{proxy_count},需发货:{order_obj.proxy_num}")
         if proxy_count < order_obj.proxy_num:
             create_proxy_by_order_obj(order_obj, True)
             ret_dict = {'status': 1,
