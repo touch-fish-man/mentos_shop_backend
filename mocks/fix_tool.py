@@ -514,7 +514,7 @@ def compare_proxy():
     no_delete_dict = {}
     no_control_dict = {}
     for x in Server.objects.all():
-        servers2.add(x.server_ip)
+        servers2.add(x.ip)
     for x in Proxy.objects.all():
         servers2.add(x.server_ip)
         if x.server_ip not in servers:
