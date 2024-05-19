@@ -426,6 +426,7 @@ def stock_return_task(ip_stock_ids, subnet):
             if hold_stock & release_stock:
                 logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id},子网:{subnet},release_stock:{release_stock},hold_stock:{hold_stock}")
                 continue
+            logging.info(f"代理库存归还,库存ID:{proxy_stock.id},子网:{subnet}")
         proxy_stock.return_subnet(subnet)
     return {"status": 1}
 
