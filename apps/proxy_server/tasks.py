@@ -414,21 +414,27 @@ def stock_return_task(ip_stock_ids, subnet):
     """
     代理库存归还
     """
+    time.sleep(60)# 等待60秒删除完成
+    ret_dict = {}
     ids = ip_stock_ids.split(',')
     from apps.proxy_server.models import ProxyStock
     proxy_stocks = ProxyStock.objects.filter(id__in=ids).all()
     has_proxy = Proxy.objects.filter(subnet=subnet).all()
     for proxy_stock in proxy_stocks:
+        release_flag = True
         release_stock = set()
         release_stock.add(str(proxy_stock.id))
         for proxy in has_proxy:
             hold_stock = set(proxy.ip_stock_ids.split(','))
             if hold_stock & release_stock:
                 logging.info(f"代理库存归还失败,库存被占用,库存ID:{proxy_stock.id},子网:{subnet},release_stock:{release_stock},hold_stock:{hold_stock}")
+                release_flag = False
                 continue
-            logging.info(f"代理库存归还,库存ID:{proxy_stock.id},子网:{subnet}")
-        proxy_stock.return_subnet(subnet)
-    return {"status": 1}
+        if release_flag:
+            proxy_stock.return_subnet(subnet)
+            logging.info(f"代理库存归还成功,库存ID:{proxy_stock.id},子网:{subnet}")
+            ret_dict[proxy_stock.id] = 1
+    return ret_dict
 
 
 @shared_task(name='delete_proxy_task')
