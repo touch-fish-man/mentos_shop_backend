@@ -448,7 +448,7 @@ def before_send(event, hint):
 
 
 sentry_sdk.init(
-    dsn="https://6f87b898f182a430c4608b3835109fb0@o4505645854621696.ingest.sentry.io/4505645869694976",
+    dsn="https://e2f875c4919682f1dfdb9b80d8d60117@o4507281664245760.ingest.us.sentry.io/4507281667391488",
     integrations=[DjangoIntegration()],
 
     # Set traces_sample_rate to 1.0 to capture 100%
