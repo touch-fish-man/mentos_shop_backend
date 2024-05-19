@@ -580,7 +580,6 @@ def _mymodel_delete(sender, instance, **kwargs):
         delete_proxy_task.delay(instance.server_ip, instance.username)
     redis_key = 'stock_return_task:{}_{}'.format(instance.ip_stock_ids, instance.subnet)
     if not cache.get(redis_key):
-        redis_key = 'stock_return_task:{}_{}'.format(instance.ip_stock_ids, instance.subnet)
         cache.set(redis_key, 1, timeout=60 * 5)
         # 通知回收库存
         from apps.proxy_server.tasks import stock_return_task
