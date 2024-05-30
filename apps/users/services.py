@@ -121,6 +121,7 @@ def send_email_api(email, subject, from_email, html_message):
         send_success = send_email_via_mailgun(email, subject, from_email, html_message)
     else:
         send_success = send_mail(subject, "", from_email, [email], html_message=html_message)
+    logging.info("email send success: %s" % send_success)
     return send_success
 
 
