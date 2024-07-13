@@ -560,7 +560,7 @@ def delete_old_data():
         if Orders.objects.filter(product_id=p.id).exists():
             print("订单存在",p.id)
             continue
-        p.delete()
+        print(p.delete())
         print(p.id)
         # ProductTagRelation.objects.filter(product_id=p.id).delete()
         # Variant.objects.filter(product_id=p.id).delete()
