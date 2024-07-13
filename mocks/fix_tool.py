@@ -22,7 +22,7 @@ console = Console()
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr, Acls, CidrAclThrough, AclGroupThrough, ProductStock
 from apps.orders.models import Orders
-from apps.products.models import Variant, ProductTag, ProductTagRelation
+from apps.products.models import Variant, ProductTag, ProductTagRelation,Product
 from apps.utils.kaxy_handler import KaxyClient
 from apps.products.services import add_product_other
 from apps.orders.services import create_proxy_by_order_obj, renew_proxy_by_order, get_white_acl
@@ -554,9 +554,20 @@ def compare_proxy():
     json.dump(no_delete_dict, open("/opt/mentos_shop_backend/logs/no_delete_dict.json", "w"),indent=4)
     json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"),indent=4)
     json.dump(proxy_dict, open("/opt/mentos_shop_backend/logs/proxy_dict.json", "w"),indent=4)
+def delete_old_data():
+    products=Product.objects.filter(old_flag=True).all()
+    for p in products:
+        if Orders.objects.filter(product_id=p.id).exists():
+            continue
+        p.delete()
+        ProductTagRelation.objects.filter(product_id=p.id).delete()
+        Variant.objects.filter(product_id=p.id).delete()
+    for s_g in ServerGroup.objects.all():
+        if len(s_g.servers.all())==0:
+            s_g.delete()
 
 
 if __name__ == '__main__':
     from apps.proxy_server.tasks import stock_return_task
 
-    stock_return_task.delay("3792,3800,3804,3816,3824,5418,5478,5537,5596,5642,5714,5773", '124.175.172.208/29')
+    delete_old_data()
