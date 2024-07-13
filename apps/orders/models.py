@@ -34,7 +34,7 @@ class Orders(BaseModel):
     # shopify订单号
     shopify_order_number = models.CharField(max_length=255, verbose_name='shopify订单号', null=True, blank=True)
     # 产品id
-    product_id = models.IntegerField(verbose_name='产品id')
+    product = models.ForeignKey('products.Product', on_delete=models.PROTECT, verbose_name='产品', related_name='orders')
     # 产品名称
     product_name = models.CharField(max_length=255, verbose_name='产品名称')
     # 变体id

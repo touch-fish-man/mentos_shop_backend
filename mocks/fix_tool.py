@@ -555,22 +555,10 @@ def compare_proxy():
     json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"),indent=4)
     json.dump(proxy_dict, open("/opt/mentos_shop_backend/logs/proxy_dict.json", "w"),indent=4)
 def delete_old_data():
-    products=Product.objects.filter(soft_delete=True).all()
-    for p in products:
-        if Orders.objects.filter(product_id=p.id).exists():
-            print("订单存在",p.id)
-            continue
-        print(p.delete(soft_delete=False))
-        print(p.id)
-        # ProductTagRelation.objects.filter(product_id=p.id).delete()
-        # Variant.objects.filter(product_id=p.id).delete()
-    for s_g in ServerGroup.objects.all():
-        if len(s_g.servers.all())==0:
-            try:
-                s_g.delete()
-                print(s_g.id)
-            except Exception as e:
-                pass
+    for o in Orders.objects.all():
+        if o.product_id:
+            if not Product.objects.filter(id=o.product_id).exists():
+                print(o.product_id)
 
 
 if __name__ == '__main__':

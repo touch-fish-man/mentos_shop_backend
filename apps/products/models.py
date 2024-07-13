@@ -153,13 +153,6 @@ class Product(BaseModel):
     valid = models.BooleanField(default=False, verbose_name='是否有效', blank=True, null=True)
     old_flag = models.BooleanField(default=False, verbose_name='是否旧商品', blank=True, null=True)
 
-    def delete(self, using=None, keep_parents=False, soft_delete=True):
-        self.soft_delete = True
-        if soft_delete:
-            self.save()
-        else:
-            return super().delete(using=None, keep_parents=False)
-
     @property
     def is_active(self):
         return Variant.objects.filter(product_id=self.id, is_active=True).exists()
