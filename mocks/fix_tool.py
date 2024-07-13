@@ -558,8 +558,10 @@ def delete_old_data():
     products=Product.objects.filter(old_flag=True).all()
     for p in products:
         if Orders.objects.filter(product_id=p.id).exists():
+            print("订单存在",p.id)
             continue
         p.delete()
+        print(p.id)
         ProductTagRelation.objects.filter(product_id=p.id).delete()
         Variant.objects.filter(product_id=p.id).delete()
     for s_g in ServerGroup.objects.all():
