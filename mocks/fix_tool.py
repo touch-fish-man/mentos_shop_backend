@@ -564,9 +564,9 @@ def delete_old_data():
         print(p.id)
         # ProductTagRelation.objects.filter(product_id=p.id).delete()
         # Variant.objects.filter(product_id=p.id).delete()
-    # for s_g in ServerGroup.objects.all():
-    #     if len(s_g.servers.all())==0:
-    #         s_g.delete()
+    for s_g in ServerGroup.objects.all():
+        if len(s_g.servers.all())==0:
+            s_g.delete()
 
 
 if __name__ == '__main__':
