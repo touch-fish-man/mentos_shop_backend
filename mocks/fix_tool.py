@@ -555,7 +555,7 @@ def compare_proxy():
     json.dump(no_control_dict, open("/opt/mentos_shop_backend/logs/no_control_dict.json", "w"),indent=4)
     json.dump(proxy_dict, open("/opt/mentos_shop_backend/logs/proxy_dict.json", "w"),indent=4)
 def delete_old_data():
-    products=Product.objects.filter(old_flag=True).all()
+    products=Product.objects.filter(soft_delete=True).all()
     for p in products:
         if Orders.objects.filter(product_id=p.id).exists():
             print("订单存在",p.id)
