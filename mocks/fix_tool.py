@@ -566,7 +566,11 @@ def delete_old_data():
         # Variant.objects.filter(product_id=p.id).delete()
     for s_g in ServerGroup.objects.all():
         if len(s_g.servers.all())==0:
-            s_g.delete()
+            try:
+                s_g.delete()
+                print(s_g.id)
+            except Exception as e:
+                pass
 
 
 if __name__ == '__main__':
