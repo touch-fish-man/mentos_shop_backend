@@ -1,4 +1,6 @@
 from __future__ import absolute_import, unicode_literals
+
+import logging
 import os
 from celery import Celery
 from django.conf import settings
@@ -22,7 +24,7 @@ app.config_from_object('django.conf:settings', namespace='CELERY')
 
 # 从所有已安装的应用中加载任务模块
 app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
-
+logging.config.dictConfig(settings.LOGGING)
 # 设置定时任务
 app.conf.beat_schedule = {
     # '用户等级衰减': {
