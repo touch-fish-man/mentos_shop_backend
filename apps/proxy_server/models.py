@@ -364,7 +364,7 @@ class ProxyStock(BaseModel):
         :param subnet:
         :return:
         """
-        lock = cache.client.get_client().lock('return_subnet_lock_{}'.format(self.id), timeout=60)
+        lock = cache.client.get_client().lock('return_subnet_lock_{}'.format(self.id), timeout=30)
         if lock.acquire(blocking=False):
             try:
                 self._return_subnet(subnet)
