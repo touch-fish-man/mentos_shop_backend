@@ -605,7 +605,7 @@ def reset_product_order():
     start_time = start_time - datetime.timedelta(hours=8)
     end_time = end_time - datetime.timedelta(hours=8)
     from apps.products.tasks import reset_proxy_fn
-    orders = Orders.objects.filter(id=product_id, pay_status=1, created_at__range=(start_time, end_time)).all()
+    orders = Orders.objects.filter(product__id=product_id, pay_status=1, created_at__range=(start_time, end_time)).all()
     for order_obj in orders:
         order_id = order_obj.id
         username = order_obj.username
