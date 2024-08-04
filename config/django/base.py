@@ -16,7 +16,8 @@ from pathlib import Path
 import os
 import pymysql
 from urllib3.exceptions import ConnectTimeoutError, MaxRetryError
-
+import logging
+from celery import current_task
 if os.environ.get('DJANGO_ENV') != 'prod' or os.environ.get('DJANGO_ENV') != 'test':
     pymysql.version_info = (1, 4, 6, "final", 0)
     pymysql.install_as_MySQLdb()
@@ -31,6 +32,13 @@ env.read_env(os.path.join(BASE_DIR, "config/.env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-bm6dtprdt+2j$whkuls$)q&qos%=loadtrg7qs^ytrwkhgx*ff'
+
+
+class CeleryTaskIDFilter(logging.Filter):
+    def filter(self, record):
+        # 如果有当前任务，则将 task_id 添加到日志记录中
+        record.task_id = current_task.request.id if current_task and current_task.request else None
+        return True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -304,14 +312,19 @@ CONSOLE_LOG_FORMAT = (
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
+    "filters": {
+        "celery_task_id": {
+            "()": CeleryTaskIDFilter,  # 更新为 CeleryTaskIDFilter 的路径
+        },
+    },
     "formatters": {
-        "standard": {"format": STANDARD_LOG_FORMAT},
+        "standard": {"format": "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] [%(threadName)s] [TaskID: %(task_id)s] %(message)s"},
         "console": {
-            "format": CONSOLE_LOG_FORMAT,
+            "format": "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] [%(threadName)s] [TaskID: %(task_id)s] %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
         "file": {
-            "format": CONSOLE_LOG_FORMAT,
+            "format": "[%(asctime)s][%(name)s.%(funcName)s():%(lineno)d] [%(levelname)s] [%(threadName)s] [TaskID: %(task_id)s] %(message)s",
             "datefmt": "%Y-%m-%d %H:%M:%S",
         },
     },
@@ -324,6 +337,7 @@ LOGGING = {
             "backupCount": 5,  # 最多备份5个
             "formatter": "standard",
             "encoding": "utf-8",
+            "filters": ["celery_task_id"],  # 应用过滤器
         },
         "error": {
             "level": "ERROR",
@@ -333,11 +347,13 @@ LOGGING = {
             "backupCount": 3,  # 最多备份3个
             "formatter": "standard",
             "encoding": "utf-8",
+            "filters": ["celery_task_id"],  # 应用过滤器
         },
         "console": {
             "level": "INFO",
             "class": "logging.StreamHandler",
             "formatter": "console",
+            "filters": ["celery_task_id"],  # 应用过滤器
         },
         "access": {
             "level": "INFO",
@@ -347,6 +363,7 @@ LOGGING = {
             "backupCount": 3,  # 最多备份3个
             "formatter": "standard",
             "encoding": "utf-8",
+            "filters": ["celery_task_id"],  # 应用过滤器
         },
     },
     "loggers": {
@@ -372,20 +389,14 @@ LOGGING = {
             "propagate": True,
             "level": "INFO",
         },
-        # # requests相关日志
-        # "django.request": {
-        #     "level": "INFO",
-        #     "handlers": ["console", "error", "file"],
-        #     'propagate': False,
-        # },
         'gunicorn.access': {
             'level': 'INFO',
             'handlers': ["access"],
             'propagate': False,
         },
-
     },
 }
+
 # ---------需要动态配置的配置项----------------
 # discord oauth2 配置
 DISCORD_CLIENT_ID = env('DISCORD_CLIENT_ID')
