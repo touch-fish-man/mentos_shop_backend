@@ -373,6 +373,11 @@ LOGGING = {
             "level": "INFO",
             "propagate": False,
         },
+        "root": {
+            "handlers": ["console", "error"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "scripts": {
             "handlers": ["console", "error"],
             "level": "INFO",
