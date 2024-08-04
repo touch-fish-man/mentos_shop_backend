@@ -48,7 +48,7 @@ netloc_models = {
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from django.core.cache import cache
 
-
+logger = logging.getLogger(__name__)
 @shared_task(name='check_server_status')
 def check_server_status(faild_count=5):
     """
@@ -314,19 +314,19 @@ async def check_proxies_from_db(order_id):
     return fail_list, total_count
 
 
-@shared_task(name='check_proxy_status')
-def check_proxy_status(order_id=None):
+@shared_task(name='check_proxy_status',bind=True)
+def check_proxy_status(self,order_id=None):
     """
     检查代理状态,每4个小时检查一次
     """
-    logging.info("==========check_proxy_status==========")
+    logger.info("==========check_proxy_status==========")
     s = time.time()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     fail_list, total_count = loop.run_until_complete(check_proxies_from_db(order_id))
     loop.close()
     e = time.time()
-    print(f"检查代理状态,总数:{total_count},失败数:{len(fail_list)},耗时:{e - s}s")
+    logger(f"检查代理状态,总数:{total_count},失败数:{len(fail_list)},耗时:{e - s}s")
     return {"total_count": total_count, "status": 1, "cost_time": e - s, "fail_list": fail_list}
 
 
@@ -409,8 +409,8 @@ def remove_blacklist(server_groups, domains):
     return {"status": 1}
 
 
-@shared_task(name='stock_return_task', autoretry_for=(Exception,), retry_kwargs={'max_retries': 7, 'countdown': 5})
-def stock_return_task(ip_stock_ids, subnet):
+@shared_task(name='stock_return_task', autoretry_for=(Exception,), retry_kwargs={'max_retries': 7, 'countdown': 5},bind=True)
+def stock_return_task(self,ip_stock_ids, subnet):
     """
     代理库存归还
     """
