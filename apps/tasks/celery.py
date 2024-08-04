@@ -6,6 +6,7 @@ from celery import Celery
 from django.conf import settings
 import sys
 from celery.schedules import crontab
+import logging.config
 
 # 设置默认的Django设置模块
 if os.environ.get('DJANGO_ENV'):
