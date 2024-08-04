@@ -306,13 +306,14 @@ async def check_proxies_from_db(order_id):
     fail_list = sorted(list(fail_list))
     return fail_list, total_count
 
+logger = logging.getLogger(__name__)
 
-@shared_task(name='check_proxy_status')
-def check_proxy_status(order_id=None):
+@shared_task(name='check_proxy_status',bind=True)
+def check_proxy_status(self,order_id=None):
     """
     检查代理状态,每4个小时检查一次
     """
-    logging.info("==========check_proxy_status==========")
+    logger.info("==========check_proxy_status==========")
     s = time.time()
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
