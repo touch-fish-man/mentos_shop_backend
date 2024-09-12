@@ -600,6 +600,6 @@ def test_email():
                 "status": 'success',
                 "message": "good"
             }}
-        EmailSender.send_email("zlp5icv@gmail.com", email_dict)                   
+    EmailSender.send_email("zlp5icv@gmail.com", email_dict)                   
 if __name__ == '__main__':
     test_email()
