@@ -573,6 +573,8 @@ def find_eror():
                 stock_obj = ProxyStock.objects.filter(cidr=cidr_i, acl_id=acl_id,
                                                                         cart_step=cart_step).all()
                 if len(stock_obj) > 1:
-                    print(stock_obj)
+                    for x in stock_obj[1:]:
+                        print(x.id)
+                        x.delete()
 if __name__ == '__main__':
     find_eror()
