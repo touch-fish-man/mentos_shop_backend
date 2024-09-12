@@ -147,7 +147,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         redis_client = cache.client.get_client()
         if redis_client.get(cache_key):
             expired_time = redis_client.ttl(cache_key)
-            raise CustomValidationError("请勿重复提交,请在{}秒后重试".format(expired_time))
+            raise CustomValidationError("请勿重复提交,如果{}秒后还未更新,再重新提交".format(expired_time))
         else:
             redis_client.set(cache_key, 1, ex=60*5)
         acls = Acls.objects.all()
