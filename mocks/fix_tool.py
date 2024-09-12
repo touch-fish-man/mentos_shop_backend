@@ -581,6 +581,7 @@ def find_eror():
                     stock_obj.available_subnets = stock_obj.subnets
                 stock_obj.soft_delete = False
                 if acl_id not in cidr_i.acls.all().values_list('id', flat=True):
+                    print("exclude_label", cidr_i.id, acl_id)
                     stock_obj.exclude_label = True
                 stock_obj.save()
                 # 更新库存
