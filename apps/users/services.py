@@ -19,10 +19,10 @@ from apps.users.models import Code, InviteLog, User
 from apps.core.validators import CustomValidationError
 from apps.utils.shopify_handler import SyncClient
 
-
 def get_client_ip(request):
     try:
-        x_forwarded_for = request.META.get('HTTP_CF_CONNECTING_IP') or request.META.get('HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')
+        x_forwarded_for = request.META.get('HTTP_CF_CONNECTING_IP') or request.META.get(
+            'HTTP_X_FORWARDED_FOR') or request.META.get('REMOTE_ADDR')
         if x_forwarded_for:
             ip = x_forwarded_for.split(',')[0]
         else:
@@ -39,6 +39,7 @@ def get_ip_location(request):
         ip_country = ''
     return ip_country
 
+
 def generate_code(size=6, chars=string.digits):
     return ''.join(random.choice(chars) for x in range(size))
 
@@ -53,7 +54,7 @@ def check_email_code(email, email_code_id, email_code, delete=False):
         code_created_at = db_code.created_at.replace(tzinfo=pytz.timezone('UTC'))
         if code_created_at + datetime.timedelta(
                 minutes=settings.EMAIL_CODE_EXPIRE // 60) < datetime.datetime.utcnow().replace(
-                tzinfo=pytz.timezone('UTC')):
+            tzinfo=pytz.timezone('UTC')):
             raise CustomValidationError("Email code expired, please try again")
         if db_code.code.lower() == email_code.lower() or settings.DEBUG:
             if delete:
@@ -87,7 +88,7 @@ def send_email_code(email, email_template):
         code_created_at = db_code.created_at.replace(tzinfo=pytz.timezone('UTC'))
         if code_created_at + datetime.timedelta(
                 minutes=settings.EMAIL_CODE_EXPIRE // 60) < datetime.datetime.utcnow().replace(
-                tzinfo=pytz.timezone('UTC')):
+            tzinfo=pytz.timezone('UTC')):
             db_code.delete()
         else:
             return db_code.id
@@ -106,6 +107,8 @@ def send_email_code(email, email_template):
     else:
         ret = None
     return ret
+
+
 def add_user_to_shopify(email):
     shop_url = settings.SHOPIFY_SHOP_URL
     api_key = settings.SHOPIFY_API_KEY
@@ -113,6 +116,7 @@ def add_user_to_shopify(email):
     private_app_password = settings.SHOPIFY_APP_KEY
     shopify_sync_client = SyncClient(shop_url, api_key, api_scert, private_app_password)
     shopify_sync_client.add_user_to_customer(email)
+
 
 def send_email_api(email, subject, from_email, html_message):
     if settings.EMAIL_METHOD == 'sendgrid':
@@ -173,7 +177,7 @@ def insert_invite_log(uid, username, invite_code):
     if user_obj:
         # 记录邀请日志
         InviteLog.objects.create(uid=uid, username=username, invite_code=invite_code, inviter_uid=user_obj.id,
-                                 inviter_user=user_obj,user_id=uid)
+                                 inviter_user=user_obj, user_id=uid)
         # 更新邀请计数
         user_obj.invite_count = user_obj.invite_count + 1
         # 更新邀请人等级积分

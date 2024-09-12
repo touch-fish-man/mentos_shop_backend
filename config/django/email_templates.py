@@ -1,4 +1,6 @@
 # 邮件模板
+from enum import Enum
+
 base_email_template = """<!DOCTYPE html>
 <html>
 <head>
@@ -96,7 +98,6 @@ margin-bottom: 10px;
 </div>
 </body>
 </html>"""
-
 
 delivery_email_template = """<!DOCTYPE html>
 <html>
@@ -290,13 +291,13 @@ EMAIL_TEMPLATES = {
         "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": base_email_template,
     },
-    'notification':{
-        'subject':'Mentos Proxy nofication.',
+    'notification': {
+        'subject': 'Mentos Proxy nofication.',
         "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": notification_email_template,
     },
-    'delivery':{
-        'subject':'You Proxy is Ready.',
+    'delivery': {
+        'subject': 'You Proxy is Ready.',
         "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": delivery_email_template,
     },
@@ -306,3 +307,11 @@ EMAIL_TEMPLATES = {
         "html": reset_proxy_email_template
     }
 }
+
+
+class EmailTemplate(Enum):
+    REGISTER = 'register'
+    FORGOT = 'forgot'
+    NOTIFICATION = 'notification'
+    DELIVERY = 'delivery'
+    RESET_PROXY = 'reset_proxy'

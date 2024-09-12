@@ -23,7 +23,7 @@ from apps.orders.services import create_proxy
 from apps.products.models import Product, Variant
 from apps.proxy_server.models import Proxy, Acls, ProxyStock, ProductStock, ServerGroupThrough, ServerCidrThrough
 from apps.proxy_server.models import Server
-from apps.users.services import send_email_api
+from apps.core.email_tools import EmailSender
 from apps.utils.kaxy_handler import KaxyClient
 import certifi
 from rich.console import Console
@@ -120,12 +120,14 @@ def reset_proxy_fn(order_id, username):
             ret_json['data']['re_create'] = re_create_ret
             ret_json['data']['order_id'] = order_id
             logging.info("==========create_proxy_by_id faild==========")
-        email_template = settings.EMAIL_TEMPLATES.get("reset_proxy")
-        subject = email_template.get('subject').replace('{{order_id}}', str(order_id))
-        html_message = email_template.get('html').replace('{{order_id}}', str(order_id)).replace(
-            '{{status}}', 'success' if re_create_ret else 'faild').replace('{{message}}', msg)
-        from_email = email_template.get('from_email')
-        send_email_api("admini@vrizone.com", subject, from_email, html_message)
+        email_dict = {
+            "template": settings.EmailTemplate.RESET_PROXY,
+            "data": {
+                "order_id": str(order_id),
+                "status": 'success' if re_create_ret else 'faild',
+                "message": msg
+            }}
+        EmailSender.send_email("admini@vrizone.com", email_dict)
         return ret_json
 
 

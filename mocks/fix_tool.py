@@ -591,6 +591,15 @@ def find_eror():
             old_product_stock.save()
         v.cidrs.set(cidrs)
         v.save()
-                        
+def test_email():
+    from apps.core.email_tools import EmailSender
+    email_dict = {
+            "template": settings.EmailTemplate.RESET_PROXY,
+            "data": {
+                "order_id": str(999),
+                "status": 'success' 
+                "message": "good"
+            }}
+        EmailSender.send_email("zlp5icv@gmail.com", email_dict)                   
 if __name__ == '__main__':
-    find_eror()
+    test_email()
