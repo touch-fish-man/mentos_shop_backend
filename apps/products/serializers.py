@@ -167,7 +167,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                     stock_obj.subnets = ",".join(subnets)
                     stock_obj.available_subnets = stock_obj.subnets
                 stock_obj.soft_delete = False
-                if acl_i in cidr_i.exclude_acl:
+                if acl_i.id in cidr_i.list_exclude_acl():
                     stock_obj.exclude_label = True
                 stock_obj.save()
         # 更新库存

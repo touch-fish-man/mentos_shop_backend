@@ -226,6 +226,8 @@ class Cidr(BaseModel):
 
     def __str__(self):
         return self.cidr
+    def list_exclude_acl(self):
+        return self.exclude_acl.all().values_list('id', flat=True)
 
     def do_oft_delete(self):
         self.soft_delete = True
