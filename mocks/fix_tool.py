@@ -597,7 +597,7 @@ def test_email():
             "template": settings.EmailTemplate.RESET_PROXY,
             "data": {
                 "order_id": str(999),
-                "status": 'success' 
+                "status": 'success',
                 "message": "good"
             }}
         EmailSender.send_email("zlp5icv@gmail.com", email_dict)                   
