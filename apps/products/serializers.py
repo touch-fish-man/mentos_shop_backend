@@ -145,7 +145,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         cache_key = f"update_variant_{validated_data['id']}"
         cache = caches['default']
         redis_client = cache.client.get_client()
-        redis_client.set(cache_key, 1, ex=60)
+
         acls = Acls.objects.all()
         cart_step = validated_data['cart_step']
         logging.info(validated_data['server_group'])
@@ -183,6 +183,8 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         redis_client = cache.client.get_client()
         if redis_client.get(cache_key):
             raise CustomValidationError("请勿重复提交")
+        else:
+            redis_client.set(cache_key, 1, ex=60)
         return attrs
 
 
