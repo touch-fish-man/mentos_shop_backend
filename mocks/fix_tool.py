@@ -559,9 +559,20 @@ def delete_old_data():
         if o.product_id:
             if not Product.objects.filter(id=o.product_id).exists():
                 print(o.product_id)
-
-
+def find_eror():
+    p=Product.objects.filter(id=259).first()
+    variants=p.variants.all()
+    acls = Acls.objects.all()
+    for v in variants:
+        cart_step = v.cart_step
+        cidrs = v.cidrs.all()
+        for cidr_i in cidrs:
+            for acl_i in acls:
+                acl_id = acl_i.id
+                cart_stock = cidr_i.ip_count // cart_step
+                stock_obj = ProxyStock.objects.filter(cidr=cidr_i, acl_id=acl_id,
+                                                                        cart_step=cart_step).all()
+                if len(stock_obj) > 1:
+                    print(stock_obj)
 if __name__ == '__main__':
-    from apps.proxy_server.tasks import stock_return_task
-
-    delete_old_data()
+    find_eror()
