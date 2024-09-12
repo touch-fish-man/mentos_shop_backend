@@ -569,6 +569,7 @@ def find_eror():
         for cidr_i in cidrs:
             for acl_i in acls:
                 acl_id = acl_i.id
+                print(cidr_i.id, acl_id, cart_step)
                 cart_stock = cidr_i.ip_count // cart_step
                 stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
                                                                         cart_step=cart_step)
