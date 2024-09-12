@@ -5,6 +5,8 @@ import time
 import logging
 import pytz
 from celery.schedules import crontab
+
+from apps.core.email_tools import EmailSender
 from apps.orders.models import Orders
 from apps.orders.services import create_proxy, create_proxy_by_order_obj
 from apps.products.models import Variant
@@ -211,6 +213,9 @@ def delivery_order(order_pk=None, order_id=None):
 def one_key_delivery_order(order_ids=None):
     lock_id = 'one_key_reset_{}'.format(order_ids)
     results = []
+    success_order_id=[]
+    failed_order_id=[]
+
     if cache.client.get(lock_id):
         return results
     cache.client.set(lock_id, 1, timeout=60 * 5)
@@ -229,7 +234,23 @@ def one_key_delivery_order(order_ids=None):
                 'msg': msg,
                 'proxy_list': ret_proxy_list
             })
+            if re_create_ret:
+                success_order_id.append(order_id)
+            else:
+                failed_order_id.append(order_id)
     logging.info(f"一键发货结果完成:{order_ids}")
+    email_dict = {
+        "template": "onekey_reset_proxy",
+        "data": {
+            "success_order_id": ",".join(success_order_id),
+            "failed_order_id": ",".join(failed_order_id),
+            "total": str(len(order_ids)),
+            "success": str(len(success_order_id)),
+            "failed": str(len(failed_order_id)),
+            "status": 'success',
+            "message": "一键发货成功"
+        }}
+    EmailSender.send_email("admini@vrizone.com", email_dict)
     return results
 
 

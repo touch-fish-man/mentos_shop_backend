@@ -280,6 +280,81 @@ reset_proxy_email_template = """<!DOCTYPE html>
 </html>
 """
 
+onekey_reset_proxy_email_template = """<!DOCTYPE html>
+<html>
+<head>
+    <title>Onekey Reset Proxy Task</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 28px;
+            color: #333;
+            margin: 0;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        p {
+            font-size: 16px;
+            color: #555;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        #order_id {
+            font-weight: bold;
+            color: #0066cc;
+        }
+        #status {
+            font-weight: bold;
+            color: #28a745;
+        }
+        #message {
+            font-style: italic;
+            color: #888;
+        }
+        .footer {
+            text-align: right;
+            font-size: 14px;
+            color: #999;
+            margin-top: 30px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Onekey Reset Proxy Task</h1>
+        <p>Success Order ID: <span id="order_id">{{success_order_id}}</span></p>
+        <p>Failed Order ID: <span id="order_id">{{failed_order_id}}</span></p>
+        <p>Success: <span id="status">{{success}}</span></p>
+        <p>Faile: <span id="status">{{failed}}</span></p>
+        <p>Total: <span id="status">{{total}}</span></p>
+        <p>Status: <span id="status">{{status}}</span></p>
+        <p>Message: <span id="message">{{message}}</span></p>
+        <div class="footer">
+            —— From Mentos Proxy
+        </div>
+    </div>
+</body>
+</html>
+"""
+
 EMAIL_TEMPLATES = {
     'register': {
         'subject': 'Mentos Proxy Registration.',
@@ -305,7 +380,11 @@ EMAIL_TEMPLATES = {
         'subject': 'Order[{{order_id}}] Reset Proxy Task.',
         "from_email": "Mentos Proxy <info@mentosproxy.com>",
         "html": reset_proxy_email_template
-    }
+    },
+    'onekey_reset_proxy': {
+        'subject': 'Onekey Reset Proxy Task.',
+        "from_email": "Mentos Proxy <info@mentosproxy.com>",
+        "html": onekey_reset_proxy_email_template}
 }
 
 
