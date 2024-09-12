@@ -319,9 +319,8 @@ def devery_order(order_id=None):
     发货
     """
     lock_id = "devery_order_{}".format(order_id)
-    cache.client.set(lock_id, 1, timeout=60 * 10)
-    ret_dict = {'status': 0,
-                'msg': '发货失败'}
+    if not cache.client.get(lock_id):
+        cache.client.set(lock_id, 1, timeout=60 * 10)
     order = Orders.objects.filter(id=order_id)
     if order.exists():
         order_obj = order.first()
@@ -338,5 +337,6 @@ def devery_order(order_id=None):
         logging.info(f"订单不存在:{order_id}")
         ret_dict = {'status': 0,
                     'msg': '订单不存在'}
-    cache.client.delete(lock_id)
+    if cache.client.get(lock_id):
+        cache.client.delete(lock_id)
     return ret_dict

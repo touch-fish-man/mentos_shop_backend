@@ -172,7 +172,10 @@ class OrdersApi(ComModelViewSet):
         if order.exists():
             lock_id = "devery_order_{}".format(order_pk)
             if cache.get(lock_id):
-                return ErrorResponse(data={}, msg="订单正在补发中,请稍后重试")
+                expired_time = cache.ttl(lock_id)
+                return ErrorResponse(data={}, msg="订单正在补发中,如果{}秒后还未完成,请重新补发".format(expired_time))
+            else:
+                cache.set(lock_id, 1, timeout=60 * 10)
             order_obj = order.first()
             proxy_count = Proxy.objects.filter(order_id=order_pk).count()
             if proxy_count < order_obj.proxy_num:
