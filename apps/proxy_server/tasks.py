@@ -121,7 +121,7 @@ def reset_proxy_fn(order_id, username):
             ret_json['data']['order_id'] = order_id
             logging.info("==========create_proxy_by_id faild==========")
         email_dict = {
-            "template": settings.EmailTemplate.RESET_PROXY,
+            "template": "reset_proxy",
             "data": {
                 "order_id": str(order_id),
                 "status": 'success' if re_create_ret else 'faild',
