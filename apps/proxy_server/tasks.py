@@ -12,6 +12,7 @@ import urllib3
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp_proxy import ProxyConnector
 from celery import shared_task
+from django.conf import settings
 from django.core import management
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask, IntervalSchedule
@@ -22,6 +23,7 @@ from apps.orders.services import create_proxy
 from apps.products.models import Product, Variant
 from apps.proxy_server.models import Proxy, Acls, ProxyStock, ProductStock, ServerGroupThrough, ServerCidrThrough
 from apps.proxy_server.models import Server
+from apps.users.services import send_email_api
 from apps.utils.kaxy_handler import KaxyClient
 import certifi
 from rich.console import Console
@@ -104,20 +106,27 @@ def reset_proxy_fn(order_id, username):
                     p.delete()
             ret_json['code'] = 200
             ret_json['message'] = 'success'
+            ret_json['success'] = True
             ret_json['data'] = {}
             ret_json['data']['delete_proxy_list'] = delete_proxy_list
             ret_json['data']['order_id'] = order_id
             ret_json['data']['re_create'] = re_create_ret
             logging.info("==========create_proxy_by_id success==========")
-            return ret_json
         else:
             ret_json['code'] = 500
             ret_json['message'] = msg
+            ret_json['success'] = False
             ret_json['data'] = {}
             ret_json['data']['re_create'] = re_create_ret
             ret_json['data']['order_id'] = order_id
             logging.info("==========create_proxy_by_id faild==========")
-            return ret_json
+        email_template = settings.EMAIL_TEMPLATES.get("reset_proxy")
+        subject = email_template.get('subject').replace('{{order_id}}', str(order_id))
+        html_message = email_template.get('html').replace('{{order_id}}', str(order_id)).replace(
+            '{{status}}', 'success' if re_create_ret else 'faild').replace('{{message}}', msg)
+        from_email = email_template.get('from_email')
+        send_email_api("admini@vrizone.com", subject, from_email, html_message)
+        return ret_json
 
 
 lock = threading.Lock()
