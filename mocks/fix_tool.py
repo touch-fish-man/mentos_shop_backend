@@ -570,11 +570,24 @@ def find_eror():
             for acl_i in acls:
                 acl_id = acl_i.id
                 cart_stock = cidr_i.ip_count // cart_step
-                stock_obj = ProxyStock.objects.filter(cidr=cidr_i, acl_id=acl_id,
-                                                                        cart_step=cart_step).all()
-                if len(stock_obj) > 1:
-                    for x in stock_obj[1:]:
-                        print(x.id)
-                        x.delete()
+                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
+                                                                        cart_step=cart_step)
+                if is_create:
+                    stock_obj.ip_stock = cidr_i.ip_count
+                    stock_obj.cart_stock = cart_stock
+                    subnets = stock_obj.gen_subnets()
+                    stock_obj.subnets = ",".join(subnets)
+                    stock_obj.available_subnets = stock_obj.subnets
+                    stock_obj.save()
+                stock_obj.soft_delete = False
+                stock_obj.save()
+                # 更新库存
+            old_product_stocks = ProductStock.objects.filter(variant_id=v.id)
+            for old_product_stock in old_product_stocks:
+                old_product_stock.server_group = v.server_group
+                old_product_stock.save()
+        v.cidrs.set(cidrs)
+        v.save()
+                        
 if __name__ == '__main__':
     find_eror()
