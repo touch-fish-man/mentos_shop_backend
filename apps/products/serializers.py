@@ -150,39 +150,15 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             raise CustomValidationError("请勿重复提交,如果{}秒后还未更新,再重新提交".format(expired_time))
         else:
             redis_client.set(cache_key, 1, ex=60*5)
-        acls = Acls.objects.all()
-        cart_step = validated_data['cart_step']
         logging.info(validated_data['server_group'])
         cidrs = validated_data['server_group'].get_cidrs()
-        logging.info(cidrs)
-        for cidr_i in cidrs:
-            exclude_acl_list = cidr_i.list_exclude_acl()
-            for acl_i in acls:
-                acl_id = acl_i.id
-                cart_stock = cidr_i.ip_count // cart_step
-                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
-                                                                        cart_step=cart_step)
-                if is_create:
-                    stock_obj.ip_stock = cidr_i.ip_count
-                    stock_obj.cart_stock = cart_stock
-                    subnets = stock_obj.gen_subnets()
-                    stock_obj.subnets = ",".join(subnets)
-                    stock_obj.available_subnets = stock_obj.subnets
-                stock_obj.soft_delete = False
-                if acl_i.id in exclude_acl_list:
-                    stock_obj.exclude_label = True
-                stock_obj.save()
-        # 更新库存
-        variant_id = validated_data["id"]
-        old_product_stocks = ProductStock.objects.filter(variant_id=variant_id)
-        for old_product_stock in old_product_stocks:
-            old_product_stock.server_group = validated_data['server_group']
-            old_product_stock.save()
         instance.cidrs.set(cidrs)
+        update_ret = super().update(instance, validated_data)
+        instance.update_ip_stock()
         if redis_client.get(cache_key):
             redis_client.delete(cache_key)
         logging.info("update variant")
-        return super().update(instance, validated_data)
+        return update_ret
 
 
 class ProductCollectionSerializer(serializers.ModelSerializer):

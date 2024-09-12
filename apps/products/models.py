@@ -6,12 +6,12 @@ from django.db.models.signals import post_save, m2m_changed, pre_save
 from django.dispatch import receiver
 
 from apps.core.models import BaseModel
-from django.db import models
+from django.db import models, transaction
 from django.db import IntegrityError
 
 from apps.core.validators import CustomValidationError
 from apps.proxy_server.models import ProxyStock, ServerGroupThrough, ServerCidrThrough, Cidr, Acls, ProductStock
-
+from django.db import transaction
 
 class ProductTag(BaseModel):
     tag_name = models.CharField(max_length=255, verbose_name='标签名')
@@ -132,6 +132,69 @@ class Variant(BaseModel):
     #                 logging.info('add cidr:%s' % cidr)
     #                 self.cidrs.add(cidr)
     #     return super().save(force_insert, force_update, using, update_fields)
+
+
+    def update_ip_stock(self):
+        self.refresh_from_db()  # 确保获取最新数据
+
+        # 查询变体的cidr
+        cidrs = list(self.cidrs.all())  # 使用 list() 提前获取，减少查询次数
+        acls = list(Acls.objects.all())  # 在循环外获取所有ACL，减少查询次数
+
+        # 使用事务来确保数据操作的原子性
+        with transaction.atomic():
+            # 批量创建的对象列表
+            proxy_stocks_to_create = []
+            proxy_stocks_to_update = []
+
+            # 准备需要创建和更新的 ProxyStock 实例
+            for cidr in cidrs:
+                exclude_acl_list = cidr.list_exclude_acl()
+
+                for acl in acls:
+                    # 检查是否已经存在 ProxyStock 对象
+                    existing_stock = ProxyStock.objects.filter(cidr=cidr, acl=acl, cart_step=self.cart_step).first()
+
+                    if existing_stock:
+                        # 如果存在则更新
+                        existing_stock.soft_delete = False
+                        if acl.id in exclude_acl_list:
+                            existing_stock.exclude_label = True
+                        proxy_stocks_to_update.append(existing_stock)
+                    else:
+                        # 如果不存在则创建新的
+                        new_stock = ProxyStock(
+                            cidr=cidr,
+                            acl=acl,
+                            cart_step=self.cart_step,
+                            ip_stock=cidr.ip_count,
+                            cart_stock=cidr.ip_count // self.cart_step,
+                            subnets=",".join(cidr.gen_subnets()),
+                            available_subnets=",".join(cidr.gen_subnets()),
+                            soft_delete=False,
+                            exclude_label=(acl.id in exclude_acl_list)
+                        )
+                        proxy_stocks_to_create.append(new_stock)
+
+            # 批量创建新的 ProxyStock 实例
+            ProxyStock.objects.bulk_create(proxy_stocks_to_create)
+
+            # 批量更新现有的 ProxyStock 实例
+            ProxyStock.objects.bulk_update(
+                proxy_stocks_to_update,
+                fields=["soft_delete", "exclude_label"]
+            )
+
+            # 更新旧的 ProductStock 实例
+            old_product_stocks = ProductStock.objects.filter(variant_id=self.id)
+            old_product_stocks_to_update = []
+
+            for old_product_stock in old_product_stocks:
+                old_product_stock.server_group = self.server_group
+                old_product_stocks_to_update.append(old_product_stock)
+
+            # 批量更新 ProductStock 实例
+            ProductStock.objects.bulk_update(old_product_stocks_to_update, fields=["server_group"])
 
 
 
