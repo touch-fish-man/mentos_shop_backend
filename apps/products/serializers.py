@@ -155,6 +155,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         cidrs = validated_data['server_group'].get_cidrs()
         logging.info(cidrs)
         for cidr_i in cidrs:
+            exclude_acl_list = cidr_i.list_exclude_acl()
             for acl_i in acls:
                 acl_id = acl_i.id
                 cart_stock = cidr_i.ip_count // cart_step
@@ -167,7 +168,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                     stock_obj.subnets = ",".join(subnets)
                     stock_obj.available_subnets = stock_obj.subnets
                 stock_obj.soft_delete = False
-                if acl_i.id in cidr_i.list_exclude_acl():
+                if acl_i.id in exclude_acl_list:
                     stock_obj.exclude_label = True
                 stock_obj.save()
         # 更新库存
@@ -179,6 +180,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         instance.cidrs.set(cidrs)
         if redis_client.get(cache_key):
             redis_client.delete(cache_key)
+        logging.info("update variant")
         return super().update(instance, validated_data)
 
 
