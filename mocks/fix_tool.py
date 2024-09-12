@@ -582,10 +582,10 @@ def find_eror():
                 stock_obj.soft_delete = False
                 stock_obj.save()
                 # 更新库存
-            old_product_stocks = ProductStock.objects.filter(variant_id=v.id)
-            for old_product_stock in old_product_stocks:
-                old_product_stock.server_group = v.server_group
-                old_product_stock.save()
+        old_product_stocks = ProductStock.objects.filter(variant_id=v.id)
+        for old_product_stock in old_product_stocks:
+            old_product_stock.server_group = v.server_group
+            old_product_stock.save()
         v.cidrs.set(cidrs)
         v.save()
                         
