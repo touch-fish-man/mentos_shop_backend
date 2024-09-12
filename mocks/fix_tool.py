@@ -593,6 +593,7 @@ def find_eror():
         v.save()
 def test_email():
     from apps.core.email_tools import EmailSender
+    from django.conf import settings
     email_dict = {
             "template": settings.EmailTemplate.RESET_PROXY,
             "data": {
