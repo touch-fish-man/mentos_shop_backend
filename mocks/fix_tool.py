@@ -595,7 +595,7 @@ def test_email():
     from apps.core.email_tools import EmailSender
     from django.conf import settings
     email_dict = {
-            "template": settings.EmailTemplate.RESET_PROXY,
+            "template": "reset_proxy",
             "data": {
                 "order_id": str(999),
                 "status": 'success',
