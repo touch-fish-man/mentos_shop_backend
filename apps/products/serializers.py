@@ -163,8 +163,9 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
                     subnets = stock_obj.gen_subnets()
                     stock_obj.subnets = ",".join(subnets)
                     stock_obj.available_subnets = stock_obj.subnets
-                    stock_obj.save()
                 stock_obj.soft_delete = False
+                if acl_id not in cidr_i.acls.all().values_list('id', flat=True):
+                    stock_obj.exclude_label = True
                 stock_obj.save()
         # 更新库存
         variant_id = validated_data["id"]
@@ -173,7 +174,8 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             old_product_stock.server_group = validated_data['server_group']
             old_product_stock.save()
         instance.cidrs.set(cidrs)
-        redis_client.delete(cache_key)
+        if redis_client.get(cache_key):
+            redis_client.delete(cache_key)
         return super().update(instance, validated_data)
 
     def validate(self, attrs):
@@ -181,6 +183,7 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
         v_id=attrs['id']
         cache_key = f"update_variant_{v_id}"
         redis_client = cache.client.get_client()
+        logging.info(redis_client.get(cache_key))
         if redis_client.get(cache_key):
             raise CustomValidationError("请勿重复提交")
         else:
