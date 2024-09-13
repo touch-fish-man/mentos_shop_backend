@@ -562,6 +562,7 @@ def delete_old_data():
 def find_eror():
     p=Product.objects.filter(valid=True,old_flag=False).all()
     for x in p:
+        print(x.id)
         variants=x.variants.all()
         for v in variants:
             v.update_ip_stock()
