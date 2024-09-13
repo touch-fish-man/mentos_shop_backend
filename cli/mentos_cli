@@ -13,12 +13,15 @@ import requests
 import time
 from concurrent.futures import ThreadPoolExecutor
 
+import rich
+
 from init_env import *
 from rich.console import Console
 from rich.progress import track
 import ipaddress
 from rich.table import Table
 from rich.progress import Progress, TaskID
+from rich.prompt import Prompt
 
 from apps.proxy_server.models import Proxy, ProxyStock, ServerGroup, Server, AclGroup, ServerCidrThrough, \
     ServerGroupThrough, Cidr
@@ -198,6 +201,47 @@ def find_repeat():
             print("ip:{} 重复订单:{}".format(ip, ",".join(map(str, v))))
 
 
+@cli.command()
+def list_cidrs():
+    """
+    列出产品对应的cidr
+    """
+    #输入商品id
+    product_id = console.input("请输入商品id:")
+    try:
+        product_id = int(product_id)
+    except ValueError:
+        console.print("请输入数字")
+        return
+    #查询商品
+    product = Product.objects.filter(id=product_id).first()
+    if not product:
+        console.print("商品不存在")
+        return
+    #查询商品变体
+    variants = Variant.objects.filter(product_id=product_id).all()
+    for variant in variants:
+        console.print(f"商品:{product.product_name} 变体:{variant.variant_name}")
+        #查询商品变体的cidr
+        cidrs = variant.cidrs.all()
+        for cidr in cidrs:
+            console.print(f"cidr:{cidr.cidr}")
+@cli.command()
+def test_mail():
+    """
+    测试邮件
+    """
+    from apps.core.email_tools import EmailSender
+    from django.conf import settings
+
+    email = console.input("请输入邮箱:")
+    select_list=list(settings.EMAIL_TEMPLATES.keys())
+    #选择邮件模板
+    template = Prompt("请选择邮件模板", choices=select_list).ask()
+    email_dict = {
+        "template": template,
+        "data": {}}
+    EmailSender.send_email(email, email_dict)
 @cli.command()
 def proxy_compare_order():
     """
