@@ -560,37 +560,10 @@ def delete_old_data():
             if not Product.objects.filter(id=o.product_id).exists():
                 print(o.product_id)
 def find_eror():
-    p=Product.objects.filter(id=259).first()
+    p=Product.objects.filter(id=257).first()
     variants=p.variants.all()
-    acls = Acls.objects.all()
     for v in variants:
-        cart_step = v.cart_step
-        cidrs = v.cidrs.all()
-        for cidr_i in cidrs:
-            for acl_i in acls:
-                acl_id = acl_i.id
-                print(cidr_i.id, acl_id, cart_step)
-                cart_stock = cidr_i.ip_count // cart_step
-                stock_obj, is_create = ProxyStock.objects.get_or_create(cidr=cidr_i, acl_id=acl_id,
-                                                                        cart_step=cart_step)
-                if is_create:
-                    stock_obj.ip_stock = cidr_i.ip_count
-                    stock_obj.cart_stock = cart_stock
-                    subnets = stock_obj.gen_subnets()
-                    stock_obj.subnets = ",".join(subnets)
-                    stock_obj.available_subnets = stock_obj.subnets
-                stock_obj.soft_delete = False
-                if acl_id not in cidr_i.acls.all().values_list('id', flat=True):
-                    print("exclude_label", cidr_i.id, acl_id)
-                    stock_obj.exclude_label = True
-                stock_obj.save()
-                # 更新库存
-        old_product_stocks = ProductStock.objects.filter(variant_id=v.id)
-        for old_product_stock in old_product_stocks:
-            old_product_stock.server_group = v.server_group
-            old_product_stock.save()
-        v.cidrs.set(cidrs)
-        v.save()
+        v.update_ip_stock()
 def test_email():
     from apps.core.email_tools import EmailSender
     from django.conf import settings
