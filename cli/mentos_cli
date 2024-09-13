@@ -237,7 +237,7 @@ def test_mail():
     email = console.input("请输入邮箱:")
     select_list=list(settings.EMAIL_TEMPLATES.keys())
     #选择邮件模板
-    template = Prompt("请选择邮件模板", choices=select_list).ask()
+    template = Prompt.ask("请选择邮件模板", choices=select_list)
     email_dict = {
         "template": template,
         "data": {}}
