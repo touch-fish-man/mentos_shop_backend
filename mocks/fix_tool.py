@@ -576,4 +576,4 @@ def test_email():
             }}
     EmailSender.send_email("zlp5icv@gmail.com", email_dict)                   
 if __name__ == '__main__':
-    test_email()
+    find_eror()
