@@ -135,6 +135,7 @@ class Variant(BaseModel):
 
 
     def update_ip_stock(self):
+        logging.info('Update Variant IP Stock: %s' % self.id)
         self.refresh_from_db()  # 确保获取最新数据
 
         # 查询变体的cidr

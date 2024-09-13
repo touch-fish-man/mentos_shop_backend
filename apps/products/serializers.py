@@ -150,14 +150,14 @@ class VariantUpdateSerializer(serializers.ModelSerializer):
             raise CustomValidationError("请勿重复提交,如果{}秒后还未更新,再重新提交".format(expired_time))
         else:
             redis_client.set(cache_key, 1, ex=60*5)
-        logging.info(validated_data['server_group'])
+        # logging.info(validated_data['server_group'])
         cidrs = validated_data['server_group'].get_cidrs()
         instance.cidrs.set(cidrs)
         update_ret = super().update(instance, validated_data)
         instance.update_ip_stock()
         if redis_client.get(cache_key):
             redis_client.delete(cache_key)
-        logging.info("update variant")
+        # logging.info("update variant")
         return update_ret
 
 
