@@ -178,8 +178,8 @@ class Variant(BaseModel):
 
             # 批量创建新的 ProxyStock 实例
             ProxyStock.objects.bulk_create(proxy_stocks_to_create)
-            print('proxy_stocks_to_create:', len(proxy_stocks_to_create))
-            print('proxy_stocks_to_update:', len(proxy_stocks_to_update))
+            logging.info('update_ip_stock: create %s proxy_stocks' % len(proxy_stocks_to_create))
+            logging.info('update_ip_stock: update %s proxy_stocks' % len(proxy_stocks_to_update))
             # 批量更新现有的 ProxyStock 实例
             ProxyStock.objects.bulk_update(
                 proxy_stocks_to_update,

@@ -184,6 +184,15 @@ class Server(BaseModel):
                 "id": cidr.id,
             })
         return cidr_info
+    def find_variants(self):
+        # 查询server group
+        vaiants_list = set()
+        server_groups = self.server_groups.all()
+        for server_group in server_groups:
+            # 查询variant
+            variants = server_group.variants.all()
+            vaiants_list.add(variants)
+        return vaiants_list
 
 
 def cidr_ip_count(cidr):
@@ -627,6 +636,8 @@ def _mymodel_m2m_changed_server_group(sender, instance, action, reverse, model, 
         for v in instance.variants.all():
             v.cidrs.clear()
             v.cidrs.add(*instance.get_cidrs())
+            v.update_ip_stock()
+
 
 
 @receiver(m2m_changed, sender=Server.cidrs.through)
@@ -640,3 +651,4 @@ def _mymodel_m2m_changed_server(sender, instance, action, reverse, model, pk_set
             for v in server_group.variants.all():
                 v.cidrs.clear()
                 v.cidrs.add(*server_group.get_cidrs())
+                v.update_ip_stock()
