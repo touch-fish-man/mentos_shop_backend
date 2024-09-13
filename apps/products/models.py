@@ -169,8 +169,8 @@ class Variant(BaseModel):
                             cart_step=self.cart_step,
                             ip_stock=cidr.ip_count,
                             cart_stock=cidr.ip_count // self.cart_step,
-                            subnets=",".join(cidr.gen_subnets()),
-                            available_subnets=",".join(cidr.gen_subnets()),
+                            subnets=",".join(cidr.gen_subnets(self.cart_step)),
+                            available_subnets=",".join(cidr.gen_subnets(self.cart_step)),
                             soft_delete=False,
                             exclude_label=(acl.id in exclude_acl_list)
                         )

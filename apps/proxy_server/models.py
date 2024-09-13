@@ -226,6 +226,7 @@ class Cidr(BaseModel):
 
     def __str__(self):
         return self.cidr
+
     def list_exclude_acl(self):
         return self.exclude_acl.all().values_list('id', flat=True)
 
@@ -233,6 +234,27 @@ class Cidr(BaseModel):
         self.soft_delete = True
         ProxyStock.objects.filter(cidr_id=self.id).update(soft_delete=True)
         self.save()
+
+    def gen_subnets(self, cart_step):
+        """
+        生成子网
+        :return:
+        """
+        # 计算
+        subnets = self.get_all_subnet(self.cidr, new_prefix=32 - int(math.log(cart_step, 2)))
+        return subnets
+
+    def get_all_subnet(self, cidr_str, new_prefix=29):
+        """
+        获取所有子网
+        """
+        # 获取IP地址和掩码
+        ip, cidr_mask = cidr_str.split('/')
+        # 获取网段
+        network = ipaddress.IPv4Network((ip, cidr_mask))
+        # 获取所有子网
+        subnets = [str(subnet) for subnet in network.subnets(new_prefix=new_prefix)]
+        return subnets
 
 
 def fix_network_by_ip(cidr_str):
