@@ -560,10 +560,11 @@ def delete_old_data():
             if not Product.objects.filter(id=o.product_id).exists():
                 print(o.product_id)
 def find_eror():
-    p=Product.objects.filter(id=257).first()
-    variants=p.variants.all()
-    for v in variants:
-        v.update_ip_stock()
+    p=Product.objects.filter(valid=True,old_flag=False).all()
+    for x in p:
+        variants=x.variants.all()
+        for v in variants:
+            v.update_ip_stock()
 def test_email():
     from apps.core.email_tools import EmailSender
     from django.conf import settings
