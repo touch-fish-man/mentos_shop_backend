@@ -198,7 +198,7 @@ class Variant(BaseModel):
             # 批量更新 ProductStock 实例
             ProductStock.objects.bulk_update(old_product_stocks_to_update, fields=["server_group"])
             for old_product_stock in old_product_stocks_to_update:
-                old_product_stock.save()
+                old_product_stock.save() # 触发库存更新
 
 
 
