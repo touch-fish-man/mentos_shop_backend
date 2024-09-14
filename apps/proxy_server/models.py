@@ -257,6 +257,7 @@ class Cidr(BaseModel):
         """
         获取所有子网
         """
+        logging.info(cidr_str)
         # 获取IP地址和掩码
         ip, cidr_mask = cidr_str.split('/')
         # 获取网段
