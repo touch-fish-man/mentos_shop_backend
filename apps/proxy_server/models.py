@@ -590,6 +590,7 @@ def proxy_stock_updated_post(sender, instance, **kwargs):
         cidr_ids = [x.id for x in product_stock.server_group.get_cidrs()]
         if cidr_id in cidr_ids:
             logging.info('更新产品库存{}'.format(product_stock.id))
+            print('更新产品库存{}'.format(product_stock.id))
             product_stock.save()
 
 
