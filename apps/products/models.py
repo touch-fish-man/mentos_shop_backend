@@ -199,6 +199,7 @@ class Variant(BaseModel):
             ProductStock.objects.bulk_update(old_product_stocks_to_update, fields=["server_group"])
             from django.db.models.signals import post_save
             for old_product_stock in old_product_stocks_to_update:
+                print('send signal')
                 post_save.send(sender=ProductStock, instance=old_product_stock, created=False)
 
 
