@@ -18,7 +18,7 @@ from django.dispatch.dispatcher import receiver
 from django.core.cache import caches, cache
 from django.forms.models import model_to_dict
 from django.core.serializers.json import DjangoJSONEncoder
-
+from django.db import transaction
 
 # Create your models here.
 class AclGroup(BaseModel):
@@ -406,16 +406,17 @@ class ProxyStock(BaseModel):
                 lock.release()
 
     def _return_subnet(self, subnet):
-        available_subnets = self.available_subnets.split(',')
-        if "" in available_subnets:
-            available_subnets.remove("")
-        if subnet not in available_subnets and subnet in self.subnets:
-            available_subnets.append(subnet)
-            available_subnets = list(set(available_subnets))
-            available_subnets.sort(key=lambda x: int(ipaddress.ip_network(x).network_address))
-            self.available_subnets = ','.join(available_subnets)
-            self.ip_stock = sum([ipaddress.ip_network(x).num_addresses for x in available_subnets if x])
-            self.save()
+        with transaction.atomic():
+            available_subnets = self.available_subnets.split(',')
+            if "" in available_subnets:
+                available_subnets.remove("")
+            if subnet not in available_subnets and subnet in self.subnets:
+                available_subnets.append(subnet)
+                available_subnets = list(set(available_subnets))
+                available_subnets.sort(key=lambda x: int(ipaddress.ip_network(x).network_address))
+                self.available_subnets = ','.join(available_subnets)
+                self.ip_stock = sum([ipaddress.ip_network(x).num_addresses for x in available_subnets if x])
+                self.save()
 
     def return_stock(self, ip_count=1):
         """
