@@ -3,12 +3,15 @@ The project is designed to integrate seamlessly with the Shopify e-commerce plat
 # Installation
 
 ## Project setup
-pip3 install -r requirements-base.txt
-python3 cli/cli.py init
-修改网站配置文件
-cp .env.example config/.env
-vim config/.env
-python3 cli/cli.py install
+- pip3 install -r requirements-base.txt
+
+- python3 cli/cli.py init
+
+- cp .env.example config/.env
+
+- vim config/.env
+
+- python3 cli/cli.py install
 
 ### Config nginx
 ```
