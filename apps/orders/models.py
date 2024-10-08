@@ -89,6 +89,7 @@ class Orders(BaseModel):
     acl_selected = models.CharField(verbose_name='acl选项', null=True, blank=True, max_length=255)
     old_flag = models.IntegerField(verbose_name='老订单标记', default=0)
     fail_reason = models.CharField(max_length=255, verbose_name='失败原因', null=True, blank=True)
+    archive= models.IntegerField(verbose_name='归档', default=0)
 
     class Meta:
         db_table = 'orders'

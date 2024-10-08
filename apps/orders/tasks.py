@@ -137,7 +137,7 @@ def delete_timeout_order():
 @shared_task(name='delete_expired_order')
 def delete_expired_order():
     """
-    定时检查db中订单状态，如果订单过期，删除对应的proxy，每10天检查一次
+    定时检查db中订单状态，如果订单过期，删除对应的proxy，每10天检查一次,并将订单状态改为已完成
     """
     utc_now = datetime.datetime.now().astimezone(pytz.utc)
     orders = Orders.objects.filter(pay_status=1, order_status=4).all()  # 已支付，已发货
@@ -151,8 +151,8 @@ def delete_expired_order():
                 client.del_user(proxy.username)
                 proxy.delete()
                 order_obj_item.order_status = 3
+                order_obj_item.archive=True
                 order_obj_item.save()
-            order_obj_item.delete()
     data = {
         'orders': ret_orders,
         'status': 1
